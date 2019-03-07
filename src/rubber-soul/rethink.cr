@@ -1,4 +1,3 @@
-require "crystal-rethinkdb/"
 require "../config"
 
 class RubberSoul::Rethink

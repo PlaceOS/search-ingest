@@ -1,4 +1,4 @@
-class RubberSoul < Application
+class RubberSoul::API < Application
   base "/api"
 
   get "/healthz", :healthz do

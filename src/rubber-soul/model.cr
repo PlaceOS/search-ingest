@@ -1,7 +1,6 @@
-require "engine-models"
+# require "engine-models"
 
 module RubberSoul::ElasticModel(T)
-
   # Constructs a schema
   class Schema
     def initialize(@mappings : Array(Tuples(String, String)), @parent_tables : Array(Tuple(String, String)))
@@ -10,7 +9,6 @@ module RubberSoul::ElasticModel(T)
     # Creates a stringified JSON subschema
     def to_s
     end
-
   end
 
   # Map from crystal types to Elasticsearch field datatypes
@@ -28,25 +26,25 @@ module RubberSoul::ElasticModel(T)
 
   def map_es_type(value) : String
     es_type = case value
-    when String
-      "text"
-    when Time
-      "date"
-    when Int64
-      "long"
-    when Int32
-      "integer"
-    when Int16
-      "short"
-    when Int8
-      "byte"
-    when Float64
-      "double"
-    when Float32
-      "float"
-    else
-      ""
-    end
+              when String
+                "text"
+              when Time
+                "date"
+              when Int64
+                "long"
+              when Int32
+                "integer"
+              when Int16
+                "short"
+              when Int8
+                "byte"
+              when Float64
+                "double"
+              when Float32
+                "float"
+              else
+                ""
+              end
   end
 
   # Associations are placed under the parents

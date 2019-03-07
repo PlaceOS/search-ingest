@@ -1,4 +1,4 @@
-module RubberSoul
+module RubberSoul::Types
   alias Table = NamedTuple(
     name: String,
     db: String)

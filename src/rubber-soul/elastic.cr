@@ -7,7 +7,7 @@ class RubberSoul::Elastic
     setting scheme : String = "http"
   end
 
-  BASE = URI.new(host: setting.host, port: setting.port, scheme: setting.scheme).to_s
+  BASE = URI.new(host: self.settings.host, port: self.settings.port, scheme: self.settings.scheme).to_s
 
   # Replicate a RethinkDB document in ES
   def self.save_document(

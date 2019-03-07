@@ -1,24 +1,24 @@
 class RubberSoul::TableManager
 
   # ES Index => Tables
-  @@watching = {} of String => Array(Schema)
+  @@watching = {} of String => Array(ElasticModel::Schema)
 
   def initialize
   end
 
-  def ensure_tables!
+  def self.ensure_tables!
   end
 
-  def apply_mappings
+  def self.apply_mappings
     mappings = @@watching.map { |index, mappings| mapping.generate_mappings }
   end
 
-  def watch_tables
+  def self.watch_tables
   end
 
-  def backfill_tables
+  def self.backfill_tables
   end
 
-  def reindex_tables
+  def self.reindex_tables
   end
 end

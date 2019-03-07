@@ -1,9 +1,10 @@
 require "./config"
 
-module RubberSoul::Server
-  def start(host, port, cluster = false, process_count = 1)
+class RubberSoul::Server
+
+  def self.start(host, port, cluster = false, process_count = 1)
     # Load routes
-    server = ActionController::Server.new(server_port, server_host)
+    server = ActionController::Server.new(port: port, host: host)
 
     # Start clustering
     server.cluster(process_count, "-w", "--workers") if cluster
@@ -24,4 +25,5 @@ module RubberSoul::Server
       puts "Listening on #{server.print_addresses}"
     end
   end
+
 end

@@ -15,12 +15,14 @@ dependencies:
 
   engine-models:
     github: aca-labs/crystal-engine-models
+    branch: master
 
   crystal-rethinkdb:
     github: kingsleyh/crystal-rethinkdb
 
   habitat:
     github: luckyframework/habitat
+    version: "0.4.0"
 
 development_dependencies:
   ameba:

@@ -1,7 +1,7 @@
 # Application dependencies
 require "action-controller"
 require "crystal-rethinkdb"
-require "engine-models"
+# require "engine-models"
 require "habitat"
 require "http/client"
 require "uri"
@@ -9,7 +9,6 @@ require "uri"
 # Application code
 require "./controllers/application"
 require "./controllers/*"
-require "./rubber-soul/*"
 
 # Server required after application controllers
 require "action-controller/server"
