@@ -1,0 +1,31 @@
+name: rubber-soul
+version: 0.1.0
+
+authors:
+  - Caspian Baska <caspianbaska@gmail.com>
+
+targets:
+  rubber-soul:
+    main: src/rubber-soul.cr
+
+dependencies:
+  action-controller:
+    github: spider-gazelle/action-controller
+    version: "~> 1.4"
+
+  engine-models:
+    github: aca-labs/crystal-engine-models
+
+  crystal-rethinkdb:
+    github: kingsleyh/crystal-rethinkdb
+
+  habitat:
+    github: luckyframework/habitat
+
+development_dependencies:
+  ameba:
+    github: veelenga/ameba
+
+crystal: 0.27.2
+
+license: MIT

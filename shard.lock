@@ -1,0 +1,38 @@
+version: 1.0
+shards:
+  action-controller:
+    github: spider-gazelle/action-controller
+    version: 1.4.1
+
+  active-model:
+    github: spider-gazelle/active-model
+    commit: a1c627927a2830778713928b4903cdca47d7469f
+
+  ameba:
+    github: veelenga/ameba
+    version: 0.9.0
+
+  crystal-rethinkdb:
+    github: kingsleyh/crystal-rethinkdb
+    version: 0.1.5
+
+  engine-models:
+    github: aca-labs/crystal-engine-models
+    commit: ef1960baaf7c9b1dd92bc93fd59199455a215eb6
+
+  habitat:
+    github: luckyframework/habitat
+    version: 0.4.1
+
+  kilt:
+    github: jeromegn/kilt
+    version: 0.4.0
+
+  radix:
+    github: luislavena/radix
+    version: 0.3.9
+
+  rethinkdb-orm:
+    github: spider-gazelle/rethinkdb-orm
+    commit: 0faf2fa5f7704616bea8635f5f825897b6c3d649
+
