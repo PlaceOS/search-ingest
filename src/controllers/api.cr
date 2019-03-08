@@ -1,5 +1,10 @@
-class RubberSoul::API < Application
+require "../controllers/base"
+require "../config"
+
+class RubberSoul::Controller::API < RubberSoul::Controller::Base
   base "/api"
+
+  # @@table_manager = RubberSoul::TableManager.new
 
   get "/healthz", :healthz do
     head :ok

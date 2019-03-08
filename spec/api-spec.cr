@@ -1,6 +1,6 @@
 require "./spec_helper"
 
-describe RubberSoul::API do
+describe RubberSoul::Controller::API do
   # ==============
   #  Unit Testing
   # ==============

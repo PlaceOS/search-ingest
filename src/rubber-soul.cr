@@ -2,11 +2,11 @@ require "option_parser"
 
 require "./config"
 require "./server"
-require "./rubber-soul/*"
 
 # Server defaults
 server_host = ENV["RUBBER_SOUL_HOST"]? || "127.0.0.1"
 server_port = ENV["RUBBER_SOUL_PORT"]?.try(&.to_i) || 3000
+
 cluster = false
 process_count = 1
 

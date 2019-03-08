@@ -1,24 +1,30 @@
+require "rethinkdb-orm"
+
 class RubberSoul::TableManager
-
   # ES Index => Tables
-  @@watching = {} of String => Array(ElasticModel::Schema)
+  # @watching = {} of String => Array(RubberSoul::Table::Schema)
 
-  def initialize
+  def initialize(models : Array(RethinkORM::Base.class))
+    @models = models.map { |model| RubberSoul::Table.new(model) }
+    # Generate the table and schema
+    # Fill out the watching
+    #
   end
 
-  def self.ensure_tables!
+  def ensure_tables!
   end
 
-  def self.apply_mappings
-    mappings = @@watching.map { |index, mappings| mapping.generate_mappings }
+  def apply_mappings
+    # mappings = @watching.map { |index, mappings| mapping.generate_mappings }
   end
 
-  def self.watch_tables
+  def watch_tables
+    # Spawn the watch process on each table
   end
 
-  def self.backfill_tables
+  def backfill_tables
   end
 
-  def self.reindex_tables
+  def reindex_tables
   end
 end

@@ -7,8 +7,10 @@ require "http/client"
 require "uri"
 
 # Application code
-require "./controllers/application"
+require "./controllers/base"
 require "./controllers/*"
+
+require "./rubber-soul/*"
 
 # Server required after application controllers
 require "action-controller/server"
