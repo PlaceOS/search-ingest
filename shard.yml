@@ -6,7 +6,7 @@ authors:
 
 targets:
   rubber-soul:
-    main: src/rubber-soul.cr
+    main: src/app.cr
 
 dependencies:
   action-controller:

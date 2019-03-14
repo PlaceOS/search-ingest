@@ -1,7 +1,9 @@
 require "json"
 require "rethinkdb-rom"
 
-require "../config"
+require "./elastic"
+require "./table"
+require "./error"
 
 class RubberSoul::TableManager
   @@tables : Array(RubberSoul::Table)

@@ -17,11 +17,15 @@ class RubberSoul::Table
         },
       {% end %}
       }
+
+    # Map to class to allow class methods
     private CLASS_DISPATCH = {
       {% for model in RethinkORM::Base::FIELD_MAPPINGS.keys %}
         {{ model.stringify }} => {{ model.id }},
       {% end %}
       }
+
+    # Used to look up index name for parents
     private TABLE_MAPPING = {
       {% for model in RethinkORM::Base::FIELD_MAPPINGS.keys %}
         {{ model.stringify }} => {{ model.id }}.table_name,

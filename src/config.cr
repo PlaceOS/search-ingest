@@ -1,18 +1,14 @@
 # Application dependencies
 require "action-controller"
 require "engine-models"
-require "habitat"
 
 # stdlib
-require "http/client"
+require "http"
 require "logger"
-require "uri"
 
 # Application code
 require "./controllers/base"
 require "./controllers/*"
-
-require "./rubber-soul/*"
 
 # Server required after application controllers
 require "action-controller/server"

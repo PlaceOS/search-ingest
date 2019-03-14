@@ -1,5 +1,5 @@
 require "./base"
-require "../config"
+require "../rubber-soul/table-manager"
 
 class RubberSoul::Controller::API < RubberSoul::Controller::Base
   base "/api"

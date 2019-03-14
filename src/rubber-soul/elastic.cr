@@ -1,4 +1,4 @@
-require "../config"
+require "./error"
 
 class RubberSoul::Elastic
   # Settings for elastic client
