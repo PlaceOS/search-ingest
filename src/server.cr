@@ -1,5 +1,3 @@
-require "./config"
-
 class RubberSoul::Server
   def self.start(host, port, cluster = false, process_count = 1)
     # Load routes

@@ -13,7 +13,6 @@ process_count = 1
 # Application defaults
 backfill = false
 reindex = true
-watch = true
 
 # Command line options
 OptionParser.parse(ARGV.dup) do |parser|
@@ -23,13 +22,15 @@ OptionParser.parse(ARGV.dup) do |parser|
   parser.on("--backfill", "Perform backfill") { backfill = true }
   parser.on("--reindex", "Perform reindex") { reindex = true }
 
-  # Rethinkdb Options
-  parser.on("--rethink-host HOST", "RethinkDB host") do |host|
-    RubberSoul::Rethink.settings.host = host
-  end
-  parser.on("--rethink-port PORT", "RethinkDB port") do |port|
-    RubberSoul::Rethink.settings.port = port.to_i
-  end
+  # Rethinkdb Options,
+  # Access through models themselves.
+  #
+  # parser.on("--rethink-host HOST", "RethinkDB host") do |host|
+  #   RubberSoul::Rethink.settings.host = host
+  # end
+  # parser.on("--rethink-port PORT", "RethinkDB port") do |port|
+  #   RubberSoul::Rethink.settings.port = port.to_i
+  # end
 
   # Elasticsearch Options
   parser.on("--elastic-host HOST", "Elasticsearch host") do |host|
@@ -64,25 +65,30 @@ OptionParser.parse(ARGV.dup) do |parser|
   end
 end
 
-raise RubberSoul::Error.new("Cannot reindex and backfill tables") if reindex && backfill
-
-puts "Launching #{APP_NAME} v#{VERSION}"
-
-# Ensure services are available
+# Ensure elastic is available
 RubberSoul::Elastic.ensure_elastic!
-RubberSoul::TableManager.ensure_tables!
 
-# Synchronise ES with RethinkDB changefeeds
-RubberSoul::TableManager.watch_tables if watch
+# DB and table presence ensured by rethinkdb orm
 
-# Push all documents in RethinkDB to ES
-RubberSoul::TableManager.backfill_tables if backfill
+if backfill || reindex
+  # Perform backfill/reindex and then exit
 
-# Recreate ES indexes from existing RethinkDB documents
-RubberSoul::TableManager.reindex_tables if reindex
+  raise RubberSoul::Error.new("Cannot reindex and backfill tables") if reindex && backfill
 
-# Run server
-RubberSoul::Server.start(server_host, server_port, cluster, process_count)
+  # TODO: Model names currently hardcoded
+  # TODO: Change once models export the model names
+  tm = RubberSoul::TableManager.new([ControlSystem, Module, Dependency, Zone])
+
+  # Push all documents in RethinkDB to ES
+  tm.backfill_tables if backfill
+  # Recreate ES indexes from existing RethinkDB documents
+  tm.reindex_all if reindex
+else
+  # Otherwise, run server
+
+  puts "Launching #{APP_NAME} v#{VERSION}"
+  RubberSoul::Server.start(server_host, server_port, cluster, process_count)
+end
 
 # Shutdown message
 puts "#{APP_NAME} signing off :}\n"

@@ -3,14 +3,21 @@
 A small service that hooks into [rethinkdb-orm](https://github.com/spider-gazelle/rethinkdb-orm) models and generates elasticsearch indicies.
 Exposes a REST API to reindex/backfill specific models
 
-## Installation
+## Implementation
 
+Each rethinkdb table receives an index
+Belongs to association are modelled with _type mappings.  
 
-## Usage
+flow
+1. include the mappings manager with your models
+1. start spider-gazelle service
+1. generates mappings, reindexes es by default (hmm)
+1. when document event from rethinkdb occurs, place in document index first then all parents
 
 
 ## Development
 
+Will require rethinkdb and elasticsearch services
 
 ## Contributing
 

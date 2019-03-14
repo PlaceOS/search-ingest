@@ -2,7 +2,7 @@ version: 1.0
 shards:
   action-controller:
     github: spider-gazelle/action-controller
-    version: 1.4.1
+    version: 1.4.2
 
   active-model:
     github: spider-gazelle/active-model
@@ -34,5 +34,5 @@ shards:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    commit: 51c3694eb531a37b6f035a0c8b88c5063d9786f9
+    commit: 63f3b2c39391c7e861efedab6df83c0fd7467e63
 

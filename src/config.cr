@@ -1,9 +1,11 @@
 # Application dependencies
 require "action-controller"
-require "crystal-rethinkdb"
-# require "engine-models"
+require "engine-models"
 require "habitat"
+
+# stdlib
 require "http/client"
+require "logger"
 require "uri"
 
 # Application code
@@ -21,6 +23,8 @@ ActionController::Server.before(
   HTTP::ErrorHandler.new(ENV["SG_ENV"]? != "production"),
   HTTP::CompressHandler.new
 )
+
+LOG = Logger.new
 
 # ACA engine configuration... necessary if using models?
 ACA_ENGINE_DB = "engine"

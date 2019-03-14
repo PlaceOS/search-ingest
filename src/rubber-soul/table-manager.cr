@@ -1,30 +1,120 @@
-require "rethinkdb-orm"
+require "json"
+require "rethinkdb-rom"
+
+require "../config"
 
 class RubberSoul::TableManager
-  # ES Index => Tables
-  # @watching = {} of String => Array(RubberSoul::Table::Schema)
+  @@tables : Array(RubberSoul::Table)
+
+  # Maps from index name to mapping schma
+  @@index_mappings = {} of String => String
 
   def initialize(models : Array(RethinkORM::Base.class))
-    @models = models.map { |model| RubberSoul::Table.new(model) }
-    # Generate the table and schema
-    # Fill out the watching
-    #
+    # Create tables
+    @@tables = models.map { |model| RubberSoul::Table.new(model) }
+
+    # Generate schemas
+    @tables.each { |t| @index_mappings[t.name] = create_schema(t) }
+
+    # Set up ES indices
+    initialise_indices
   end
 
-  def ensure_tables!
+  # Backfills from a table to all relevant indices
+  def backfill(table)
+    table.all.each { |d| Rubber::Elastic.save_document(table, d) }
   end
 
-  def apply_mappings
-    # mappings = @watching.map { |index, mappings| mapping.generate_mappings }
+  # Save all documents in all tables to the correct indices
+  def backfill_all
+    @tables.each { |t| backfill(t) }
+  end
+
+  def reindex_all
+    # Clear and update all index mappings
+    @tables.each do |table|
+      # Delete index
+      RubberSoul::Elastic.delete_index(table.index_name)
+      # Apply current mapping
+      apply_mapping(table)
+    end
+    # Backfill all indices
+    backfill_all
+  end
+
+  # Clear, update mapping an ES index and refill with rethinkdb documents
+  def reindex(table)
+    # Delete index
+    RubberSoul::Elastic.delete_index(table.index_name)
+    # Apply current mapping
+    apply_mapping(table)
+    # Backfill
+    backfill(table)
+  end
+
+  def apply_mapping(table)
+    schema_created = RubberSoul::Elastic.apply_index_mapping create_schema(table)
+    raise RubberSoul::Error.new("Error: failed to #{table.index_name}") unless schema_created
   end
 
   def watch_tables
-    # Spawn the watch process on each table
+    @tables.each do |table|
+      spawn do
+        table.watch do |change|
+          document = change[:value]
+          if change[:event] == RethinkORM::Changefeed::Event::Deleted?
+            RubberSoul::Elastic.delete_document(table, document)
+          else
+            RubberSoul::Elastic.save_document(table, document)
+          end
+        end
+      rescue e
+        LOG.error "while watching #{table.name}"
+        raise e
+      end
+    end
   end
 
-  def backfill_tables
+  # Checks if any index does not exist or has a different mapping
+  def consistent_indices?
+    @tables.all? do |index_table|
+      index = index_table.index_name
+      index_exists = RubberSoul::Elastic.check_index? index
+      !!(index_exists && diff_mapping(index))
+    end
   end
 
-  def reindex_tables
+  # Currently a reindex is triggered if...
+  # - a single index does not exist
+  # - a single mapping is different
+  # TODO: Intelligentify
+  def initialise_indices
+    # Delete and backfill to a consistent state
+    reindex_all unless consistent_indices?
+  end
+
+  # Diff the current mapping schema (if any) against generated schema
+  def diff_mapping(index)
+    current_mapping = RubberSoul::Elastic.get_mapping index
+
+    # Mapping exists and is the same
+    !!(current_mapping && current_mapping == @index_mappings[index])
+  end
+
+  # Collects all properties relevant to an index and collapse them into a schema
+  def create_schema(table)
+    index_tables = table.children.append(table.name)
+    pp! index_tables
+    # Get the properties of all relevent tables  create index
+    index_properties = @tables.compact_map { |t| t.properties if index_tables.includes? t.name }
+
+    # Construct the mapping schema
+    {
+      mappings: {
+        _doc: {
+          properties: index_properties.to_h,
+        },
+      },
+    }.to_json
   end
 end
