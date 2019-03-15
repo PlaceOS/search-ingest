@@ -14,6 +14,7 @@ class RubberSoul::TableManager
 
   # def initialize(models : Array(RethinkORM::Base.class))
   def initialize(models)
+    pp! models
     # Create tables
     @tables = models.map { |model| RubberSoul::Table.new(model) }
 
@@ -109,11 +110,6 @@ class RubberSoul::TableManager
 
   # Collects all properties relevant to an index and collapse them into a schema
   def create_schema(table : Table)
-    # table = @tables.find { |t| t.index_name == index }
-
-    # Empty schema if no table
-    # return "" unless table
-
     index_tables = table.children << table.name
 
     # Get the properties of all relevent tables  create index

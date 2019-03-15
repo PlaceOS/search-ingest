@@ -35,6 +35,7 @@ class RubberSoul::Table
   def initialize(model)
     @name = model.name
     @index_name = MODEL_METADATA[@name][:table_name]
+    pp! MODEL_METADATA
   end
 
   # Get array of _es_ properties of the table
