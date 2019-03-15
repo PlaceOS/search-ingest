@@ -1,19 +1,21 @@
 require "json"
-require "rethinkdb-rom"
+require "rethinkdb-orm"
 
 require "./elastic"
 require "./table"
 require "./error"
 
 class RubberSoul::TableManager
-  @@tables : Array(RubberSoul::Table)
+  @tables : Array(RubberSoul::Table)
+  getter tables
 
   # Maps from index name to mapping schma
-  @@index_mappings = {} of String => String
+  @index_mappings = {} of String => String
 
-  def initialize(models : Array(RethinkORM::Base.class))
+  # def initialize(models : Array(RethinkORM::Base.class))
+  def initialize(models)
     # Create tables
-    @@tables = models.map { |model| RubberSoul::Table.new(model) }
+    @tables = models.map { |model| RubberSoul::Table.new(model) }
 
     # Generate schemas
     @tables.each { |t| @index_mappings[t.name] = create_schema(t) }
@@ -23,8 +25,8 @@ class RubberSoul::TableManager
   end
 
   # Backfills from a table to all relevant indices
-  def backfill(table)
-    table.all.each { |d| Rubber::Elastic.save_document(table, d) }
+  def backfill(table : RubberSoul::Table)
+    table.all.each { |d| RubberSoul::Elastic.save_document(table, d) }
   end
 
   # Save all documents in all tables to the correct indices
@@ -55,8 +57,10 @@ class RubberSoul::TableManager
   end
 
   def apply_mapping(table)
-    schema_created = RubberSoul::Elastic.apply_index_mapping create_schema(table)
-    raise RubberSoul::Error.new("Error: failed to #{table.index_name}") unless schema_created
+    schema = create_schema(table)
+    unless RubberSoul::Elastic.apply_index_mapping(table.index_name, schema)
+      raise RubberSoul::Error.new("Failed to create #{table.index_name}")
+    end
   end
 
   def watch_tables
@@ -104,9 +108,14 @@ class RubberSoul::TableManager
   end
 
   # Collects all properties relevant to an index and collapse them into a schema
-  def create_schema(table)
-    index_tables = table.children.append(table.name)
-    pp! index_tables
+  def create_schema(table : Table)
+    # table = @tables.find { |t| t.index_name == index }
+
+    # Empty schema if no table
+    # return "" unless table
+
+    index_tables = table.children << table.name
+
     # Get the properties of all relevent tables  create index
     index_properties = @tables.compact_map { |t| t.properties if index_tables.includes? t.name }
 

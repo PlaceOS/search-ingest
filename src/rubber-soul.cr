@@ -1,4 +1,4 @@
-require "./rubber-soul/*"
-
 module RubberSoul
 end
+
+require "./rubber-soul/*"

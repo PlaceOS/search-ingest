@@ -10,12 +10,12 @@ describe RubberSoul::Table do
   describe "indexes with associations" do
     it "finds the child tables" do
       table = RubberSoul::Table.new(Programmer)
-      table.children.keys.should eq ["Coffee", "Migraine"]
+      table.children.should eq ["Coffee", "Migraine"]
     end
 
     it "finds the parent tables" do
       table = RubberSoul::Table.new(Coffee)
-      table.parent_tables.keys.should eq ["Programmer"]
+      table.parents.should eq [{index: "programmer", routing_attr: "programmer_id"}]
     end
   end
 end

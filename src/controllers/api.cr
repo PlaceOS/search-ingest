@@ -6,7 +6,12 @@ class RubberSoul::Controller::API < RubberSoul::Controller::Base
 
   # TODO: Model names currently hardcoded
   # TODO: Change once models export the model names
-  @@table_manager = RubberSoul::TableManager.new([ControlSystem, Module, Dependency, Zone])
+  @@table_manager = RubberSoul::TableManager.new([
+    Engine::Model::ControlSystem,
+    Engine::Model::Module,
+    Engine::Model::Dependency,
+    Engine::Model::Zone,
+  ])
 
   get "/healthz", :healthz do
     head :ok
@@ -14,7 +19,7 @@ class RubberSoul::Controller::API < RubberSoul::Controller::Base
 
   # Reindex all tables
   post "/reindex", :reindex_tables do
-    head :not_implemented
+    @@table_manager.reindex_all
   end
 
   # Allow specific tables to be reindexed
@@ -25,7 +30,7 @@ class RubberSoul::Controller::API < RubberSoul::Controller::Base
 
   # Backfill all tables
   post "/backfill", :backfill_tables do
-    head :not_implemented
+    @@table_manager.backfill_all
   end
 
   # Backfill specific table,

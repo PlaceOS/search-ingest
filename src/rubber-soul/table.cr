@@ -1,75 +1,72 @@
-require "rethink-orm"
+require "rethinkdb-orm"
 
 # Encapsulates table's relations and properties
 class RubberSoul::Table
+  forward_missing_to klass
+
   macro finished
     __generate_field_mapping
   end
 
   macro __generate_field_mapping
     # Mappings for all RethinkORM models in the scope
-    private ATTRIBUTE_MAPPINGS = {
+    private MODEL_METADATA = {
       {% for model, fields in RethinkORM::Base::FIELD_MAPPINGS %}
-        {{ model.stringify }} => {
-          {% for attr, options in fields %}
-            {{ attr.symbolize }} => {{ options }},
-          {% end %}
-        },
+        {% unless fields.empty? || model.abstract? %}
+          {{ model.stringify }} => {
+              attributes: {
+                {% for attr, options in fields %}
+                  {{ attr.symbolize }} => {{ options }},
+                {% end %}
+              },
+              klass: {{ model.id }},
+              table_name: {{ model.id }}.table_name
+            },
+        {% end %}
       {% end %}
       }
-
-    # Map to class to allow class methods
-    private CLASS_DISPATCH = {
-      {% for model in RethinkORM::Base::FIELD_MAPPINGS.keys %}
-        {{ model.stringify }} => {{ model.id }},
-      {% end %}
-      }
-
-    # Used to look up index name for parents
-    private TABLE_MAPPING = {
-      {% for model in RethinkORM::Base::FIELD_MAPPINGS.keys %}
-        {{ model.stringify }} => {{ model.id }}.table_name,
-      {% end %}
-    }
   end
 
   alias Mapping = Tuple(Symbol, String)
-  alias Child = Tuple(Symbol, String)
 
-  getter name
-  getter index_name
+  getter name : String
+  getter index_name : String
 
-  def initialize(@model : RethinkORM::Base.class)
-    @name = @model.name
-    @klass = CLASS_DISPATCH[@name]
-    @index_name = @klass.table_name
+  def initialize(model)
+    @name = model.name
+    @index_name = MODEL_METADATA[@name][:table_name]
   end
 
   # Get array of _es_ properties of the table
   def properties
-    @properties ||= generate_mappings.map { |name, type| {name, {type: type}} }
+    generate_mappings.map { |name, type| {name, {type: type}} }
   end
 
   # Get names of all children associated with table
   def children
-    @children ||= child_tables.keys
+    child_tables.keys.map(&.to_s)
+  end
+
+  # Returns the ORM klass of the table
+  def klass
+    MODEL_METADATA[@name][:klass]
   end
 
   # Set up changefeed on table
   def watch
-    @klass.watch
+    self.klass.watch
   end
 
   alias Parent = NamedTuple(index: String, routing_attr: String)
 
   # Find parent name of document and routing
   def parents : Array(Parent)
-    ATTRIBUTE_MAPPINGS[@name].compact_map do |field, attr|
+    MODEL_METADATA[@name][:attributes].compact_map do |field, attr|
       parent_name = attr.dig? :tags, :parent
       unless parent_name.nil?
         {
-          index:        TABLE_MAPPING[parent_name],
-          routing_attr: field,
+          index:        MODEL_METADATA[parent_name][:table_name],
+          routing_attr: field.to_s,
         }
       end
     end
@@ -77,13 +74,13 @@ class RubberSoul::Table
 
   # Find children of document
   private def child_tables
-    ATTRIBUTE_MAPPINGS.select do |table, attribute_mapping|
+    MODEL_METADATA.select do |table, metadata|
       # Ignore self
       next if table == @name
 
       # Do any of the attributes define a parent relationship with current model?
-      attribute_mapping.any? do |_, metadata|
-        options = metadata[:tags]
+      metadata[:attributes].any? do |_, attr_data|
+        options = attr_data[:tags]
         !!(options && options[:parent]?.try { |p| p == @name })
       end
     end
@@ -91,7 +88,7 @@ class RubberSoul::Table
 
   # Map from crystal types to Elasticsearch field datatypes
   private def generate_mappings : Array(Mapping)
-    ATTRIBUTE_MAPPINGS[@name].compact_map do |field, options|
+    MODEL_METADATA[@name][:attributes].compact_map do |field, options|
       tags = options[:tags]
 
       if tags && tags.has_key?(:es_type)

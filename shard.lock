@@ -6,7 +6,7 @@ shards:
 
   active-model:
     github: spider-gazelle/active-model
-    commit: 51764a6db294f91065259ee52e1b7f3dfb343e02
+    commit: 0e1a345bd44b613d476511ebc689e9e6933ec841
 
   ameba:
     github: veelenga/ameba
@@ -17,8 +17,8 @@ shards:
     version: 0.1.5
 
   engine-models:
-    github: aca-labs/crystal-engine-models
-    commit: 21dcb7b1c544e7ee500316f270077d07ca48b0e3
+    path: ../../engine/models
+    version: 1.0.0
 
   habitat:
     github: luckyframework/habitat
