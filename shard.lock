@@ -17,8 +17,8 @@ shards:
     version: 0.1.5
 
   engine-models:
-    path: ../../engine/models
-    version: 1.0.0
+    github: aca-labs/crystal-engine-models
+    commit: 8473267823654b467d501d387a9a7c58d3ae6fd0
 
   habitat:
     github: luckyframework/habitat
@@ -34,5 +34,5 @@ shards:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    commit: 63f3b2c39391c7e861efedab6df83c0fd7467e63
+    commit: f57eddf4760c741d2b708514217c41401a4c1411
 

@@ -13,13 +13,13 @@ dependencies:
     github: spider-gazelle/action-controller
     version: "~> 1.4"
 
-  crystal-rethinkdb:
-    github: kingsleyh/crystal-rethinkdb
+  rethinkdb-orm:
+    github: spider-gazelle/rethinkdb-orm
+    branch: master
 
   engine-models:
-    path: ../../engine/models
-    #github: aca-labs/crystal-engine-models
-    #branch: master
+    github: aca-labs/crystal-engine-models
+    branch: master
 
   habitat:
     github: luckyframework/habitat

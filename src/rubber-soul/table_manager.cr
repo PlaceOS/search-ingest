@@ -14,7 +14,6 @@ class RubberSoul::TableManager
 
   # def initialize(models : Array(RethinkORM::Base.class))
   def initialize(models)
-    pp! models
     # Create tables
     @tables = models.map { |model| RubberSoul::Table.new(model) }
 
