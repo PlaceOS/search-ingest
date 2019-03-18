@@ -25,6 +25,20 @@ class RubberSoul::Table
         {% end %}
       {% end %}
       }
+
+    # Returns the ORM klass of the table
+    def klass
+      case @name
+      {% for model, fields in RethinkORM::Base::FIELD_MAPPINGS %}
+        {% unless fields.empty? || model.abstract? %}
+        when {{ model.stringify }}
+          {{ model.id }}
+        {% end %}
+      {% end %}
+      else
+        raise "error"
+      end
+    end
   end
 
   alias Mapping = Tuple(Symbol, String)
@@ -45,11 +59,6 @@ class RubberSoul::Table
   # Get names of all children associated with table
   def children
     child_tables.keys.map(&.to_s)
-  end
-
-  # Returns the ORM klass of the table
-  def klass
-    MODEL_METADATA[@name][:klass]
   end
 
   alias Parent = NamedTuple(index: String, routing_attr: String)

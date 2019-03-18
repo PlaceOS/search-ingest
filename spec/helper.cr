@@ -32,4 +32,5 @@ def es_document_count(index)
   JSON.parse(RubberSoul::Elastic.client.get("/#{index}/_count").body)["count"]
 end
 
-delete_test_indices
+# Remove any of the test indices on start up
+# delete_test_indices

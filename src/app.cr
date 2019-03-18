@@ -74,10 +74,15 @@ RubberSoul::Elastic.ensure_elastic!
 if backfill || reindex
   # Perform backfill/reindex and then exit
   # FIXME: Model names currently hardcoded, change once models export the model names
-  tm = RubberSoul::TableManager.new([ControlSystem, Module, Dependency, Zone])
+  table_manager = RubberSoul::TableManager.new(
+    [ControlSystem, Module, Dependency, Zone],
+    watch: false,
+    backfill: false
+  )
 
   # Recreate ES indexes from existing RethinkDB documents
   tm.reindex_all if reindex
+
   # Push all documents in RethinkDB to ES
   tm.backfill_all if backfill
 else

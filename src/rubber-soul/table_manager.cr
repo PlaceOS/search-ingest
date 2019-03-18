@@ -12,7 +12,7 @@ class RubberSoul::TableManager
   # Maps from index name to mapping schma
   @index_mappings = {} of String => String
 
-  def initialize(models, backfill = true)
+  def initialize(models, backfill = true, watch = true)
     # Create tables
     @tables = models.map { |model| RubberSoul::Table.new(model) }
 
@@ -21,7 +21,7 @@ class RubberSoul::TableManager
 
     initialise_indices(backfill)
     # Begin rethinkdb sync
-    watch_tables
+    watch_tables if watch
   end
 
   # Currently a reindex is triggered if...
@@ -39,12 +39,17 @@ class RubberSoul::TableManager
 
   # Backfills from a table to all relevant indices
   def backfill(table : RubberSoul::Table)
-    table.all.each { |d| RubberSoul::Elastic.save_document(table, d) }
+    table.all.each do |d|
+      RubberSoul::Elastic.save_document(table, d)
+    end
   end
 
   # Save all documents in all tables to the correct indices
   def backfill_all
-    @tables.each { |t| backfill(t) }
+    # @tables.each { |t| backfill(t) }
+    @tables.each do |table|
+      backfill(table)
+    end
   end
 
   # Clear, update mapping an ES index and refill with rethinkdb documents
@@ -71,8 +76,6 @@ class RubberSoul::TableManager
     @tables.each do |table|
       spawn do
         table.changes.each do |change|
-          pp! change
-          pp! change[:event].to_i
           document = change[:value]
           next if document.nil?
 

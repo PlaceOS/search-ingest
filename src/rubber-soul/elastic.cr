@@ -78,7 +78,7 @@ class RubberSoul::Elastic
       self.es_save(parent[:index], id, body, routing)
     end
 
-    # Save document to table index
+    # Save document to table indek
     self.es_save(table.name, id, body)
   end
 
