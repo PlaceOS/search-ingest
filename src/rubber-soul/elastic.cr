@@ -5,22 +5,24 @@ class RubberSoul::Elastic
   Habitat.create do
     setting host : String = ENV["ES_HOST"]? || "127.0.0.1"
     setting port : Int32 = ENV["ES_PORT"]?.try(&.to_i) || 9200
-    setting scheme : String = "http"
   end
 
-  BASE = URI.new(host: self.settings.host, port: self.settings.port, scheme: self.settings.scheme).to_s
+  @@client = HTTP::Client.new(
+    host: self.settings.host,
+    port: self.settings.port
+  )
 
   # Indices
   def self.check_index?(index)
-    HTTP::Client.head("#{BASE}/#{index}").success?
+    @@client.head("/#{index}").success?
   end
 
   def self.delete_index(index)
-    HTTP::Client.delete("#{BASE}/#{index}").success?
+    @@client.delete("/#{index}").success?
   end
 
   def self.get_mapping(index)
-    response = HTTP::Client.get("#{BASE}/#{index}")
+    response = @@client.get("/#{index}")
     if response.success?
       JSON.parse(response.body)[index]?.try(&.to_json)
     else
@@ -29,7 +31,11 @@ class RubberSoul::Elastic
   end
 
   def self.apply_index_mapping(index, mapping)
-    response = HTTP::Client.put("#{BASE}/#{index}", body: mapping)
+    response = @@client.put(
+      "/#{index}",
+      headers: self.headers,
+      body: mapping
+    )
     response.success?
   end
 
@@ -56,6 +62,7 @@ class RubberSoul::Elastic
   # - Creates document in table index
   # - Adds docuement to all parent table indices, routing by association id
   def self.save_document(table, document)
+    return if document.nil? # FIXME: Currently, from_trusted_json is nillable, remove once fixed
     body = document.to_json
     id = document.id
     attrs = document.attributes
@@ -74,15 +81,19 @@ class RubberSoul::Elastic
   # ES api calls
 
   # Save document to an elastic search index
-  def self.es_save(index, id, body, routing = nil)
-    url = self.elasticsearch_path(index, id, routing)
-    res = HTTP::Client.put(url, body: body)
+  def self.es_save(index, id, body : String, routing : String? = nil)
+    url = self.document_path(index, id, routing)
+    res = @@client.put(
+      url,
+      headers: self.headers,
+      body: body
+    )
     raise RubberSoul::Error.new("ES save: #{res.body}") unless res.success?
   end
 
   # Delete document from an elastic search index
   def self.es_delete(index, id, routing = nil)
-    url = self.elasticsearch_path(index, id, routing)
+    url = self.document_path(index, id, routing)
     res = HTTP::Client.delete(url)
     raise RubberSoul::Error.new("ES delete: #{res.body}") unless res.success?
   end
@@ -90,15 +101,21 @@ class RubberSoul::Elastic
   # ES Utils
 
   # Constucts the ES path
-  def self.elasticsearch_path(table_name, id, routing = nil)
+  def self.document_path(table_name, id, routing = nil)
     # When routing not specified, route by document id
     routing = id unless routing
-    "#{BASE}/#{table_name}/_doc/#{id}?routing=#{routing}"
+    "/#{table_name}/_doc/#{id}?routing=#{routing}"
   end
 
   # Checks availablity of RethinkDB and Elasticsearch
   def self.ensure_elastic!
-    response = HTTP::Client.get(BASE)
+    response = @@client.get("/")
     raise Error.new("Failed to connect to ES") unless response.success?
+  end
+
+  def self.headers
+    headers = HTTP::Headers.new
+    headers["Content-Type"] = "application/json"
+    headers
   end
 end

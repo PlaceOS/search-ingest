@@ -6,7 +6,7 @@ shards:
 
   active-model:
     github: spider-gazelle/active-model
-    commit: 0e1a345bd44b613d476511ebc689e9e6933ec841
+    commit: 43be2739e68b079dedd533299bd720b7b7b63055
 
   ameba:
     github: veelenga/ameba

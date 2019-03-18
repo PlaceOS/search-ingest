@@ -12,13 +12,12 @@ class RubberSoul::TableManager
   # Maps from index name to mapping schma
   @index_mappings = {} of String => String
 
-  # def initialize(models : Array(RethinkORM::Base.class))
   def initialize(models)
     # Create tables
     @tables = models.map { |model| RubberSoul::Table.new(model) }
 
     # Generate schemas
-    @tables.each { |t| @index_mappings[t.name] = create_schema(t) }
+    @tables.each { |t| @index_mappings[t.index_name] = create_schema(t) }
 
     # Set up ES indices
     initialise_indices
@@ -59,7 +58,7 @@ class RubberSoul::TableManager
   def apply_mapping(table)
     schema = create_schema(table)
     unless RubberSoul::Elastic.apply_index_mapping(table.index_name, schema)
-      raise RubberSoul::Error.new("Failed to create #{table.index_name}")
+      raise RubberSoul::Error.new("Failed to create mapping for #{table.index_name}")
     end
   end
 
@@ -111,8 +110,8 @@ class RubberSoul::TableManager
   def create_schema(table : Table)
     index_tables = table.children << table.name
 
-    # Get the properties of all relevent tables  create index
-    index_properties = @tables.compact_map { |t| t.properties if index_tables.includes? t.name }
+    # Get the properties of all relevent tables, create index
+    index_properties = @tables.compact_map { |t| t.properties if index_tables.includes? t.name }.flatten
 
     # Construct the mapping schema
     {
