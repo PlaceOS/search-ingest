@@ -21,6 +21,10 @@ class RubberSoul::Elastic
     @@client.delete("/#{index}").success?
   end
 
+  def self.delete_indices(indices)
+    @@client.delete("/#{indices.join(',')}").success?
+  end
+
   def self.get_mapping(index)
     response = @@client.get("/#{index}")
     if response.success?
@@ -117,5 +121,31 @@ class RubberSoul::Elastic
     headers = HTTP::Headers.new
     headers["Content-Type"] = "application/json"
     headers
+  end
+
+  # Delete all indices
+  def self.delete_all
+    @@client.delete("/_all").success?
+  end
+
+  # Remove documents from indices
+  # Removes from _all_ indices if no argument given.
+  def self.empty_indices(indices : Array(String)? = nil)
+    query = {
+      query: {
+        match_all: {} of String => String,
+      },
+    }.to_json
+
+    url = if indices && !indices.empty?
+            "/#{indices.join(',')}/_query"
+          else
+            "/_all/_query"
+          end
+    @@client.delete(url, body: query).success?
+  end
+
+  def self.client
+    @@client
   end
 end

@@ -20,7 +20,7 @@ ActionController::Server.before(
   HTTP::CompressHandler.new
 )
 
-LOG = Logger.new
+LOG = Logger.new(STDOUT)
 
 # ACA engine configuration... necessary if using models?
 ACA_ENGINE_DB = "engine"

@@ -73,16 +73,13 @@ RubberSoul::Elastic.ensure_elastic!
 
 if backfill || reindex
   # Perform backfill/reindex and then exit
-  raise RubberSoul::Error.new("Cannot reindex and backfill tables") if reindex && backfill
-
-  # TODO: Model names currently hardcoded
-  # TODO: Change once models export the model names
+  # FIXME: Model names currently hardcoded, change once models export the model names
   tm = RubberSoul::TableManager.new([ControlSystem, Module, Dependency, Zone])
 
-  # Push all documents in RethinkDB to ES
-  tm.backfill_tables if backfill
   # Recreate ES indexes from existing RethinkDB documents
   tm.reindex_all if reindex
+  # Push all documents in RethinkDB to ES
+  tm.backfill_all if backfill
 else
   # Otherwise, run server
   puts "Launching #{APP_NAME} v#{VERSION}"

@@ -52,11 +52,6 @@ class RubberSoul::Table
     MODEL_METADATA[@name][:klass]
   end
 
-  # Set up changefeed on table
-  def watch
-    self.klass.watch
-  end
-
   alias Parent = NamedTuple(index: String, routing_attr: String)
 
   # Find parent name of document and routing
