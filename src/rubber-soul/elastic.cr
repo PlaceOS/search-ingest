@@ -51,45 +51,47 @@ class RubberSoul::Elastic
   # Remove RethinkDB document from all relevant ES
   # - Remove document in the table index
   # - Add document to all parent table indices, routing by association id
-  def self.delete_document(table, document)
+  def self.delete_document(index, parents, document)
     attrs = document.attributes
     id = document.id
 
     # Remove document from all parent indices
-    table.parents.each do |parent|
+    parents.each do |parent|
       # Get the parents id to route to correct es shard
       routing = attrs[parent[:routing_attr]]
       self.es_delete(parent[:index], id, routing)
     end
 
     # Remove document from table index
-    self.es_delete(table.name, id)
+    self.es_delete(index, id)
   end
 
   # Replicate a RethinkDB document in ES
   # - Creates document in table index
   # - Adds docuement to all parent table indices, routing by association id
-  def self.save_document(table, document)
+  def self.save_document(index, parents, document)
     return if document.nil? # FIXME: Currently, from_trusted_json is nillable, remove once fixed
     body = document.to_json
-    id = document.id
+
+    id = document.id || ""
     attrs = document.attributes
 
     # Save document to all parent indices
-    table.parents.each do |parent|
+    parents.each do |parent|
       # Get the parents id to route to correct es shard
-      routing = attrs[parent[:routing_attr]]
+      routing = attrs[parent[:routing_attr]].to_s
       self.es_save(parent[:index], id, body, routing)
     end
 
     # Save document to table indek
-    self.es_save(table.name, id, body)
+    self.es_save(index, id, body)
   end
 
   # ES api calls
 
   # Save document to an elastic search index
   def self.es_save(index, id, body : String, routing : String? = nil)
+    pp! index
     url = self.document_path(index, id, routing)
     res = @@client.put(
       url,
