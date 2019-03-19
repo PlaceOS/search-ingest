@@ -25,10 +25,14 @@ class RubberSoul::Elastic
     @@client.delete("/#{indices.join(',')}").success?
   end
 
-  def self.get_mapping(index)
+  # Get the mapping applied to an index
+  def self.get_mapping?(index) : String?
     response = @@client.get("/#{index}")
     if response.success?
-      JSON.parse(response.body)[index]?.try(&.to_json)
+      body = JSON.parse(response.body)
+      body[index].as_h?
+        .try(&.select("mappings"))
+        .try(&.to_json)
     else
       nil
     end

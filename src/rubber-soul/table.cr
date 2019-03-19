@@ -5,12 +5,13 @@ class RubberSoul::Table
   forward_missing_to klass
 
   macro finished
+    MODEL_METADATA = {} of Nil => Nil
     __generate_field_mapping
   end
 
   macro __generate_field_mapping
     # Mappings for all RethinkORM models in the scope
-    private MODEL_METADATA = {
+     MODEL_METADATA = {
       {% for model, fields in RethinkORM::Base::FIELD_MAPPINGS %}
         {% unless fields.empty? || model.abstract? %}
           {{ model.stringify }} => {
@@ -21,23 +22,26 @@ class RubberSoul::Table
               },
               klass: {{ model.id }},
               table_name: {{ model.id }}.table_name
+              changes: ->{ {{ model.id }}.changes }
             },
         {% end %}
       {% end %}
       }
+  end
 
-    # Returns the ORM klass of the table
-    def klass
-      case @name
-      {% for model, fields in RethinkORM::Base::FIELD_MAPPINGS %}
-        {% unless fields.empty? || model.abstract? %}
-        when {{ model.stringify }}
-          {{ model.id }}
-        {% end %}
-      {% end %}
-      else
-        raise "error"
-      end
+  macro __generate_methods(model)
+    # Generate required class methods
+    {% klass = MODEL_METADATA[model.name][:klass] %}
+    def table_name
+      { klass.table_name }}
+    end
+
+    def changes
+      {{ klass.changes }}
+    end
+
+    def all
+      {{ klass.all }}
     end
   end
 
