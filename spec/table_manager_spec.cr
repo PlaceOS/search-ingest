@@ -1,18 +1,66 @@
 require "./helper"
 
 describe RubberSoul::TableManager do
-  describe "mapping schema" do
-    it "generates a schema for a models" do
+  it "generates a schema for a model" do
+    tm = RubberSoul::TableManager.new([Programmer])
+    schema = tm.index_schema("Programmer")
+    schema.should be_a(String)
+
+    # Check that the path to a field mapping exists
+    json = JSON.parse(schema)
+    json.dig?("mappings", "_doc", "properties", "name", "type").should_not be_nil
+  end
+
+  describe "elasticsearch properties" do
+    it "creates a mapping of table attributes to es types" do
       tm = RubberSoul::TableManager.new([Programmer])
-      # programmer.should_not be_nil
-      # unless programmer.nil?
-      schema = tm.index_schema("Programmer")
-      pp! schema
-      #   schema.should be_a(String)
-      # end
+      mappings = tm.properties["Programmer"]
+      mappings.should eq ([
+        {:id, {type: "keyword"}},
+        {:name, {type: "text"}},
+      ])
     end
 
-    it "generates a schema for a model with associations" do
+    it "allows specification of field type" do
+      # RayGun ip attribute has an 'es_type' tag
+      tm = RubberSoul::TableManager.new([RayGun])
+      mappings = tm.properties["RayGun"].sort_by { |p| p[0] }
+      mappings.should eq ([
+        {:barrel_length, {type: "float"}},
+        {:id, {type: "keyword"}},
+        {:ip, {type: "ip"}},
+        {:laser_colour, {type: "text"}},
+        {:last_shot, {type: "date"}},
+        {:rounds, {type: "integer"}},
+      ])
+    end
+
+    it "collects properties for a model with associations" do
+      tm = RubberSoul::TableManager.new(SPEC_MODELS)
+      children = tm.children("Programmer")
+      mappings = tm.collect_index_properties("Programmer", children).sort_by { |p| p[0] }
+      mappings.should eq ([
+        {:created_at, {type: "date"}},
+        {:duration, {type: "date"}},
+        {:id, {type: "keyword"}},
+        {:name, {type: "text"}},
+        {:programmer_id, {type: "keyword"}},
+        {:temperature, {type: "integer"}},
+      ])
+    end
+  end
+
+  describe "relations" do
+    it "finds parent relations of a model" do
+      tm = RubberSoul::TableManager.new(SPEC_MODELS)
+      parents = tm.parents("Migraine")
+      parents.should eq [{name: "Programmer", index: "programmer", routing_attr: "programmer_id"}]
+    end
+
+    it "finds the child relations of a model" do
+      tm = RubberSoul::TableManager.new(SPEC_MODELS)
+      children = tm.children("Programmer")
+      children.should eq ["Coffee", "Migraine"]
     end
   end
 
@@ -62,7 +110,6 @@ describe RubberSoul::TableManager do
     it "refill a single es index with existing data in rethinkdb" do
       # Empty rethinkdb tables
       # clear_test_tables
-
       # Generate some data in rethinkdb
       (1..5).each do |n|
         Programmer.create(name: "Tim the #{n}th")

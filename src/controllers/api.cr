@@ -14,7 +14,7 @@ class RubberSoul::Controller::API < RubberSoul::Controller::Base
       Engine::Model::Module,
       Engine::Model::Dependency,
       Engine::Model::Zone,
-    ])
+    ], watch: true)
   end
 
   get "/healthz", :healthz do

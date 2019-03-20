@@ -81,10 +81,10 @@ if backfill || reindex
   )
 
   # Recreate ES indexes from existing RethinkDB documents
-  tm.reindex_all if reindex
+  table_manager.reindex_all if reindex
 
   # Push all documents in RethinkDB to ES
-  tm.backfill_all if backfill
+  table_manager.backfill_all if backfill
 else
   # Otherwise, run server
   puts "Launching #{APP_NAME} v#{VERSION}"

@@ -8,6 +8,7 @@ class RayGun < AbstractBase
   attribute laser_colour : String = "red"
   attribute barrel_length : Float32 = 23.42
   attribute rounds : Int32 = 32
+  attribute ip : String = "127.0.0.1", es_type: "ip"
   attribute last_shot : Time = ->{ Time.utc_now }
 end
 

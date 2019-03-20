@@ -7,12 +7,15 @@ class RubberSoul::TableManager
 
   # Map class name to model properties
   @properties = {} of String => Array(Property)
+  getter properties
 
   # Map from class name to schema
   @index_schemas = {} of String => String
+  getter index_schemas
 
   # Class names of managed tables
-  @tables = [] of String
+  @models = [] of String
+  getter models
 
   macro finished
     # All RethinkORM models with abstract and empty classes removed
@@ -24,12 +27,9 @@ class RubberSoul::TableManager
   macro __create_model_metadata
     {% for model, fields in RethinkORM::Base::FIELD_MAPPINGS %}
       {% unless model.abstract? || fields.empty? %}
-    {{ fields }}
       {% MODELS[model] = fields %}
       {% end %}
     {% end %}
-    {{ RethinkORM::Base::FIELDS }}
-
     # Extracted metadata from ORM classes
     MODEL_METADATA = {
       {% for model, fields in MODELS %}
@@ -53,7 +53,7 @@ class RubberSoul::TableManager
 
   macro __generate_method(method)
     # Dispatcher for {{ method.id }}
-    def {{ method.id }}(model) 
+    def {{ method.id }}(model)
       # Generate {{ method.id }} method calls
       case model
       {% for klass in MODELS.keys %}
@@ -66,33 +66,33 @@ class RubberSoul::TableManager
     end
   end
 
-  # Look up table schema by class
-  def index_schema(table) : String
-    @index_schemas[table]
+  # Look up model schema by class
+  def index_schema(model) : String
+    @index_schemas[model]
   end
 
   # Look up index name by class
-  def index_name(table) : String
-    MODEL_METADATA[table][:table_name]
+  def index_name(model) : String
+    MODEL_METADATA[model][:table_name]
   end
 
   # Initialisation
   #############################################################################################
 
   def initialize(klasses, backfill = true, watch = false)
-    @tables = klasses.map(&.name)
+    @models = klasses.map(&.name)
 
-    # Collate table properties
-    @properties = generate_properties(@tables)
+    # Collate model properties
+    @properties = generate_properties(@models)
 
     # Generate schemas
-    @index_schemas = generate_schemas(@tables)
+    @index_schemas = generate_schemas(@models)
 
     # Initialise indices to a consistent state
     initialise_indices(backfill)
 
     # Begin rethinkdb sync
-    watch_tables(@tables) if watch
+    watch_tables(@models) if watch
   end
 
   # Currently a reindex is triggered if...
@@ -111,20 +111,19 @@ class RubberSoul::TableManager
   # Backfill
   #############################################################################################
 
-  # Backfills from a table to all relevant indices
-  def backfill(table)
-    index = index_name(table)
-    parents = parents(table)
-    all(table).each do |d|
+  # Backfills from a model to all relevant indices
+  def backfill(model)
+    index = index_name(model)
+    parents = parents(model)
+    all(model).each do |d|
       RubberSoul::Elastic.save_document(index, parents, d)
     end
   end
 
   # Save all documents in all tables to the correct indices
   def backfill_all
-    # @tables.each { |t| backfill(t) }
-    @tables.each do |table|
-      backfill(table)
+    @models.each do |model|
+      backfill(model)
     end
   end
 
@@ -133,40 +132,40 @@ class RubberSoul::TableManager
 
   # Clear and update all index mappings
   def reindex_all
-    @tables.each { |table| reindex(table) }
+    @models.each { |model| reindex(model) }
   end
 
   def reindex_all
-    @tables.each { |table| reindex(table) }
+    @models.each { |model| reindex(model) }
   end
 
   # Clear, update mapping an ES index and refill with rethinkdb documents
-  def reindex(table : String)
-    index = index_name(table)
+  def reindex(model : String)
+    index = index_name(model)
     # Delete index
     RubberSoul::Elastic.delete_index(index)
     # Apply current mapping
-    apply_mapping(table)
+    apply_mapping(model)
   end
 
   # Watch
   #############################################################################################
 
-  def watch_tables(tables)
-    tables.each do |table|
+  def watch_tables(models)
+    models.each do |model|
       spawn do
-        watch_table(table)
+        watch_table(model)
       rescue e
-        LOG.error "while watching #{table}"
+        LOG.error "while watching #{model}"
         raise e
       end
     end
   end
 
-  def watch_table(table)
-    index = index_name(table)
-    parents = parents(table)
-    changes(table).each do |change|
+  def watch_table(model)
+    index = index_name(model)
+    parents = parents(model)
+    changes(model).each do |change|
       document = change[:value]
       next if document.nil?
       if change[:event] == RethinkORM::Changefeed::Event::Deleted
@@ -181,19 +180,19 @@ class RubberSoul::TableManager
   #############################################################################################
 
   # Checks if any index does not exist or has a different mapping
-  def consistent_indices?(tables = @tables)
-    tables.all? do |table|
-      index = index_name(table)
+  def consistent_indices?
+    @models.all? do |model|
+      index = index_name(model)
       index_exists = RubberSoul::Elastic.check_index?(index)
-      !!(index_exists && same_mapping?(table, index))
+      !!(index_exists && same_mapping?(model, index))
     end
   end
 
   # Diff the current mapping schema (if any) against generated schema
-  def same_mapping?(table, index = nil)
-    index = index_name(table) unless index
+  def same_mapping?(model, index = nil)
+    index = index_name(model) unless index
     existing_schema = RubberSoul::Elastic.get_mapping?(index)
-    generated_schema = index_schema(table)
+    generated_schema = index_schema(model)
     if existing_schema
       # Convert to JSON::Any for comparison
       JSON.parse(existing_schema) == JSON.parse(generated_schema)
@@ -202,9 +201,9 @@ class RubberSoul::TableManager
     end
   end
 
-  def apply_mapping(table)
-    index_name = index_name(table)
-    schema = index_schema(table)
+  def apply_mapping(model)
+    index_name = index_name(model)
+    schema = index_schema(model)
     unless RubberSoul::Elastic.apply_index_mapping(index_name, schema)
       raise RubberSoul::Error.new("Failed to create mapping for #{index_name}")
     end
@@ -214,20 +213,20 @@ class RubberSoul::TableManager
   #############################################################################################
 
   # Generate a map of models to schemas
-  def generate_schemas(tables)
+  def generate_schemas(models)
     schemas = {} of String => String
-    tables.each do |table|
-      schemas[table] = construct_document_schema(table)
+    models.each do |model|
+      schemas[model] = construct_document_schema(model)
     end
     schemas
   end
 
   # Generate the index type mapping structure
-  def construct_document_schema(table) : String
+  def construct_document_schema(model) : String
     {
       mappings: {
         _doc: {
-          properties: collect_index_properties(table, children(table)),
+          properties: collect_index_properties(model, children(model)).to_h,
         },
       },
     }.to_json
@@ -237,21 +236,21 @@ class RubberSoul::TableManager
   #############################################################################################
 
   # Collects all properties relevant to an index and collapse them into a schema
-  def collect_index_properties(table : String, children : Array(String)? = [] of String)
-    index_tables = children << table
+  def collect_index_properties(model : String, children : Array(String)? = [] of String)
+    index_models = children << model
     # Get the properties of all relevent tables, create flat index properties
-    @properties.select(index_tables).values.flatten.to_h
+    @properties.select(index_models).values.flatten.uniq
   end
 
   def generate_properties(models)
     models.reduce({} of String => Array(Property)) do |props, model|
-      props[model] = generate_table_properties(model)
+      props[model] = generate_index_properties(model)
       props
     end
   end
 
   # Map from crystal types to Elasticsearch field datatypes
-  def generate_table_properties(model) : Array(Property)
+  def generate_index_properties(model) : Array(Property)
     MODEL_METADATA[model][:attributes].compact_map do |field, options|
       type_tag = options.dig?(:tags, :es_type)
       if type_tag
@@ -330,17 +329,17 @@ class RubberSoul::TableManager
     end
   end
 
-  # Get names of all children associated with table
+  # Get names of all children associated with model
   def children(model)
-    MODEL_METADATA.compact_map do |table, metadata|
+    MODEL_METADATA.compact_map do |name, metadata|
       # Ignore self
-      next if table == model
+      next if name == model
       # Do any of the attributes define a parent relationship with current model?
       is_child = metadata[:attributes].any? do |_, attr_data|
         options = attr_data[:tags]
         !!(options && options[:parent]?.try { |p| p == model })
       end
-      table if is_child
+      name if is_child
     end
   end
 end

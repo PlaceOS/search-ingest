@@ -2,11 +2,11 @@ version: 1.0
 shards:
   action-controller:
     github: spider-gazelle/action-controller
-    version: 1.4.2
+    version: 1.4.3
 
   active-model:
     github: spider-gazelle/active-model
-    commit: 43be2739e68b079dedd533299bd720b7b7b63055
+    commit: b95d6813b3ae4e1e149182832ba4166bc6cf5796
 
   ameba:
     github: veelenga/ameba
@@ -34,5 +34,5 @@ shards:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    commit: 729761e04a902eadc1c88cc9bd8cbba286dbad16
+    commit: 4712a6ca06c617f28d6837bdb5d58abda732e9ef
 
