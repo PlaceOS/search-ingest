@@ -102,7 +102,7 @@ class RubberSoul::Elastic
       self.es_save(parent[:index], id, body, routing)
     end
 
-    # Save document to table indek
+    # Save document to table index
     self.es_save(index, id, body)
   end
 
@@ -129,10 +129,10 @@ class RubberSoul::Elastic
   # ES Utils
 
   # Constucts the ES path
-  def self.document_path(table_name, id, routing = nil)
+  def self.document_path(index, id, routing = nil)
     # When routing not specified, route by document id
     routing = id unless routing
-    "/#{table_name}/_doc/#{id}?routing=#{routing}"
+    "/#{index}/_doc/#{id}?routing=#{routing}"
   end
 
   # Checks availablity of RethinkDB and Elasticsearch
@@ -162,11 +162,14 @@ class RubberSoul::Elastic
     }.to_json
 
     url = if indices && !indices.empty?
-            "/#{indices.join(',')}/_query"
+            "/#{indices.join(',')}/_delete_by_query"
           else
-            "/_all/_query"
+            "/_all/_delete_by_query"
           end
-    @@client.delete(url, body: query).success?
+    res = @@client.post(url,
+      headers: self.headers,
+      body: query)
+    res.success?
   end
 
   # Yields the raw HTTP client to elasticsearch

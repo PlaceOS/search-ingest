@@ -16,8 +16,12 @@ class Programmer < AbstractBase
   attribute name : String
 end
 
+class Broke < AbstractBase
+  attribute breaks : String
+end
+
 class Coffee < AbstractBase
-  attribute temperature : Int32
+  attribute temperature : Int32 = 54
   attribute created_at : Time = ->{ Time.utc_now }
 
   belongs_to Programmer, dependent: :destroy
@@ -30,4 +34,4 @@ class Migraine < AbstractBase
   belongs_to Programmer
 end
 
-SPEC_MODELS = [RayGun, Programmer, Coffee, Migraine]
+SPEC_MODELS = [RayGun, Programmer, Broke, Coffee, Migraine]

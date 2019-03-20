@@ -314,7 +314,7 @@ class RubberSoul::TableManager
   # Relations
   #############################################################################################
 
-  alias Parent = NamedTuple(name: String, index: String, routing_attr: String)
+  alias Parent = NamedTuple(name: String, index: String, routing_attr: Symbol)
 
   # Find name and ES routing of document's parents
   def parents(model) : Array(Parent)
@@ -324,7 +324,7 @@ class RubberSoul::TableManager
         {
           name:         parent_name,
           index:        index_name(parent_name),
-          routing_attr: field.to_s,
+          routing_attr: field,
         }
       end
     end
