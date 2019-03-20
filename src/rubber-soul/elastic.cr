@@ -12,15 +12,17 @@ class RubberSoul::Elastic
     port: self.settings.port
   )
 
-  # Indices
+  # Check index present in elasticsearch
   def self.check_index?(index)
     @@client.head("/#{index}").success?
   end
 
+  # Delete an index elasticsearch
   def self.delete_index(index)
     @@client.delete("/#{index}").success?
   end
 
+  # Delete several indices elasticsearch
   def self.delete_indices(indices)
     @@client.delete("/#{indices.join(',')}").success?
   end
@@ -45,6 +47,7 @@ class RubberSoul::Elastic
     end
   end
 
+  # Applies a mapping to an index in elasticsearch
   def self.apply_index_mapping(index, mapping)
     response = @@client.put(
       "/#{index}",
@@ -98,7 +101,6 @@ class RubberSoul::Elastic
 
   # Save document to an elastic search index
   def self.es_save(index, id, body : String, routing : String? = nil)
-    pp! index
     url = self.document_path(index, id, routing)
     res = @@client.put(
       url,
@@ -158,6 +160,7 @@ class RubberSoul::Elastic
     @@client.delete(url, body: query).success?
   end
 
+  # Yields the raw HTTP client to elasticsearch
   def self.client
     @@client
   end

@@ -106,10 +106,11 @@ describe RubberSoul::TableManager do
     end
   end
 
-  pending "backfill" do
-    it "refill a single es index with existing data in rethinkdb" do
+  describe "backfill" do
+    it "refills a single es index with existing data in rethinkdb" do
       # Empty rethinkdb tables
-      # clear_test_tables
+      clear_test_tables
+
       # Generate some data in rethinkdb
       (1..5).each do |n|
         Programmer.create(name: "Tim the #{n}th")
@@ -120,8 +121,9 @@ describe RubberSoul::TableManager do
       # Remove documents from es
       clear_test_indices
 
+      # Backfill all documents in rethinkdb
       tm.backfill_all
-      sleep 1
+      sleep 0.5 # Wait for es
       es_document_count("programmer").should eq 5
     end
   end
