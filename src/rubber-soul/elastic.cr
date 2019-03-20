@@ -81,15 +81,22 @@ class RubberSoul::Elastic
   # - Adds docuement to all parent table indices, routing by association id
   def self.save_document(index, parents, document)
     return if document.nil? # FIXME: Currently, from_trusted_json is nillable, remove once fixed
-    body = document.to_json
-
     id = document.id || ""
-    attrs = document.attributes
+
+    # Pick off the model type from the class name
+    document_type = document.class.name.split("::")[-1]
+
+    # Use to_json method to respect properties of attributes
+    body_json = JSON.parse(document.to_json).as_h
+    # Set document type
+    body_json["type"] = JSON::Any.new(document_type)
+    body = body_json.to_json
 
     # Save document to all parent indices
+    attributes = document.attributes
     parents.each do |parent|
       # Get the parents id to route to correct es shard
-      routing = attrs[parent[:routing_attr]].to_s
+      routing = attributes[parent[:routing_attr]].to_s
       self.es_save(parent[:index], id, body, routing)
     end
 

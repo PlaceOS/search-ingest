@@ -18,6 +18,7 @@ describe RubberSoul::TableManager do
       mappings.should eq ([
         {:id, {type: "keyword"}},
         {:name, {type: "text"}},
+        RubberSoul::TableManager::TYPE_PROPERTY,
       ])
     end
 
@@ -32,6 +33,7 @@ describe RubberSoul::TableManager do
         {:laser_colour, {type: "text"}},
         {:last_shot, {type: "date"}},
         {:rounds, {type: "integer"}},
+        RubberSoul::TableManager::TYPE_PROPERTY,
       ])
     end
 
@@ -46,6 +48,7 @@ describe RubberSoul::TableManager do
         {:name, {type: "text"}},
         {:programmer_id, {type: "keyword"}},
         {:temperature, {type: "integer"}},
+        RubberSoul::TableManager::TYPE_PROPERTY,
       ])
     end
   end

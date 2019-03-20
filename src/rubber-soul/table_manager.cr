@@ -230,6 +230,7 @@ class RubberSoul::TableManager
     @properties.select(index_models).values.flatten.uniq
   end
 
+  # Construct properties for given models
   def generate_properties(models)
     models.reduce({} of String => Array(Property)) do |props, model|
       props[model] = generate_index_properties(model)
@@ -239,7 +240,7 @@ class RubberSoul::TableManager
 
   # Map from crystal types to Elasticsearch field datatypes
   def generate_index_properties(model) : Array(Property)
-    MODEL_METADATA[model][:attributes].compact_map do |field, options|
+    properties = MODEL_METADATA[model][:attributes].compact_map do |field, options|
       type_tag = options.dig?(:tags, :es_type)
       if type_tag
         unless valid_es_type?(type_tag)
@@ -253,7 +254,11 @@ class RubberSoul::TableManager
         es_type ? {field, {type: es_type}} : nil
       end
     end
+    properties << TYPE_PROPERTY
   end
+
+  # Allows several document types beneath a single index
+  TYPE_PROPERTY = {:type, {type: "keyword"}}
 
   # Valid elasticsearch field datatypes
   private ES_TYPES = {
