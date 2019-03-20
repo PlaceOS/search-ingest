@@ -7,6 +7,7 @@ require "./spec_models"
 require "../src/config"
 require "../src/rubber-soul"
 require "../src/rubber-soul/*"
+require "../src/api"
 
 # Helper methods for testing controllers (curl, with_server, context)
 require "../lib/action-controller/spec/curl_context"

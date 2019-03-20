@@ -1,7 +1,6 @@
-require "./base"
-require "../rubber-soul/*"
+require "../rubber-soul"
 
-class RubberSoul::Controller::API < RubberSoul::Controller::Base
+class RubberSoul::API < ActionController::Base
   base "/api"
 
   # TODO: Model names currently hardcoded

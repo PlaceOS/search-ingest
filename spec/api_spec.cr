@@ -1,6 +1,6 @@
 require "./helper"
 
-describe RubberSoul::Controller::API do
+describe RubberSoul::API do
   # ==============
   #  Unit Testing
   # ==============

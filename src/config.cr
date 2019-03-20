@@ -7,8 +7,7 @@ require "http"
 require "logger"
 
 # Application code
-require "./controllers/base"
-require "./controllers/*"
+require "./api"
 
 # Server required after application controllers
 require "action-controller/server"
