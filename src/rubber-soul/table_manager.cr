@@ -184,28 +184,16 @@ class RubberSoul::TableManager
     @models.all? do |model|
       index = index_name(model)
       index_exists = RubberSoul::Elastic.check_index?(index)
-      !!(index_exists && same_mapping?(model, index))
+      index_exists && RubberSoul::Elastic.same_mapping?(index, index_schema(model))
     end
   end
 
-  # Diff the current mapping schema (if any) against generated schema
-  def same_mapping?(model, index = nil)
-    index = index_name(model) unless index
-    existing_schema = RubberSoul::Elastic.get_mapping?(index)
-    generated_schema = index_schema(model)
-    if existing_schema
-      # Convert to JSON::Any for comparison
-      JSON.parse(existing_schema) == JSON.parse(generated_schema)
-    else
-      false
-    end
-  end
-
+  # Applies a schema to an index in elasticsearch
   def apply_mapping(model)
-    index_name = index_name(model)
+    index = index_name(model)
     schema = index_schema(model)
-    unless RubberSoul::Elastic.apply_index_mapping(index_name, schema)
-      raise RubberSoul::Error.new("Failed to create mapping for #{index_name}")
+    unless RubberSoul::Elastic.apply_index_mapping(index, schema)
+      raise RubberSoul::Error.new("Failed to create mapping for #{index}")
     end
   end
 

@@ -77,7 +77,7 @@ describe RubberSoul::TableManager do
   end
 
   pending "reindex" do
-    pending "applies current mapping" do
+    it "applies current mapping" do
       delete_test_indices
       es = RubberSoul::Elastic.client
 
@@ -86,18 +86,18 @@ describe RubberSoul::TableManager do
         mappings: {
           _doc: {
             properties: {
-              wrong: {type: keyword},
+              wrong: {type: "keyword"},
             },
           },
         },
       }.to_json
 
-      # Apply and check currently applied schema
+      # Apply an incorrect schema and check currently applied schema
       es.put("/programmer", RubberSoul::Elastic.headers, body: wrong_schema)
       get_schema.call.should eq wrong_schema
       tm = RubberSoul::TableManager.new(SPEC_MODELS)
 
-      schema = tm.create_schema(programmer)
+      schema = tm.index_schema("Programmer")
       updated_schema = get_schema.call
 
       # Check if updated schema applied

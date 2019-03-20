@@ -25,6 +25,13 @@ class RubberSoul::Elastic
     @@client.delete("/#{indices.join(',')}").success?
   end
 
+  # Diff the current mapping schema (if any) against provided mapping schema
+  def self.same_mapping?(index, mapping)
+    existing_mapping = get_mapping?(index)
+    # Convert to JSON::Any for comparison
+    existing_mapping && JSON.parse(existing_mapping) == JSON.parse(mapping)
+  end
+
   # Get the mapping applied to an index
   def self.get_mapping?(index) : String?
     response = @@client.get("/#{index}")
