@@ -70,43 +70,74 @@ describe RubberSoul::TableManager do
   pending "RethinkDB syncing" do
     it "creates ES documents from changefeed" do
       clear_test_indices
-      tm = RubberSoul::TableManager.new(SPEC_MODELS, backfill = false) # ameba:disable Lint/UselessAssign
+      p "here"
+      RubberSoul::TableManager.new(SPEC_MODELS, backfill: false, watch: true)
+      p "here now"
 
       es_document_count("programmer").should eq 0
       Programmer.create(name: "Rob Pike")
-      sleep 1 # Wait for change to propagate to es
+      sleep 0.5 # Wait for change to propagate to es
       es_document_count("programmer").should eq 1
     end
   end
 
-  pending "reindex" do
-    it "applies current mapping" do
-      delete_test_indices
-      es = RubberSoul::Elastic.client
+  it "applies new mapping to an index" do
+    delete_test_indices
+    es = RubberSoul::Elastic.client
 
-      get_schema = ->{ {mappings: JSON.parse(es.get("/programmer").body)["programmer"]["mappings"]}.to_json }
-      wrong_schema = {
-        mappings: {
-          _doc: {
-            properties: {
-              wrong: {type: "keyword"},
-            },
+    get_schema = ->{ {mappings: JSON.parse(es.get("/programmer").body)["programmer"]["mappings"]}.to_json }
+    wrong_schema = {
+      mappings: {
+        _doc: {
+          properties: {
+            wrong: {type: "keyword"},
           },
         },
-      }.to_json
+      },
+    }.to_json
 
-      # Apply an incorrect schema and check currently applied schema
-      es.put("/programmer", RubberSoul::Elastic.headers, body: wrong_schema)
-      get_schema.call.should eq wrong_schema
-      tm = RubberSoul::TableManager.new(SPEC_MODELS)
+    # Apply an incorrect schema and check currently applied schema
+    es.put("/programmer", RubberSoul::Elastic.headers, body: wrong_schema)
+    get_schema.call.should eq wrong_schema
 
-      schema = tm.index_schema("Programmer")
-      updated_schema = get_schema.call
+    tm = RubberSoul::TableManager.new([Programmer])
 
-      # Check if updated schema applied
-      updated_schema.should_not eq wrong_schema
-      updated_schema.should eq schema
+    schema = JSON.parse(tm.index_schema("Programmer"))
+    updated_schema = JSON.parse(get_schema.call)
+
+    # Check if updated schema applied
+    updated_schema.should_not eq JSON.parse(wrong_schema)
+    updated_schema.should eq schema
+  end
+
+  it "reindexes indices" do
+    clear_test_tables
+    RubberSoul::Elastic.empty_indices(["programmer"])
+
+    num_docs = 5
+
+    # Place some data in rethinkdb
+    num_docs.times do |n|
+      Programmer.create(name: "Jim the #{n}th")
     end
+
+    # Start e non-watching table_manager
+    tm = RubberSoul::TableManager.new(SPEC_MODELS, backfill: true, watch: false)
+
+    sleep 0.5
+    # Check number of documents in elastic search
+    es_document_count("programmer").should eq 5
+
+    # Clear the rethinkdb tables
+    clear_test_tables
+    sleep 0.1
+
+    # Reindex
+    tm.reindex_all
+
+    sleep 0.1
+    # Check number of documents in elastic search
+    es_document_count("programmer").should eq 0
   end
 
   describe "backfill" do
