@@ -1,3 +1,5 @@
+require "http"
+
 require "./error"
 
 class RubberSoul::Elastic

@@ -1,9 +1,13 @@
 require "rethinkdb-orm"
+require "retriable"
+
 require "./elastic"
 
 # Class to manage rethinkdb models sync with elasticsearch
 class RubberSoul::TableManager
   alias Property = Tuple(Symbol, NamedTuple(type: String))
+
+  @watcher_coordination = Channel(Nil).new
 
   # Map class name to model properties
   @properties = {} of String => Array(Property)
@@ -165,13 +169,17 @@ class RubberSoul::TableManager
   def watch_table(model)
     index = index_name(model)
     parents = parents(model)
-    changes(model).each do |change|
-      document = change[:value]
-      next if document.nil?
-      if change[:event] == RethinkORM::Changefeed::Event::Deleted
-        RubberSoul::Elastic.delete_document(index, parents, document)
-      else
-        RubberSoul::Elastic.save_document(index, parents, document)
+
+    # Retry on all exceptions excluding internal exceptions
+    Retriable.retry(times: 5, except: {RubberSoul::Error => nil}) do
+      changes(model).each do |change|
+        document = change[:value]
+        next if document.nil?
+        if change[:event] == RethinkORM::Changefeed::Event::Deleted
+          RubberSoul::Elastic.delete_document(index, parents, document)
+        else
+          RubberSoul::Elastic.save_document(index, parents, document)
+        end
       end
     end
   end
