@@ -1,6 +1,23 @@
 require "./helper"
 
 describe RubberSoul::TableManager do
+  pending "watch" do
+    it "creates ES documents from changefeed" do
+      tm = RubberSoul::TableManager.new(SPEC_MODELS, backfill: false, watch: true)
+      index = Programmer.table_name
+
+      count_before_create = es_document_count(index)
+      Programmer.create(name: "Rob Pike")
+
+      sleep 1 # Wait for change to propagate to es
+      es_document_count(index).should eq (count_before_create + 1)
+
+      expect_raises(RubberSoul::CancelledError) do
+        tm.cancel!
+      end
+    end
+  end
+
   it "applies new mapping to an index" do
     delete_test_indices
     es = RubberSoul::Elastic.client
@@ -22,7 +39,7 @@ describe RubberSoul::TableManager do
 
     tm = RubberSoul::TableManager.new([Broke])
 
-    schema = JSON.parse(tm.index_schema("Broke"))
+    schema = JSON.parse(tm.index_schema(Broke.name))
     updated_schema = JSON.parse(get_schema.call)
 
     # Check if updated schema applied
@@ -32,7 +49,7 @@ describe RubberSoul::TableManager do
 
   it "generates a schema for a model" do
     tm = RubberSoul::TableManager.new([Broke])
-    schema = tm.index_schema("Broke")
+    schema = tm.index_schema(Broke.name)
     schema.should be_a(String)
 
     # Check that the path to a field mapping exists
@@ -43,7 +60,7 @@ describe RubberSoul::TableManager do
   describe "elasticsearch properties" do
     it "creates a mapping of table attributes to es types" do
       tm = RubberSoul::TableManager.new([Broke])
-      mappings = tm.properties["Broke"]
+      mappings = tm.properties[Broke.name]
       mappings.should eq ([
         {:id, {type: "keyword"}},
         {:breaks, {type: "text"}},
@@ -68,8 +85,9 @@ describe RubberSoul::TableManager do
 
     it "collects properties for a model with associations" do
       tm = RubberSoul::TableManager.new(SPEC_MODELS)
-      children = tm.children("Programmer")
-      mappings = tm.collect_index_properties("Programmer", children)
+      name = Programmer.name
+      children = tm.children(name)
+      mappings = tm.collect_index_properties(name, children)
       mappings.should eq ({
         :created_at    => {type: "date"},
         :duration      => {type: "date"},
@@ -85,69 +103,54 @@ describe RubberSoul::TableManager do
   describe "relations" do
     it "finds parent relations of a model" do
       tm = RubberSoul::TableManager.new(SPEC_MODELS)
-      parents = tm.parents("Migraine")
-      parents.should eq [{name: "Programmer", index: "programmer", routing_attr: :programmer_id}]
+      parents = tm.parents(Migraine.name)
+      parents.should eq [{
+                           name:         Programmer.name,
+                           index:        Programmer.table_name,
+                           routing_attr: :programmer_id,
+                         }]
     end
 
     it "finds the child relations of a model" do
       tm = RubberSoul::TableManager.new(SPEC_MODELS)
-      children = tm.children("Programmer")
-      children.should eq ["Coffee", "Migraine"]
-    end
-  end
-
-  pending "watch" do
-    it "creates ES documents from changefeed" do
-      clear_test_indices
-      clear_test_tables
-
-      tm = RubberSoul::TableManager.new(SPEC_MODELS, backfill: false, watch: true)
-
-      sleep 1 # Wait for change to propagate to es
-      es_document_count("programmer").should eq 0
-
-      Programmer.create(name: "Rob Pike")
-
-      sleep 1 # Wait for change to propagate to es
-      es_document_count("programmer").should eq 1
-
-      tm.cancel!.should expect_raises RubberSoul::CancelledError
+      children = tm.children(Programmer.name)
+      children.should eq [Coffee.name, Migraine.name]
     end
   end
 
   it "reindexes indices" do
-    clear_test_tables
-    clear_test_indices
+    index = Programmer.table_name
+    count_before_create = Programmer.count
 
     # Place some data in rethinkdb
-    num_docs = 5
-    num_docs.times do |n|
+    num_created = 5
+    num_created.times do |n|
       Programmer.create(name: "Jim the #{n}th")
     end
 
     # Start e non-watching table_manager
     tm = RubberSoul::TableManager.new(SPEC_MODELS, backfill: true, watch: false)
 
-    sleep 0.5
+    sleep 1
     # Check number of documents in elastic search
-    es_document_count("programmer").should eq num_docs
+    es_document_count(index).should eq (num_created + count_before_create)
 
     # Clear the rethinkdb tables
     clear_test_tables
-    sleep 0.5
+    sleep 1
 
     # Reindex
     tm.reindex_all
 
-    sleep 0.5
+    sleep 1
     # Check number of documents in elastic search
-    es_document_count("programmer").should eq 0
+    es_document_count(index).should eq 0
   end
 
   describe "backfill" do
     it "refills a single es index with existing data in rethinkdb" do
-      # Empty rethinkdb tables
-      clear_test_tables
+      # Get current number of programmers in table
+      count_before_create = Programmer.count
 
       # Generate some data in rethinkdb
       num_docs = 5
@@ -155,6 +158,7 @@ describe RubberSoul::TableManager do
         Programmer.create(name: "Tim the #{n}th")
       end
 
+      total_docs = count_before_create + num_docs
       tm = RubberSoul::TableManager.new(SPEC_MODELS, watch: false, backfill: false)
 
       # Remove documents from es
@@ -162,8 +166,9 @@ describe RubberSoul::TableManager do
 
       # Backfill all documents in rethinkdb
       tm.backfill_all
+
       sleep 0.5 # Wait for es
-      es_document_count(Programmer.table_name).should eq num_docs
+      es_document_count(Programmer.table_name).should eq total_docs
     end
   end
 end

@@ -8,8 +8,6 @@ require "../config"
 class RubberSoul::TableManager
   alias Property = Tuple(Symbol, NamedTuple(type: String))
 
-  @watcher_coordination = Channel(Nil).new
-
   # Map class name to model properties
   @properties = {} of String => Array(Property)
   getter properties

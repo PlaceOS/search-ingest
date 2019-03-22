@@ -40,7 +40,7 @@ end
 
 # Helper to get document count for an es index
 def es_document_count(index)
-  JSON.parse(RubberSoul::Elastic.client.get("/#{index}/_count").body)["count"]
+  JSON.parse(RubberSoul::Elastic.client.get("/#{index}/_count").body)["count"].as_i
 end
 
 # Remove any of the test indices on start up
