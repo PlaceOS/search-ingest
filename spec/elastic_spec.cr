@@ -19,7 +19,12 @@ describe RubberSoul::Elastic do
     coffee.id = "coffee-SoM3Th3ing"
 
     # Save a child document in child and parent indices
-    RubberSoul::Elastic.save_document(index: "coffee", parents: tm.parents("Coffee"), document: coffee)
+    RubberSoul::Elastic.save_document(
+      document: coffee,
+      index: "coffee",
+      parents: tm.parents("Coffee"),
+      children: tm.children("Coffee")
+    )
 
     sleep 1 # Check that documents have been placed into ES
     es_document_count("coffee").should eq 1
@@ -54,7 +59,13 @@ describe RubberSoul::Elastic do
 
       programmer = Programmer.new(name: "Knuth", id: "programmer-12345hjkl")
       parents = tm.parents("Programmer")
-      RubberSoul::Elastic.save_document(index: index, parents: parents, document: programmer)
+      children = tm.children("Programmer")
+      RubberSoul::Elastic.save_document(
+        document: programmer,
+        index: index,
+        parents: parents,
+        children: children,
+      )
 
       sleep 1 # Wait for es
       es_document_count(index).should eq 1

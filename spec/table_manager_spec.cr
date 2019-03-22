@@ -69,16 +69,16 @@ describe RubberSoul::TableManager do
     it "collects properties for a model with associations" do
       tm = RubberSoul::TableManager.new(SPEC_MODELS)
       children = tm.children("Programmer")
-      mappings = tm.collect_index_properties("Programmer", children).sort_by { |p| p[0] }
-      mappings.should eq ([
-        {:created_at, {type: "date"}},
-        {:duration, {type: "date"}},
-        {:id, {type: "keyword"}},
-        {:name, {type: "text"}},
-        {:programmer_id, {type: "keyword"}},
-        {:temperature, {type: "integer"}},
-        RubberSoul::TableManager::TYPE_PROPERTY,
-      ])
+      mappings = tm.collect_index_properties("Programmer", children)
+      mappings.should eq ({
+        :created_at    => {type: "date"},
+        :duration      => {type: "date"},
+        :id            => {type: "keyword"},
+        :name          => {type: "text"},
+        :programmer_id => {type: "keyword"},
+        :temperature   => {type: "integer"},
+        :type          => {type: "keyword"},
+      })
     end
   end
 
@@ -101,7 +101,7 @@ describe RubberSoul::TableManager do
       clear_test_indices
       clear_test_tables
 
-      RubberSoul::TableManager.new(SPEC_MODELS, backfill: false, watch: true)
+      tm = RubberSoul::TableManager.new(SPEC_MODELS, backfill: false, watch: true)
 
       sleep 1 # Wait for change to propagate to es
       es_document_count("programmer").should eq 0
@@ -110,6 +110,8 @@ describe RubberSoul::TableManager do
 
       sleep 1 # Wait for change to propagate to es
       es_document_count("programmer").should eq 1
+
+      tm.cancel!.should expect_raises RubberSoul::CancelledError
     end
   end
 

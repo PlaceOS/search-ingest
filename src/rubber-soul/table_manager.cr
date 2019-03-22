@@ -2,6 +2,7 @@ require "rethinkdb-orm"
 require "retriable"
 
 require "./elastic"
+require "../config"
 
 # Class to manage rethinkdb models sync with elasticsearch
 class RubberSoul::TableManager
@@ -119,8 +120,12 @@ class RubberSoul::TableManager
   def backfill(model)
     index = index_name(model)
     parents = parents(model)
+    children = children(model)
     all(model).each do |d|
-      RubberSoul::Elastic.save_document(index, parents, d)
+      RubberSoul::Elastic.save_document(index: index,
+        parents: parents,
+        children: children,
+        document: d)
     end
   end
 
@@ -169,6 +174,7 @@ class RubberSoul::TableManager
   def watch_table(model)
     index = index_name(model)
     parents = parents(model)
+    children = children(model)
 
     # Retry on all exceptions excluding internal exceptions
     Retriable.retry(times: 5, except: {RubberSoul::Error => nil}) do
@@ -176,9 +182,9 @@ class RubberSoul::TableManager
         document = change[:value]
         next if document.nil?
         if change[:event] == RethinkORM::Changefeed::Event::Deleted
-          RubberSoul::Elastic.delete_document(index, parents, document)
+          RubberSoul::Elastic.delete_document(document, index, parents, children)
         else
-          RubberSoul::Elastic.save_document(index, parents, document)
+          RubberSoul::Elastic.save_document(document, index, parents, children)
         end
       end
     end
@@ -219,10 +225,14 @@ class RubberSoul::TableManager
 
   # Generate the index type mapping structure
   def construct_document_schema(model) : String
+    children = children(model)
+    properties = collect_index_properties(model, children)
+    # Only include join if model has children
+    properties = properties.merge(join_field(model, children)) unless children.empty?
     {
       mappings: {
         _doc: {
-          properties: collect_index_properties(model, children(model)).to_h,
+          properties: properties,
         },
       },
     }.to_json
@@ -231,11 +241,32 @@ class RubberSoul::TableManager
   # Property Generation
   #############################################################################################
 
+  # Now that we are generating joins on the parent_id, we need to specify if we are generating
+  # a child or a single document
+  # Maps from crystal types to Elasticsearch field datatypes
+  def generate_index_properties(model, child = false) : Array(Property)
+    properties = MODEL_METADATA[model][:attributes].compact_map do |field, options|
+      type_tag = options.dig?(:tags, :es_type)
+      if type_tag
+        unless valid_es_type?(type_tag)
+          raise Error.new("Invalid ES type '#{type_tag}' for #{field} of #{model}")
+        end
+        {field, {type: type_tag}}
+      else
+        # Map the klass of field to es_type
+        es_type = klass_to_es_type(options[:klass])
+        # Could the klass be mapped?
+        es_type ? {field, {type: es_type}} : nil
+      end
+    end
+    properties << TYPE_PROPERTY
+  end
+
   # Collects all properties relevant to an index and collapse them into a schema
   def collect_index_properties(model : String, children : Array(String)? = [] of String)
-    index_models = children << model
+    index_models = children.dup << model
     # Get the properties of all relevent tables, create flat index properties
-    @properties.select(index_models).values.flatten.uniq
+    @properties.select(index_models).values.flatten.uniq.to_h
   end
 
   # Construct properties for given models
@@ -263,6 +294,19 @@ class RubberSoul::TableManager
       end
     end
     properties << TYPE_PROPERTY
+  end
+
+  # Generate join fields for parent relations
+  def join_field(model, children)
+    {
+      :join => {
+        type:      "join",
+        relations: {
+          # Use types for defining the parent-child relation
+          model => children,
+        },
+      },
+    }
   end
 
   # Allows several document types beneath a single index
@@ -342,5 +386,12 @@ class RubberSoul::TableManager
       end
       name if is_child
     end
+  end
+
+  # Utils
+  #############################################################################################
+
+  def cancel!
+    raise RubberSoul::CancelledError.new("TableManager cancelled")
   end
 end

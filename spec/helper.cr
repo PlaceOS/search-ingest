@@ -20,12 +20,16 @@ end
 
 # Delete all test indices on start up
 def delete_test_indices
-  RubberSoul::Elastic.delete_indices(table_names)
+  table_names.each do |name|
+    RubberSoul::Elastic.delete_index(name)
+  end
 end
 
 # Remove all documents from an index, retaining index mappings
 def clear_test_indices
-  RubberSoul::Elastic.empty_indices(table_names)
+  table_names.each do |name|
+    RubberSoul::Elastic.empty_indices([name])
+  end
 end
 
 macro clear_test_tables
