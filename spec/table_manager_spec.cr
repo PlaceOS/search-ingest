@@ -120,7 +120,7 @@ describe RubberSoul::TableManager do
 
   it "reindexes indices" do
     index = Programmer.table_name
-    count_before_create = Programmer.count
+    count_before_create = es_document_count(index)
 
     # Place some data in rethinkdb
     num_created = 5
@@ -128,37 +128,29 @@ describe RubberSoul::TableManager do
       Programmer.create(name: "Jim the #{n}th")
     end
 
-    # Start e non-watching table_manager
-    tm = RubberSoul::TableManager.new(SPEC_MODELS, backfill: true, watch: false)
-
-    sleep 1
-    # Check number of documents in elastic search
-    es_document_count(index).should eq (num_created + count_before_create)
-
-    # Clear the rethinkdb tables
-    clear_test_tables
-    sleep 1
+    # Start non-watching table_manager
+    tm = RubberSoul::TableManager.new(SPEC_MODELS, backfill: false, watch: false)
 
     # Reindex
     tm.reindex_all
+    sleep 1
+    es_document_count(index).should eq 0
 
+    tm.backfill_all
     sleep 1
     # Check number of documents in elastic search
-    es_document_count(index).should eq 0
+    es_document_count(index).should eq (num_created + count_before_create)
   end
 
   describe "backfill" do
     it "refills a single es index with existing data in rethinkdb" do
-      # Get current number of programmers in table
-      count_before_create = Programmer.count
+      index = Programmer.table_name
 
       # Generate some data in rethinkdb
-      num_docs = 5
-      num_docs.times do |n|
+      5.times do |n|
         Programmer.create(name: "Tim the #{n}th")
       end
 
-      total_docs = count_before_create + num_docs
       tm = RubberSoul::TableManager.new(SPEC_MODELS, watch: false, backfill: false)
 
       # Remove documents from es
@@ -167,8 +159,8 @@ describe RubberSoul::TableManager do
       # Backfill all documents in rethinkdb
       tm.backfill_all
 
-      sleep 0.5 # Wait for es
-      es_document_count(Programmer.table_name).should eq total_docs
+      sleep 1 # Wait for es
+      es_document_count(index).should eq Programmer.count
     end
   end
 end

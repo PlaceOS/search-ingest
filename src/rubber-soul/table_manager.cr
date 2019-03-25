@@ -4,6 +4,8 @@ require "retriable"
 require "./elastic"
 require "../config"
 
+require "./types"
+
 # Class to manage rethinkdb models sync with elasticsearch
 class RubberSoul::TableManager
   alias Property = Tuple(Symbol, NamedTuple(type: String))
@@ -82,7 +84,7 @@ class RubberSoul::TableManager
   # Initialisation
   #############################################################################################
 
-  def initialize(klasses, backfill = true, watch = false)
+  def initialize(klasses, backfill = false, watch = false)
     @models = klasses.map(&.name)
 
     # Collate model properties
@@ -142,10 +144,6 @@ class RubberSoul::TableManager
     @models.each { |model| reindex(model) }
   end
 
-  def reindex_all
-    @models.each { |model| reindex(model) }
-  end
-
   # Clear, update mapping an ES index and refill with rethinkdb documents
   def reindex(model : String)
     index = index_name(model)
@@ -174,8 +172,14 @@ class RubberSoul::TableManager
     parents = parents(model)
     children = children(model)
 
+    # Exceptions to fail on
+    no_retry = {
+      RubberSoul::Error => nil,
+      IO::Error         => /Closed stream/,
+    }
+
     # Retry on all exceptions excluding internal exceptions
-    Retriable.retry(times: 5, except: {RubberSoul::Error => nil}) do
+    Retriable.retry(except: no_retry, times: 10) do
       changes(model).each do |change|
         document = change[:value]
         next if document.nil?
@@ -355,8 +359,6 @@ class RubberSoul::TableManager
 
   # Relations
   #############################################################################################
-
-  alias Parent = NamedTuple(name: String, index: String, routing_attr: Symbol)
 
   # Find name and ES routing of document's parents
   def parents(model) : Array(Parent)

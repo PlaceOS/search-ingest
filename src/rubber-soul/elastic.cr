@@ -1,6 +1,7 @@
 require "http"
 
 require "./error"
+require "./types"
 
 class RubberSoul::Elastic
   # Settings for elastic client
@@ -11,7 +12,7 @@ class RubberSoul::Elastic
 
   @@client = HTTP::Client.new(
     host: self.settings.host,
-    port: self.settings.port
+    port: self.settings.port,
   )
 
   # Indices
@@ -71,7 +72,7 @@ class RubberSoul::Elastic
   # Replicates a RethinkDB document in ES
   # - Creates document in table index
   # - Adds document to all parent table indices, routing by the parent id
-  def self.save_document(document, index, parents, children)
+  def self.save_document(document, index, parents = [] of Parent, children = [] of String)
     return if document.nil? # FIXME: Currently, from_trusted_json is nillable, remove once fixed
     document.id ||= ""      # Will never be nil, this is just to collapse the nillable union
 
@@ -105,7 +106,7 @@ class RubberSoul::Elastic
   # Remove RethinkDB document from all relevant ES
   # - Remove document in the table index
   # - Add document to all parent table indices, routing by association id
-  def self.delete_document(document, index, parents, children)
+  def self.delete_document(document, index, parents = [] of Parent, children = [] of String)
     return if document.nil?
     id = document.id || ""
 
@@ -135,7 +136,7 @@ class RubberSoul::Elastic
   # Create a join field for a document body
   # Can set just the document type if document is the parent
   def self.document_join_field(type, parent_id = nil)
-    parent_id ? {type: type, parent_id: parent_id} : type
+    parent_id ? {name: type, parent: parent_id} : type
   end
 
   # Sets the type and join field, and generates body json
@@ -167,7 +168,7 @@ class RubberSoul::Elastic
   # Delete document from an elastic search index
   def self.es_delete(index, id, routing = nil)
     url = self.document_path(index, id, routing)
-    res = HTTP::Client.delete(url)
+    res = @@client.delete(url)
     raise RubberSoul::Error.new("ES delete: #{res.body}") unless res.success?
   end
 

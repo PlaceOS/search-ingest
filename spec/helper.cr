@@ -40,11 +40,16 @@ end
 
 # Helper to get document count for an es index
 def es_document_count(index)
-  JSON.parse(RubberSoul::Elastic.client.get("/#{index}/_count").body)["count"].as_i
+  response_body = JSON.parse(RubberSoul::Elastic.client.get("/#{index}/_count").body)
+  response_body["count"].as_i
 end
 
-# Remove any of the test indices on start up
-delete_test_indices
+def es_doc_exists?(index, id, routing)
+  RubberSoul::Elastic.client.get("/#{index}/_doc/#{id}").success?
+end
 
-# Remove any of the test tables in rethinkdb on start up
+# Empty rethinkdb test tables
 clear_test_tables
+
+# Remove any of the test indices
+delete_test_indices
