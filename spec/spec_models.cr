@@ -34,4 +34,4 @@ class Migraine < AbstractBase
   belongs_to Programmer
 end
 
-SPEC_MODELS = [RayGun, Programmer, Broke, Coffee, Migraine]
+MANAGED_TABLES = [RayGun, Programmer, Broke, Coffee, Migraine]

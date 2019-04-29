@@ -2,7 +2,7 @@ require "./helper"
 
 describe RubberSoul::Elastic do
   it "routes to correct parent documents" do
-    tm = RubberSoul::TableManager.new(SPEC_MODELS, backfill: false, watch: false)
+    tm = RubberSoul::TableManager.new(MANAGED_TABLES, backfill: false, watch: false)
     es = RubberSoul::Elastic.client
 
     child_index = Coffee.table_name
@@ -70,7 +70,7 @@ describe RubberSoul::Elastic do
       index = Coffee.table_name
       model_name = Coffee.name
 
-      tm = RubberSoul::TableManager.new(SPEC_MODELS, backfill: false, watch: false)
+      tm = RubberSoul::TableManager.new(MANAGED_TABLES, backfill: false, watch: false)
 
       parents = tm.parents(model_name)
       children = tm.children(model_name)
@@ -109,7 +109,7 @@ describe RubberSoul::Elastic do
     end
 
     it "saves a document" do
-      tm = RubberSoul::TableManager.new(SPEC_MODELS, backfill: false, watch: false)
+      tm = RubberSoul::TableManager.new(MANAGED_TABLES, backfill: false, watch: false)
       es = RubberSoul::Elastic.client
       index = Programmer.table_name
       model_name = Programmer.name

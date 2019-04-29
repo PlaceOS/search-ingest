@@ -81,21 +81,21 @@ class RubberSoul::Elastic
 
     # Saving to own index
     type = self.document_type(document)
-    body = self.generate_body(type, document.attributes, no_children: children.empty?)
+    body = self.generate_body(type, document, no_children: children.empty?)
     self.es_save(index, document.id, body)
   end
 
   # Account for joins with parents
   def self.association_save(document, parents)
     type = self.document_type(document)
-    attributes = document.attributes
     id = document.id
+    attributes = document.attributes
 
     # Save document to all parent indices
     parents.each do |parent|
       # Get the parents id to route to correct es shard
       parent_id = attributes[parent[:routing_attr]].to_s
-      body = self.generate_body(type, attributes, parent_id)
+      body = self.generate_body(type, document, parent_id)
       self.es_save(parent[:index], id, body, parent_id)
     end
   end
@@ -140,14 +140,16 @@ class RubberSoul::Elastic
   end
 
   # Sets the type and join field, and generates body json
-  private def self.generate_body(type, attributes, parent_id = nil, no_children = false) : String
-    body = attributes.dup
-    body[:type] = type
+  private def self.generate_body(type, document, parent_id = nil, no_children = false) : String
+    # FIXME: Optimize selecting attributes that respects attribute conversion
+    body = JSON.parse(document.to_json).as_h
+    body["type"] = JSON::Any.new(type)
 
     # Don't set a join field if there are no children on the index
     unless no_children
-      body = body.merge({:join => self.document_join_field(type, parent_id)})
+      body = body.merge({"join" => self.document_join_field(type, parent_id)})
     end
+
     body.to_json
   end
 

@@ -5,19 +5,14 @@ Exposes a REST API to reindex/backfill specific models
 
 ## Implementation
 
-Each rethinkdb table receives an index
-Belongs to association are modelled with _type mappings.  
-
-flow
-1. include the mappings manager with your models
-1. start spider-gazelle service
-1. generates mappings, reindexes es by default (hmm)
-1. when document event from rethinkdb occurs, place in document index first then all parents
-
+- Each rethinkdb table receives an index mapping.
+- `belongs_to` association are modelled with `join` datatypes, associated documents are mirrored beneath the parent document.
+- Hooks into the changefeed of a table, resolves associations and places the document into the correct document indices.
 
 ## Development
 
-Will require rethinkdb and elasticsearch services
+- rethinkdb 2.3.6
+- elasticsearch 7.0.0
 
 ## Contributing
 
@@ -29,4 +24,4 @@ Will require rethinkdb and elasticsearch services
 
 ## Contributors
 
-- [Caspian Baska](https://github.com/Caspiano) - creator and maintainer
+- [Caspian Baska](https://github.com/caspiano) - creator and maintainer

@@ -34,9 +34,12 @@ class RubberSoul::TableManager
   macro __create_model_metadata
     {% for model, fields in RethinkORM::Base::FIELD_MAPPINGS %}
       {% unless model.abstract? || fields.empty? %}
-        {% MODELS[model] = fields %}
+        {% if MANAGED_TABLES.map(&.resolve).includes?(model) %}
+          {% MODELS[model] = fields %}
+        {% end %}
       {% end %}
     {% end %}
+
     # Extracted metadata from ORM classes
     MODEL_METADATA = {
       {% for model, fields in MODELS %}
@@ -49,7 +52,7 @@ class RubberSoul::TableManager
             table_name: {{ model.id }}.table_name
           },
       {% end %}
-    }
+    } {% if MODELS.empty? %} of Nil => Nil {% end %}
   end
 
   macro __generate_methods(methods)
@@ -321,7 +324,7 @@ class RubberSoul::TableManager
     # Numeric
     "long", "integer", "short", "byte", "double", "float", "half_float", "scaled_float",
     # Other
-    "boolean", "date", "binary",
+    "boolean", "date", "binary", "object",
     # Special
     "ip", "completion",
     # Spacial

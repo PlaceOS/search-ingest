@@ -13,7 +13,7 @@ require "../lib/action-controller/spec/curl_context"
 require "json"
 
 macro table_names
-  [{% for klass in SPEC_MODELS %} {{ klass }}.table_name, {% end %}]
+  [{% for klass in MANAGED_TABLES %} {{ klass }}.table_name, {% end %}]
 end
 
 # Delete all test indices on start up
@@ -31,7 +31,7 @@ def clear_test_indices
 end
 
 macro clear_test_tables
-  {% for klass in SPEC_MODELS %}
+  {% for klass in MANAGED_TABLES %}
   {{ klass.id }}.clear
   {% end %}
 end
@@ -51,5 +51,3 @@ clear_test_tables
 
 # Remove any of the test indices
 delete_test_indices
-
-pp! MANAGED_TABLES
