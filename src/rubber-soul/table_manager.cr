@@ -34,7 +34,7 @@ class RubberSoul::TableManager
   macro __create_model_metadata
     {% for model, fields in RethinkORM::Base::FIELD_MAPPINGS %}
       {% unless model.abstract? || fields.empty? %}
-      {% MODELS[model] = fields %}
+        {% MODELS[model] = fields %}
       {% end %}
     {% end %}
     # Extracted metadata from ORM classes
@@ -50,7 +50,6 @@ class RubberSoul::TableManager
           },
       {% end %}
     }
-    pp! MODEL_METADATA
   end
 
   macro __generate_methods(methods)
