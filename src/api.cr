@@ -3,17 +3,10 @@ require "../rubber-soul"
 class RubberSoul::API < ActionController::Base
   base "/api"
 
-  # TODO: Model names currently hardcoded
-  # TODO: Change once models export the model names
   @@table_manager : RubberSoul::TableManager | Nil
 
   def table_manager
-    @@table_manager ||= RubberSoul::TableManager.new([
-      Engine::Model::ControlSystem,
-      Engine::Model::Module,
-      Engine::Model::Dependency,
-      Engine::Model::Zone,
-    ], watch: true)
+    @@table_manager ||= RubberSoul::TableManager.new(MANAGED_TABLES, watch: true)
   end
 
   get "/healthz", :healthz do
@@ -45,7 +38,6 @@ class RubberSoul::API < ActionController::Base
   # Backfill specific table,
   #   as in reindex, ensure all dependencies backfilled?
   post "/backfill/:table", :backfill_table do
-    # backfill(params[:table])
     head :not_implemented
   end
 end

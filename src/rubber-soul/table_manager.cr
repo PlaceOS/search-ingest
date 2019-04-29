@@ -2,13 +2,15 @@ require "rethinkdb-orm"
 require "retriable"
 
 require "./elastic"
-require "../config"
-
 require "./types"
 
 # Class to manage rethinkdb models sync with elasticsearch
 class RubberSoul::TableManager
   alias Property = Tuple(Symbol, NamedTuple(type: String))
+
+  Habitat.create do
+    setting logger : Logger = Logger.new(STDOUT)
+  end
 
   # Map class name to model properties
   @properties = {} of String => Array(Property)
@@ -48,6 +50,7 @@ class RubberSoul::TableManager
           },
       {% end %}
     }
+    pp! MODEL_METADATA
   end
 
   macro __generate_methods(methods)
@@ -122,18 +125,18 @@ class RubberSoul::TableManager
     parents = parents(model)
     children = children(model)
     all(model).each do |d|
-      RubberSoul::Elastic.save_document(index: index,
+      RubberSoul::Elastic.save_document(
+        index: index,
         parents: parents,
         children: children,
-        document: d)
+        document: d
+      )
     end
   end
 
   # Save all documents in all tables to the correct indices
   def backfill_all
-    @models.each do |model|
-      backfill(model)
-    end
+    @models.each { |model| backfill(model) }
   end
 
   # Reindex
@@ -161,7 +164,7 @@ class RubberSoul::TableManager
       spawn do
         watch_table(model)
       rescue e
-        LOG.error "while watching #{model}"
+        self.settings.logger.error "while watching #{model}"
         raise e
       end
     end
@@ -233,9 +236,7 @@ class RubberSoul::TableManager
     properties = properties.merge(join_field(model, children)) unless children.empty?
     {
       mappings: {
-        _doc: {
-          properties: properties,
-        },
+        properties: properties,
       },
     }.to_json
   end

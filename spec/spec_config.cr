@@ -1,13 +1,13 @@
 # Application dependencies
 require "action-controller"
-require "engine-models"
+require "./spec_models"
 
 # stdlib
 require "http"
 require "logger"
 
 # Application code
-require "./api"
+require "../src/api"
 
 # Server required after application controllers
 require "action-controller/server"
@@ -19,23 +19,10 @@ ActionController::Server.before(
   HTTP::CompressHandler.new
 )
 
-RubberSoul::TableManager.configure do |settings|
-  settings.logger = ActionController::Base.settings.logger
-end
-
 # ACA engine configuration... necessary if using models?
 ACA_ENGINE_DB = "engine"
 
-# Tables watched by TableManager
-MANAGED_TABLES = [
-  Engine::Model::ControlSystem,
-  Engine::Model::Dependency,
-  Engine::Model::DriverRepo,
-  Engine::Model::Module,
-  Engine::Model::Trigger,
-  Engine::Model::TriggerInstance,
-  Engine::Model::Zone,
-]
+MANAGED_TABLES = SPEC_MODELS
 
 APP_NAME = "rubber-soul"
 VERSION  = "1.0.0"

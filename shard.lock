@@ -2,31 +2,35 @@ version: 1.0
 shards:
   action-controller:
     github: spider-gazelle/action-controller
-    version: 1.4.3
+    version: 1.4.7
 
   active-model:
     github: spider-gazelle/active-model
-    commit: b95d6813b3ae4e1e149182832ba4166bc6cf5796
+    commit: 40b52631d1da658d138f9b8cb3e5d86ab55a1f19
 
   ameba:
     github: veelenga/ameba
-    version: 0.9.0
+    version: 0.9.1
 
   crystal-rethinkdb:
-    github: kingsleyh/crystal-rethinkdb
-    version: 0.1.5
+    github: aca-labs/crystal-rethinkdb
+    commit: a5c54f314174574d308efa3e8027ddfa9e065ba4
 
   engine-models:
     github: aca-labs/crystal-engine-models
-    commit: 1cb1069db2c2b884e1c28821be4b8310d94823cc
+    commit: f5e68f49d22122afe0158d0ec5dca2c8d29e3023
 
   habitat:
     github: luckyframework/habitat
-    version: 0.4.0
+    version: 0.4.3
 
   kilt:
     github: jeromegn/kilt
     version: 0.4.0
+
+  neuroplastic:
+    github: aca-labs/neuroplastic
+    commit: 768476afb9a6c63a5001c45e6aff92bab3898928
 
   radix:
     github: luislavena/radix
@@ -34,9 +38,9 @@ shards:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    commit: 2cd7b885519f3750843d15e870bab6849f89449a
+    commit: a1555af7421b2008e2bd948ca356697723e76a0b
 
   retriable:
     github: Sija/retriable.cr
-    version: 0.1.0
+    commit: 8cd9986bd89594c00bbeaae3fdeda4badfc59ab6
 

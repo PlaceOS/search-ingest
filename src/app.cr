@@ -73,9 +73,8 @@ RubberSoul::Elastic.ensure_elastic!
 
 if backfill || reindex
   # Perform backfill/reindex and then exit
-  # FIXME: Model names currently hardcoded, change once models export the model names
   table_manager = RubberSoul::TableManager.new(
-    [ControlSystem, Module, Dependency, Zone],
+    MANAGED_TABLES,
     watch: false,
     backfill: false
   )

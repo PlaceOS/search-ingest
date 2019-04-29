@@ -25,10 +25,8 @@ describe RubberSoul::TableManager do
     get_schema = ->{ {mappings: JSON.parse(es.get("/#{index}").body)[index]["mappings"]}.to_json }
     wrong_schema = {
       mappings: {
-        _doc: {
-          properties: {
-            wrong: {type: "keyword"},
-          },
+        properties: {
+          wrong: {type: "keyword"},
         },
       },
     }.to_json
@@ -54,7 +52,7 @@ describe RubberSoul::TableManager do
 
     # Check that the path to a field mapping exists
     json = JSON.parse(schema)
-    json.dig?("mappings", "_doc", "properties", "breaks", "type").should_not be_nil
+    json.dig?("mappings", "properties", "breaks", "type").should_not be_nil
   end
 
   describe "elasticsearch properties" do
@@ -105,10 +103,10 @@ describe RubberSoul::TableManager do
       tm = RubberSoul::TableManager.new(SPEC_MODELS)
       parents = tm.parents(Migraine.name)
       parents.should eq [{
-                           name:         Programmer.name,
-                           index:        Programmer.table_name,
-                           routing_attr: :programmer_id,
-                         }]
+        name:         Programmer.name,
+        index:        Programmer.table_name,
+        routing_attr: :programmer_id,
+      }]
     end
 
     it "finds the child relations of a model" do

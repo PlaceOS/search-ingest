@@ -1,10 +1,8 @@
 require "spec"
 
-# Spec models
-require "./spec_models"
-
 # Application config
-require "../src/config"
+require "./spec_config"
+
 require "../src/rubber-soul"
 require "../src/rubber-soul/*"
 require "../src/api"
@@ -53,3 +51,5 @@ clear_test_tables
 
 # Remove any of the test indices
 delete_test_indices
+
+pp! MANAGED_TABLES
