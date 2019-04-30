@@ -1,3 +1,5 @@
+require "logger"
+require "habitat"
 require "rethinkdb-orm"
 require "retriable"
 
@@ -34,7 +36,7 @@ class RubberSoul::TableManager
   macro __create_model_metadata
     {% for model, fields in RethinkORM::Base::FIELD_MAPPINGS %}
       {% unless model.abstract? || fields.empty? %}
-        {% if MANAGED_TABLES.map(&.resolve).includes?(model) %}
+        {% if RubberSoul::MANAGED_TABLES.map(&.resolve).includes?(model) %}
           {% MODELS[model] = fields %}
         {% end %}
       {% end %}
@@ -89,7 +91,7 @@ class RubberSoul::TableManager
   # Initialisation
   #############################################################################################
 
-  def initialize(klasses, backfill = false, watch = false)
+  def initialize(klasses = RubberSoul::MANAGED_TABLES, backfill = false, watch = false)
     @models = klasses.map(&.name)
 
     # Collate model properties

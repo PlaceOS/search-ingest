@@ -6,7 +6,7 @@ class RubberSoul::API < ActionController::Base
   @@table_manager : RubberSoul::TableManager | Nil
 
   def table_manager
-    @@table_manager ||= RubberSoul::TableManager.new(MANAGED_TABLES, watch: true)
+    @@table_manager ||= RubberSoul::TableManager.new(RubberSoul::MANAGED_TABLES, watch: true)
   end
 
   get "/healthz", :healthz do

@@ -74,7 +74,6 @@ RubberSoul::Elastic.ensure_elastic!
 if backfill || reindex
   # Perform backfill/reindex and then exit
   table_manager = RubberSoul::TableManager.new(
-    MANAGED_TABLES,
     watch: false,
     backfill: false
   )

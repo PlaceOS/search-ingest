@@ -3,6 +3,10 @@
 A small service that hooks into [rethinkdb-orm](https://github.com/spider-gazelle/rethinkdb-orm) models and generates elasticsearch indicies.
 Exposes a REST API to reindex/backfill specific models
 
+## Usage
+
+Set the tables to be mirrored in ES through setting `RubberSoul::MANAGED_TABLES` with an array of `(T < RethinkORM::Base).class`
+
 ## Implementation
 
 - Each rethinkdb table receives an index mapping.

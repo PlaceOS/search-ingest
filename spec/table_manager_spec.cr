@@ -3,7 +3,7 @@ require "./helper"
 describe RubberSoul::TableManager do
   pending "watch" do
     it "creates ES documents from changefeed" do
-      tm = RubberSoul::TableManager.new(MANAGED_TABLES, backfill: false, watch: true)
+      tm = RubberSoul::TableManager.new(backfill: false, watch: true)
       index = Programmer.table_name
 
       count_before_create = es_document_count(index)
@@ -82,7 +82,7 @@ describe RubberSoul::TableManager do
     end
 
     it "collects properties for a model with associations" do
-      tm = RubberSoul::TableManager.new(MANAGED_TABLES)
+      tm = RubberSoul::TableManager.new
       name = Programmer.name
       children = tm.children(name)
       mappings = tm.collect_index_properties(name, children)
@@ -100,7 +100,7 @@ describe RubberSoul::TableManager do
 
   describe "relations" do
     it "finds parent relations of a model" do
-      tm = RubberSoul::TableManager.new(MANAGED_TABLES)
+      tm = RubberSoul::TableManager.new
       parents = tm.parents(Migraine.name)
       parents.should eq [{
         name:         Programmer.name,
@@ -110,7 +110,7 @@ describe RubberSoul::TableManager do
     end
 
     it "finds the child relations of a model" do
-      tm = RubberSoul::TableManager.new(MANAGED_TABLES)
+      tm = RubberSoul::TableManager.new
       children = tm.children(Programmer.name)
       children.should eq [Coffee.name, Migraine.name]
     end
@@ -127,7 +127,7 @@ describe RubberSoul::TableManager do
     end
 
     # Start non-watching table_manager
-    tm = RubberSoul::TableManager.new(MANAGED_TABLES, backfill: false, watch: false)
+    tm = RubberSoul::TableManager.new(backfill: false, watch: false)
 
     # Reindex
     tm.reindex_all
@@ -149,7 +149,7 @@ describe RubberSoul::TableManager do
         Programmer.create(name: "Tim the #{n}th")
       end
 
-      tm = RubberSoul::TableManager.new(MANAGED_TABLES, watch: false, backfill: false)
+      tm = RubberSoul::TableManager.new(watch: false, backfill: false)
 
       # Remove documents from es
       clear_test_indices

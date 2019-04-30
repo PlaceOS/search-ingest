@@ -34,4 +34,5 @@ class Migraine < AbstractBase
   belongs_to Programmer
 end
 
-MANAGED_TABLES = [RayGun, Programmer, Broke, Coffee, Migraine]
+# ameba:disable Style/ConstantNames
+RubberSoul::MANAGED_TABLES = [RayGun, Programmer, Broke, Coffee, Migraine]

@@ -19,15 +19,10 @@ ActionController::Server.before(
   HTTP::CompressHandler.new
 )
 
-RubberSoul::TableManager.configure do |settings|
-  settings.logger = ActionController::Base.settings.logger
-end
-
-# ACA engine configuration... necessary if using models?
-ACA_ENGINE_DB = "engine"
-
 # Tables watched by TableManager
-MANAGED_TABLES = [
+# FIXME: This is not ideal, however a constant array is required for macro methods
+
+RubberSoul::MANAGED_TABLES = [ # ameba:disable Style/ConstantNames
   Engine::Model::ControlSystem,
   Engine::Model::Dependency,
   Engine::Model::DriverRepo,
@@ -36,6 +31,13 @@ MANAGED_TABLES = [
   Engine::Model::TriggerInstance,
   Engine::Model::Zone,
 ]
+
+RubberSoul::TableManager.configure do |settings|
+  settings.logger = ActionController::Base.settings.logger
+end
+
+# ACA engine configuration... necessary if using models?
+ACA_ENGINE_DB = "engine"
 
 APP_NAME = "rubber-soul"
 VERSION  = "1.0.0"
