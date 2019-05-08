@@ -13,12 +13,12 @@ shards:
     version: 0.9.1
 
   crystal-rethinkdb:
-    github: aca-labs/crystal-rethinkdb
-    commit: a5c54f314174574d308efa3e8027ddfa9e065ba4
+    github: kingsleyh/crystal-rethinkdb
+    version: 0.1.6
 
   engine-models:
     github: aca-labs/crystal-engine-models
-    commit: 2e37f75ed48b71b358d18b6459d1d531b093046e
+    commit: d5be23d51a8dc00b1c8bbb174eee8912d0f40a35
 
   habitat:
     github: luckyframework/habitat
@@ -30,7 +30,7 @@ shards:
 
   neuroplastic:
     github: aca-labs/neuroplastic
-    commit: 768476afb9a6c63a5001c45e6aff92bab3898928
+    commit: 148a6073b91e50c5b9f5132dd0c698694dfdd88d
 
   radix:
     github: luislavena/radix
@@ -38,7 +38,7 @@ shards:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    commit: a1555af7421b2008e2bd948ca356697723e76a0b
+    commit: 510ef572c1d9895cf14324e7deea73a7828995d4
 
   retriable:
     github: Sija/retriable.cr

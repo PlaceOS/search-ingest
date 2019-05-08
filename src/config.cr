@@ -1,7 +1,3 @@
-# Application dependencies
-require "action-controller"
-require "engine-models"
-
 # stdlib
 require "http"
 require "logger"
@@ -24,7 +20,7 @@ ActionController::Server.before(
 
 RubberSoul::MANAGED_TABLES = [ # ameba:disable Style/ConstantNames
   Engine::Model::ControlSystem,
-  Engine::Model::Dependency,
+  Engine::Model::Driver,
   Engine::Model::DriverRepo,
   Engine::Model::Module,
   Engine::Model::Trigger,
