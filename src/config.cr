@@ -2,6 +2,8 @@
 require "http"
 require "logger"
 
+require "engine-models"
+
 # Application code
 require "./api"
 
@@ -17,7 +19,6 @@ ActionController::Server.before(
 
 # Tables watched by TableManager
 # FIXME: This is not ideal, however a constant array is required for macro methods
-
 RubberSoul::MANAGED_TABLES = [ # ameba:disable Style/ConstantNames
   Engine::Model::ControlSystem,
   Engine::Model::Driver,

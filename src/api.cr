@@ -1,3 +1,5 @@
+require "action-controller"
+
 require "../rubber-soul"
 
 class RubberSoul::API < ActionController::Base
