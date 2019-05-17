@@ -3,6 +3,8 @@ require "habitat"
 require "rethinkdb-orm"
 require "retriable"
 
+require "promise"
+
 require "./elastic"
 require "./types"
 
@@ -45,7 +47,7 @@ class RubberSoul::TableManager
     # Extracted metadata from ORM classes
     MODEL_METADATA = {
       {% for model, fields in MODELS %}
-          {{ model.stringify }} => {
+          {{ model.stringify.split("::").last }} => {
             attributes: {
             {% for attr, options in fields %}
               {{ attr.symbolize }} => {{ options }},
@@ -69,7 +71,7 @@ class RubberSoul::TableManager
       # Generate {{ method.id }} method calls
       case model
       {% for klass in MODELS.keys %}
-      when {{ klass.stringify }}
+      when {{ klass.stringify.split("::").last }}
         {{ klass.id }}.{{ method.id }}
       {% end %}
       else
@@ -92,7 +94,7 @@ class RubberSoul::TableManager
   #############################################################################################
 
   def initialize(klasses = RubberSoul::MANAGED_TABLES, backfill = false, watch = false)
-    @models = klasses.map(&.name)
+    @models = klasses.map { |klass| strip_namespace(klass.name) }
 
     # Collate model properties
     @properties = generate_properties(@models)
@@ -136,10 +138,14 @@ class RubberSoul::TableManager
         document: d
       )
     end
+    true
   end
 
   # Save all documents in all tables to the correct indices
   def backfill_all
+    # Promise.all(
+    #   @models.map { |model| Promise.defer { backfill(model) } }
+    # ).get
     @models.each { |model| backfill(model) }
   end
 
@@ -148,6 +154,9 @@ class RubberSoul::TableManager
 
   # Clear and update all index mappings
   def reindex_all
+    # Promise.all(
+    #   @models.map { |model| Promise.defer { reindex(model) } }
+    # ).get
     @models.each { |model| reindex(model) }
   end
 
@@ -158,6 +167,7 @@ class RubberSoul::TableManager
     RubberSoul::Elastic.delete_index(index)
     # Apply current mapping
     apply_mapping(model)
+    true
   end
 
   # Watch
@@ -186,8 +196,10 @@ class RubberSoul::TableManager
     }
 
     # Retry on all exceptions excluding internal exceptions
-    Retriable.retry(except: no_retry, times: 10) do
+    Retriable.retry(except: no_retry) do
       changes(model).each do |change|
+        self.settings.logger.info("#{change[:event]}: #{model}")
+
         document = change[:value]
         next if document.nil?
         if change[:event] == RethinkORM::Changefeed::Event::Deleted
@@ -398,5 +410,9 @@ class RubberSoul::TableManager
 
   def cancel!
     raise RubberSoul::CancelledError.new("TableManager cancelled")
+  end
+
+  private def strip_namespace(model)
+    model.split("::").last
   end
 end

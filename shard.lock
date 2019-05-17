@@ -2,11 +2,11 @@ version: 1.0
 shards:
   action-controller:
     github: spider-gazelle/action-controller
-    version: 1.4.7
+    version: 1.5.1
 
   active-model:
     github: spider-gazelle/active-model
-    commit: 40b52631d1da658d138f9b8cb3e5d86ab55a1f19
+    commit: ebd3b854038d79d5869a254fc834608c23b892e0
 
   ameba:
     github: veelenga/ameba
@@ -18,7 +18,7 @@ shards:
 
   engine-models:
     github: aca-labs/crystal-engine-models
-    commit: d5be23d51a8dc00b1c8bbb174eee8912d0f40a35
+    commit: 62372a0c9510633b7bc7c51487c513c7aa12b659
 
   habitat:
     github: luckyframework/habitat
@@ -32,15 +32,23 @@ shards:
     github: aca-labs/neuroplastic
     commit: 148a6073b91e50c5b9f5132dd0c698694dfdd88d
 
+  promise:
+    github: spider-gazelle/promise
+    version: 1.1.2
+
   radix:
     github: luislavena/radix
     version: 0.3.9
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    commit: 510ef572c1d9895cf14324e7deea73a7828995d4
+    commit: c94758ef798cbd22f2538ae8d4b0745460fb2b1f
 
   retriable:
     github: Sija/retriable.cr
     commit: 8cd9986bd89594c00bbeaae3fdeda4badfc59ab6
+
+  scrypt:
+    github: ysbaddaden/scrypt-crystal
+    version: 0.2.2
 

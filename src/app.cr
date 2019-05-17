@@ -1,8 +1,8 @@
 require "option_parser"
 require "habitat"
+require "rethinkdb-orm"
 
-require "./config"
-require "./rubber-soul"
+require "./constants"
 
 # Server defaults
 server_host = ENV["RUBBER_SOUL_HOST"]? || "127.0.0.1"
@@ -13,11 +13,22 @@ process_count = 1
 
 # Application defaults
 backfill = false
-reindex = true
+reindex = false
+
+# Resource configuration
+
+# Elastic
+elastic_host = nil
+elastic_port = nil
+
+# Rethink
+rethink_host = nil
+rethink_port = nil
+rethink_db = RubberSoul::Constants::RETHINK_DATABASE
 
 # Command line options
 OptionParser.parse(ARGV.dup) do |parser|
-  parser.banner = "Usage: #{APP_NAME} [arguments]"
+  parser.banner = "Usage: #{RubberSoul::Constants::APP_NAME} [arguments]"
 
   # RubberSoul Options
   parser.on("--backfill", "Perform backfill") { backfill = true }
@@ -25,20 +36,22 @@ OptionParser.parse(ARGV.dup) do |parser|
 
   # Rethinkdb Options,
   # Access through models themselves.
-  #
-  # parser.on("--rethink-host HOST", "RethinkDB host") do |host|
-  #   RubberSoul::Rethink.settings.host = host
-  # end
-  # parser.on("--rethink-port PORT", "RethinkDB port") do |port|
-  #   RubberSoul::Rethink.settings.port = port.to_i
-  # end
+  parser.on("--rethink-host HOST", "RethinkDB host") do |host|
+    rethink_host = host
+  end
+  parser.on("--rethink-port PORT", "RethinkDB port") do |port|
+    rethink_port = port.to_i
+  end
+  parser.on("--rethink-db DB", "RethinkDB database") do |db|
+    rethink_db = db
+  end
 
   # Elasticsearch Options
   parser.on("--elastic-host HOST", "Elasticsearch host") do |host|
-    RubberSoul::Elastic.settings.host = host
+    elastic_host = host
   end
   parser.on("--elastic-port PORT", "Elasticsearch port") do |port|
-    RubberSoul::Elastic.settings.port = port.to_i
+    elastic_port = port.to_i
   end
 
   # Spider-gazelle configuration
@@ -56,7 +69,7 @@ OptionParser.parse(ARGV.dup) do |parser|
   end
 
   parser.on("-v", "--version", "Display the application version") do
-    puts "#{APP_NAME} v#{VERSION}"
+    puts "#{RubberSoul::Constants::APP_NAME} v#{RubberSoul::VERSION}"
     exit 0
   end
 
@@ -64,13 +77,34 @@ OptionParser.parse(ARGV.dup) do |parser|
     puts parser
     exit 0
   end
+
+  parser.invalid_option do |flag|
+    STDERR.puts "ERROR: #{flag} unrecognised"
+    puts parser
+    exit 1
+  end
+end
+
+# We must configure the RethinkDB connection before including the models...
+RethinkORM::Connection.configure do |settings|
+  rethink_host.try { |host| settings.host = host }
+  rethink_port.try { |port| settings.port = port }
+  settings.db = rethink_db
+end
+
+# Application models included in config.
+require "./config"
+require "./rubber-soul"
+
+RubberSoul::Elastic.configure do |settings|
+  elastic_host.try { |host| settings.host = host }
+  elastic_port.try { |port| settings.port = port }
 end
 
 # Ensure elastic is available
 RubberSoul::Elastic.ensure_elastic!
 
 # DB and table presence ensured by rethinkdb-orm, within models
-
 if backfill || reindex
   # Perform backfill/reindex and then exit
   table_manager = RubberSoul::TableManager.new(
@@ -85,7 +119,7 @@ if backfill || reindex
   table_manager.backfill_all if backfill
 else
   # Otherwise, run server
-  puts "Launching #{APP_NAME} v#{VERSION}"
+  puts "Launching #{RubberSoul::Constants::APP_NAME} v#{RubberSoul::VERSION}"
   # Load routes
   server = ActionController::Server.new(port: server_port, host: server_host)
   # Start clustering
@@ -109,4 +143,4 @@ else
 end
 
 # Shutdown message
-puts "#{APP_NAME} signing off :}\n"
+puts "#{RubberSoul::Constants::APP_NAME} signing off :}\n"

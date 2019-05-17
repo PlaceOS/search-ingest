@@ -25,6 +25,9 @@ dependencies:
     github: luckyframework/habitat
     version: ~> 0.4.0
 
+  promise:
+    github: spider-gazelle/promise
+
   retriable:
     github: Sija/retriable.cr
     branch: develop

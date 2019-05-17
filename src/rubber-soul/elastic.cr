@@ -95,8 +95,10 @@ class RubberSoul::Elastic
     parents.each do |parent|
       # Get the parents id to route to correct es shard
       parent_id = attributes[parent[:routing_attr]].to_s
-      body = self.generate_body(type, document, parent_id)
-      self.es_save(parent[:index], id, body, parent_id)
+      next if parent_id.empty?
+
+      body = self.generate_body(type: type, document: document, parent_id: parent_id)
+      self.es_save(index: parent[:index], id: id, body: body, routing: parent_id)
     end
   end
 
@@ -121,6 +123,8 @@ class RubberSoul::Elastic
     parents.each do |parent|
       # Get the parents id to route to correct es shard
       parent_id = attributes[parent[:routing_attr]].to_s
+      next if parent_id.empty?
+
       self.es_delete(parent[:index], id, parent_id)
     end
   end
