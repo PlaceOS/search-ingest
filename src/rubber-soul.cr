@@ -1,5 +1,5 @@
 module RubberSoul
-  VERSION = File.open("../shard.yml") { |f| YAML.parse(f)["version"] }
+  VERSION = "v1.0.0"
 end
 
 require "./rubber-soul/*"

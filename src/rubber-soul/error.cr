@@ -1,12 +1,13 @@
-module RubberSoul
-  class Error < Exception
-    getter message
+class RubberSoul::Error < Exception
+  getter message
 
-    def initialize(@message : String? = "")
-      super(message)
-    end
+  def initialize(@message : String? = "")
+    super(message)
   end
 
-  class CancelledError < Error
+  class MappingFailed < Error
+    def initialize(index : String, schema : String, response : HTTP::Client::Response)
+      super("#{index}:\nschema: #{schema}\nES: #{response}")
+    end
   end
 end

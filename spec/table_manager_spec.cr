@@ -12,7 +12,7 @@ describe RubberSoul::TableManager do
       sleep 1 # Wait for change to propagate to es
       es_document_count(index).should eq (count_before_create + 1)
 
-      expect_raises(RubberSoul::CancelledError) do
+      expect_raises(RubberSoul::Error, message: "TableManager cancelled") do
         tm.cancel!
       end
     end
