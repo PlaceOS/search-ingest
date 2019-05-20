@@ -1,19 +1,42 @@
 # rubber-soul
 
-A small service that hooks into [rethinkdb-orm](https://github.com/spider-gazelle/rethinkdb-orm) models and generates elasticsearch indicies.
-Exposes a REST API to reindex/backfill specific models
+A small (one might even say 'micro') service that hooks into [rethinkdb-orm](https://github.com/spider-gazelle/rethinkdb-orm) models and generates elasticsearch indicies.  
+`rubber-soul` exposes a REST API to reindex/backfill specific models.
 
 ## Usage
 
-Set the tables to be mirrored in ES through setting `RubberSoul::MANAGED_TABLES` with an array of `(T < RethinkORM::Base).class`
+- Set the tables to be mirrored in ES through setting `RubberSoul::MANAGED_TABLES` with an array of `(T < RethinkORM::Base).class`
+- Configure Elastic client through `ES_HOST` and `ES_PORT` env vars, or through switches on the command line
+- Configure RethinkDB connection `RETHINKDB_HOST` and `RETHINKDB_PORT` env vars
+
+### **POST** /api/v1/reindex[?backfill=true]
+
+Deletes indexes and recreates index mappings.
+Backfills the indices by default (toggle with backfill boolean).
+
+### **POST** /api/v1/backfill
+
+Backfills all indexes with data from RethinkDB.
+
+### **GET** /api/v1/healthz
+
+Healthcheck.
 
 ## Implementation
 
-- Each rethinkdb table receives an index mapping.
-- `belongs_to` association are modelled with `join` datatypes, associated documents are mirrored beneath the parent document.
-- Hooks into the changefeed of a table, resolves associations and places the document into the correct document indices.
+### Index Schema
+
+- Each RethinkDB table receives an ES index, with a mapping generated from the attributes of a [RethinkORM model](https://github.com/spider-gazelle/rethinkdb-orm).
+- RethinkORM attributes can accept a tag `es_type` to specify the correct field datatype for the index schema.
+- `belongs_to` associations are modelled with ES `join` datatypes, associated documents are replicated in their parent's index. This is necessary for `has_parent` and `has_child` queries.
+
+### RethinkDB Mirroring
+
+`RubberSoul::TableManager` hooks into the changefeed of a table, resolves associations of the model and creates/updates documents in the appropriate ES indices.
 
 ## Development
+
+Tested against...
 
 - rethinkdb 2.3.6
 - elasticsearch 7.0.0
