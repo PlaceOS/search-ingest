@@ -22,7 +22,7 @@ module RubberSoul
 
     get "/version", :version do
       render :ok, json: {
-        version: RubberSoul::VERSION,
+        version: RubberSoul::VERSION.to_s,
       }
     end
 

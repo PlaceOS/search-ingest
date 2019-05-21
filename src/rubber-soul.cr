@@ -1,5 +1,7 @@
+require "semantic_version"
+
 module RubberSoul
-  VERSION = "v1.0.0"
+  VERSION = SemanticVersion.parse("1.0.0")
 end
 
 require "./rubber-soul/*"

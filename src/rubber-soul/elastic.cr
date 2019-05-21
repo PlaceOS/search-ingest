@@ -84,6 +84,7 @@ module RubberSoul
       # Saving to own index
       type = self.document_type(document)
       body = self.generate_body(type, document, no_children: children.empty?)
+
       self.es_save(index, document.id, body)
     end
 

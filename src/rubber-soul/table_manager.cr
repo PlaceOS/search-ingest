@@ -114,13 +114,8 @@ module RubberSoul
     # - a single index does not exist
     # - a single mapping is different
     def initialise_indices(backfill = false)
-      if !consistent_indices?
-        # reindex and backfill to a consistent state
-        reindex_all
-        backfill_all
-      elsif backfill
-        backfill_all
-      end
+      reindex_all unless consistent_indices?
+      backfill_all if backfill
     end
 
     # Backfill
@@ -128,6 +123,8 @@ module RubberSoul
 
     # Backfills from a model to all relevant indices
     def backfill(model)
+      self.settings.logger.info("Backfill: #{model}")
+
       index = index_name(model)
       parents = parents(model)
       children = children(model)
@@ -163,6 +160,8 @@ module RubberSoul
 
     # Clear, update mapping an ES index and refill with rethinkdb documents
     def reindex(model : String)
+      self.settings.logger.info("Reindex: #{model}")
+
       index = index_name(model)
       # Delete index
       Elastic.delete_index(index)
@@ -178,8 +177,9 @@ module RubberSoul
         spawn do
           watch_table(model)
         rescue e
-          self.settings.logger.error "while watching #{model}"
-          raise e
+          self.settings.logger.error "While watching #{model}:\n #{e.inspect}"
+          # Fatal error
+          exit 1
         end
       end
     end
