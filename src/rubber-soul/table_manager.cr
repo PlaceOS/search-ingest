@@ -198,14 +198,21 @@ module RubberSoul
       # Retry on all exceptions excluding internal exceptions
       Retriable.retry(except: no_retry) do
         changes(model).each do |change|
-          self.settings.logger.info("#{change[:event]}: #{model}")
+          event = change[:event]
+          self.settings.logger.info("#{event}: #{model}")
 
           document = change[:value]
           next if document.nil?
-          if change[:event] == RethinkORM::Changefeed::Event::Deleted
-            Elastic.delete_document(document, index, parents, children)
-          else
-            Elastic.save_document(document, index, parents, children)
+
+          # Asynchronously mutate elasticsearch
+          spawn do
+            if event == RethinkORM::Changefeed::Event::Deleted
+              Elastic.delete_document(document, index, parents, children)
+            else
+              Elastic.save_document(document, index, parents, children)
+            end
+          rescue e
+            self.settings.logger.warn("#{event}: #{e.inspect}")
           end
         end
       end
@@ -316,12 +323,13 @@ module RubberSoul
 
     # Generate join fields for parent relations
     def join_field(model, children)
+      relations = children.size == 1 ? children.first : children.sort
       {
         :join => {
           type:      "join",
           relations: {
             # Use types for defining the parent-child relation
-            model => children,
+            model => relations,
           },
         },
       }

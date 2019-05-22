@@ -42,7 +42,7 @@ shards:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    commit: 5c28667982eb21032b7ad7c70bcc068eaa327f3d
+    commit: 0bdf349def562503a6517c39b880019da096d3b3
 
   retriable:
     github: Sija/retriable.cr
