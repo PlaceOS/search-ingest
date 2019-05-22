@@ -117,6 +117,9 @@ describe RubberSoul::TableManager do
   end
 
   it "reindexes indices" do
+    # Start non-watching table_manager
+    tm = RubberSoul::TableManager.new
+
     index = Programmer.table_name
     count_before_create = es_document_count(index)
 
@@ -125,9 +128,6 @@ describe RubberSoul::TableManager do
     num_created.times do |n|
       Programmer.create(name: "Jim the #{n}th")
     end
-
-    # Start non-watching table_manager
-    tm = RubberSoul::TableManager.new(backfill: false, watch: false)
 
     # Reindex
     tm.reindex_all
@@ -142,20 +142,22 @@ describe RubberSoul::TableManager do
 
   describe "backfill" do
     it "refills a single es index with existing data in rethinkdb" do
+      tm = RubberSoul::TableManager.new(watch: false, backfill: false)
+
       index = Programmer.table_name
+
+      Programmer.clear
 
       # Generate some data in rethinkdb
       5.times do |n|
         Programmer.create(name: "Tim the #{n}th")
       end
 
-      tm = RubberSoul::TableManager.new(watch: false, backfill: false)
-
       # Remove documents from es
-      clear_test_indices
+      RubberSoul::Elastic.empty_indices([index])
 
-      # Backfill all documents in rethinkdb
-      tm.backfill_all
+      # Backfill a single index
+      tm.backfill(Programmer.name)
 
       sleep 1 # Wait for es
       es_document_count(index).should eq Programmer.count

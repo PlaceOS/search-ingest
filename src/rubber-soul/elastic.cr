@@ -39,10 +39,45 @@ module RubberSoul
     #############################################################################################
 
     # Diff the current mapping schema (if any) against provided mapping schema
-    def self.same_mapping?(index, mapping)
-      existing_mapping = get_mapping?(index)
-      # Convert to JSON::Any for comparison
-      existing_mapping && JSON.parse(existing_mapping) == JSON.parse(mapping)
+    #
+    def self.mapping_conflict?(index, proposed_schema)
+      existing_schema = get_mapping?(index)
+      !equivalent_schema?(existing_schema, proposed_schema)
+    end
+
+    # Traverse schemas and test equality
+    #
+    def self.equivalent_schema?(left_schema : String?, right_schema : String?)
+      return false unless left_schema && right_schema
+
+      left = JSON.parse(left_schema)["mappings"]["properties"].as_h
+      right = JSON.parse(right_schema)["mappings"]["properties"].as_h
+
+      equivalent_array(left.keys, right.keys) && left.all? do |prop, mapping|
+        if prop == "join"
+          left_relations = mapping["relations"].as_h
+          right_relations = right[prop]["relations"].as_h
+
+          equivalent_array(left_relations.keys, right_relations.keys) && left_relations.all? do |k, v|
+            # Relations can be an array of join names, or a single join name
+            l = v.as_a?.try(&.map(&.as_s)) || v
+            r = right_relations[k].as_a?.try(&.map(&.as_s)) || right_relations[k]
+            if l.is_a? Array && r.is_a? Array
+              equivalent_array(l, r)
+            else
+              l == r
+            end
+          end
+        else
+          right[prop] == mapping
+        end
+      end
+    end
+
+    # Takes 2 arrays returns whether they contain the same elements (irrespective of order)
+    #
+    private def self.equivalent_array(l : Array, r : Array)
+      l.sort == r.sort
     end
 
     # Get the mapping applied to an index
@@ -60,12 +95,13 @@ module RubberSoul
 
     # Applies a mapping to an index in elasticsearch
     def self.apply_index_mapping(index, mapping)
-      response = @@client.put(
+      res = @@client.put(
         "/#{index}",
         headers: self.headers,
         body: mapping
       )
-      raise Error::MappingFailed.new(index: index, schema: mapping, response: response) unless response.success?
+
+      raise Error::MappingFailed.new(index: index, schema: mapping, response: res) unless res.success?
     end
 
     # Saving Documents
@@ -171,14 +207,23 @@ module RubberSoul
         headers: self.headers,
         body: body
       )
-      raise Error.new("ES save: #{res.body}") unless res.success?
+      handle_response("save", res)
     end
 
     # Delete document from an elastic search index
     def self.es_delete(index, id, routing = nil)
       url = self.document_path(index, id, routing)
       res = @@client.delete(url)
-      raise Error.new("ES delete: #{res.body}") unless res.success?
+      handle_response("delete", res)
+    end
+
+    # Checks the status of a mutation in elasticsearch, ignores not_found responses.
+    #
+    # Raises `RubberSoul::Error`
+    private def self.handle_response(action, result)
+      unless result.success? || JSON.parse(result.body)["result"]? == "not_found"
+        raise Error.new("ES #{action}: #{result.body}")
+      end
     end
 
     # ES Utils

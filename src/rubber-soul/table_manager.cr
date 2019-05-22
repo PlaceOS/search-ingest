@@ -141,9 +141,6 @@ module RubberSoul
 
     # Save all documents in all tables to the correct indices
     def backfill_all
-      # Promise.all(
-      #   @models.map { |model| Promise.defer { backfill(model) } }
-      # ).get
       @models.each { |model| backfill(model) }
     end
 
@@ -152,9 +149,6 @@ module RubberSoul
 
     # Clear and update all index mappings
     def reindex_all
-      # Promise.all(
-      #   @models.map { |model| Promise.defer { reindex(model) } }
-      # ).get
       @models.each { |model| reindex(model) }
     end
 
@@ -212,7 +206,7 @@ module RubberSoul
               Elastic.save_document(document, index, parents, children)
             end
           rescue e
-            self.settings.logger.warn("#{event}: #{e.inspect}")
+            self.settings.logger.warn("#{event}: #{e.class} #{e.message}")
           end
         end
       end
@@ -220,13 +214,11 @@ module RubberSoul
 
     # Elasticsearch mapping
     #############################################################################################
-
     # Checks if any index does not exist or has a different mapping
     def consistent_indices?
       @models.all? do |model|
         index = index_name(model)
-        index_exists = Elastic.check_index?(index)
-        index_exists && Elastic.same_mapping?(index, index_schema(model))
+        Elastic.check_index?(index) && !Elastic.mapping_conflict?(index, index_schema(model))
       end
     end
 
