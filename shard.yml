@@ -17,6 +17,9 @@ dependencies:
     github: spider-gazelle/rethinkdb-orm
     branch: master
 
+  active-model:
+    github: spider-gazelle/active-model
+
   engine-models:
     github: aca-labs/crystal-engine-models
     branch: master

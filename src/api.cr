@@ -1,4 +1,5 @@
 require "action-controller"
+require "active-model"
 
 require "../rubber-soul"
 
@@ -26,12 +27,16 @@ module RubberSoul
       }
     end
 
+    class ReindexParams < ActiveModel::Model
+      attribute backfill : Bool = true
+    end
+
     # Reindex all tables
     # Backfills by default
     post "/reindex", :reindex do
-      backfill = params[:backfill]? || true
+      args = ReindexParams.new(params)
       table_manager.reindex_all
-      table_manager.backfill_all if backfill
+      table_manager.backfill_all if args.backfill
     end
 
     # Backfill all tables
