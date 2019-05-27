@@ -12,27 +12,26 @@ module RubberSoul
       setting port : Int32 = ENV["ES_PORT"]?.try(&.to_i) || 9200
     end
 
-    @@client = HTTP::Client.new(
-      host: self.settings.host,
-      port: self.settings.port,
-    )
+    def self.es
+      yield HTTP::Client.new(host: self.settings.host, port: self.settings.port)
+    end
 
     # Indices
     #############################################################################################
 
     # Check index present in elasticsearch
     def self.check_index?(index)
-      @@client.head("/#{index}").success?
+      es &.head("/#{index}").success?
     end
 
     # Delete an index elasticsearch
     def self.delete_index(index)
-      @@client.delete("/#{index}").success?
+      es &.delete("/#{index}").success?
     end
 
     # Delete several indices elasticsearch
     def self.delete_indices(indices)
-      @@client.delete("/#{indices.join(',')}").success?
+      es &.delete("/#{indices.join(',')}").success?
     end
 
     # Mapping
@@ -82,7 +81,7 @@ module RubberSoul
 
     # Get the mapping applied to an index
     def self.get_mapping?(index) : String?
-      response = @@client.get("/#{index}")
+      response = es &.get("/#{index}")
       if response.success?
         body = JSON.parse(response.body)
         body[index].as_h?
@@ -95,7 +94,7 @@ module RubberSoul
 
     # Applies a mapping to an index in elasticsearch
     def self.apply_index_mapping(index, mapping)
-      res = @@client.put(
+      res = es &.put(
         "/#{index}",
         headers: self.headers,
         body: mapping
@@ -202,7 +201,7 @@ module RubberSoul
     # Save document to an elastic search index
     def self.es_save(index, id, body : String, routing : String? = nil)
       url = self.document_path(index, id, routing)
-      res = @@client.put(
+      res = es &.put(
         url,
         headers: self.headers,
         body: body
@@ -213,7 +212,7 @@ module RubberSoul
     # Delete document from an elastic search index
     def self.es_delete(index, id, routing = nil)
       url = self.document_path(index, id, routing)
-      res = @@client.delete(url)
+      res = es &.delete(url)
       handle_response("delete", res)
     end
 
@@ -238,7 +237,7 @@ module RubberSoul
 
     # Checks availablity of RethinkDB and Elasticsearch
     def self.ensure_elastic!
-      response = @@client.get("/")
+      response = es &.get("/")
       raise Error.new("Failed to connect to ES") unless response.success?
     end
 
@@ -250,7 +249,7 @@ module RubberSoul
 
     # Delete all indices
     def self.delete_all
-      @@client.delete("/_all").success?
+      es &.delete("/_all").success?
     end
 
     # Remove documents from indices
@@ -268,16 +267,16 @@ module RubberSoul
               "/_all/_delete_by_query"
             end
 
-      res = @@client.post(url,
+      res = es &.post(url,
         headers: self.headers,
         body: query)
 
       res.success?
     end
 
-    # Yields the raw HTTP client to elasticsearch
+    # Yields a raw HTTP client to elasticsearch
     def self.client
-      @@client
+      HTTP::Client.new(host: self.settings.host, port: self.settings.port)
     end
   end
 end
