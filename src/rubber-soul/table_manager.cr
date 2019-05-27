@@ -141,7 +141,9 @@ module RubberSoul
 
     # Save all documents in all tables to the correct indices
     def backfill_all
-      @models.each { |model| backfill(model) }
+      Promise.all(
+        @models.map { |model| Promise.defer { backfill(model) } }
+      ).get
     end
 
     # Reindex
@@ -149,7 +151,9 @@ module RubberSoul
 
     # Clear and update all index mappings
     def reindex_all
-      @models.each { |model| reindex(model) }
+      Promise.all(
+        @models.map { |model| Promise.defer { reindex(model) } }
+      ).get
     end
 
     # Clear, update mapping an ES index and refill with rethinkdb documents
