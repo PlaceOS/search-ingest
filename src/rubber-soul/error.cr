@@ -10,4 +10,7 @@ class RubberSoul::Error < Exception
       super("on #{index}:\nschema: #{schema}\nES: #{response.inspect}")
     end
   end
+
+  class PoolTimeout < Error
+  end
 end

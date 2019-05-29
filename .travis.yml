@@ -5,16 +5,18 @@ addons:
   # Add RethinkDB
   rethinkdb: '2.3'
 
+services:
+  - docker
+
 before_install:
-  # Add elasticsearch
-  - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.0.0-beta1-amd64.deb && \
-  sudo dpkg -i --force-confnew elasticsearch-7.0.0-beta1-amd64.deb && \
-  sudo service elasticsearch restart
+  # Add elasticsearch 7.0.x
+  - docker run -p9300:9300 -p9200:9200 -e discovery.type=single-node -d elasticsearch:7.0.1
 
 install:
   - shards install
 
 before_script:
+  # Wait for ES
   - sleep 10
 
 script:

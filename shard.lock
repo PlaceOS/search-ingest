@@ -1,5 +1,9 @@
 version: 1.0
 shards:
+  CrystalEmail:
+    git: https://git.sceptique.eu/Sceptique/CrystalEmail
+    version: 0.2.4
+
   action-controller:
     github: spider-gazelle/action-controller
     version: 1.5.1
@@ -18,7 +22,7 @@ shards:
 
   engine-models:
     github: aca-labs/crystal-engine-models
-    commit: 97fd75468610ca88ea2b2d1a166273ff160b4d10
+    commit: fde0218f01661538d15199694316619ae8f6e25c
 
   habitat:
     github: luckyframework/habitat
@@ -42,7 +46,7 @@ shards:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    commit: 0bdf349def562503a6517c39b880019da096d3b3
+    commit: 139ae04d0fb2d794986c85bc5a62b47c23ad751d
 
   retriable:
     github: Sija/retriable.cr
@@ -50,5 +54,5 @@ shards:
 
   scrypt:
     github: ysbaddaden/scrypt-crystal
-    version: 0.2.2
+    version: 0.3.0
 

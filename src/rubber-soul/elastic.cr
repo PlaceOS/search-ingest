@@ -2,6 +2,7 @@ require "http"
 require "habitat"
 
 require "./error"
+require "./pool"
 require "./types"
 
 module RubberSoul
@@ -10,10 +11,31 @@ module RubberSoul
     Habitat.create do
       setting host : String = ENV["ES_HOST"]? || "127.0.0.1"
       setting port : Int32 = ENV["ES_PORT"]?.try(&.to_i) || 9200
+      setting pool_size : Int32 = ENV["ES_CONN_POOL"]?.try(&.to_i) || 10
+      setting idle_pool_size : Int32 = ENV["ES_IDLE_POOL"]?.try(&.to_i) || 2
+      setting pool_timeout : Float64 = ENV["ES_CONN_POOL_TIMEOUT"]?.try(&.to_f64) || 1.0
     end
 
+    @@pool : Pool(HTTP::Client)?
+
+    # Yield an acquired client from the pool
     def self.es
-      yield HTTP::Client.new(host: self.settings.host, port: self.settings.port)
+      unless @@pool
+        config = {
+          initial_pool:  1,
+          max_pool:      settings.pool_size,
+          max_idle_pool: settings.idle_pool_size,
+          timeout:       settings.pool_timeout,
+        }
+
+        @@pool = Pool(HTTP::Client).new(**config) do
+          HTTP::Client.new(host: settings.host, port: settings.port)
+        end
+      end
+
+      @@pool.not_nil!.acquire do |client|
+        yield client
+      end
     end
 
     # Indices
