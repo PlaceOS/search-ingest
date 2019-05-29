@@ -128,13 +128,17 @@ module RubberSoul
       index = index_name(model)
       parents = parents(model)
       children = children(model)
-      all(model).each do |d|
-        Elastic.save_document(
-          index: index,
-          parents: parents,
-          children: children,
-          document: d
-        )
+      all(model).each_slice(10) do |docs|
+        actions = docs.map do |d|
+          Elastic.generate_bulk_body(
+            action: Elastic::Action::Create,
+            document: d,
+            index: index,
+            parents: parents,
+            no_children: children.empty?
+          )
+        end
+        Elastic.bulk_operation(actions.join('\n'))
       end
       true
     end
@@ -205,9 +209,18 @@ module RubberSoul
           # Asynchronously mutate elasticsearch
           spawn do
             if event == RethinkORM::Changefeed::Event::Deleted
-              Elastic.delete_document(document, index, parents, children)
+              Elastic.delete_document(
+                index: index,
+                document: document,
+                parents: parents,
+              )
             else
-              Elastic.save_document(document, index, parents, children)
+              Elastic.save_document(
+                index: index,
+                document: document,
+                parents: parents,
+                children: children,
+              )
             end
           rescue e
             self.settings.logger.warn("#{event}: #{e.class} #{e.message}")

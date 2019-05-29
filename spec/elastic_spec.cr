@@ -24,6 +24,7 @@ describe RubberSoul::Elastic do
       children: tm.children(child_name)
     )
 
+
     child_index_url = RubberSoul::Elastic.document_path(index: child_index, id: child.id)
     parent_index_url = RubberSoul::Elastic.document_path(index: parent_index, id: child.id, routing: parent.id)
 
@@ -100,7 +101,6 @@ describe RubberSoul::Elastic do
         document: model,
         index: index,
         parents: parents,
-        children: children,
       )
 
       sleep 1 # Wait for es

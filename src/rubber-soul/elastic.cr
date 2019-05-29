@@ -125,6 +125,117 @@ module RubberSoul
       raise Error::MappingFailed.new(index: index, schema: mapping, response: res) unless res.success?
     end
 
+    # # Bulk API calls
+
+    enum Action
+      Create
+      Update
+      Delete
+    end
+
+    # Post body to the Elasticsearch bulk API endpoint
+    def self.bulk_operation(body)
+      # Bulk requests must be newline terminated
+      body += "\n"
+      res = es &.post(
+        "_bulk",
+        headers: self.headers,
+        body: body+"\n"
+      )
+      handle_response("save", res)
+    end
+
+    def self.generate_bulk_body(action, document, index, no_children = true, parents = [] of Parent)
+      case action
+      when Action::Create, Action::Update
+        bulk_save(action, document, index, no_children, parents)
+      when Action::Delete
+        bulk_delete(document, index, parents)
+      end
+    end
+
+    def self.bulk_save(action, document, index, no_children, parents)
+      attributes = document.attributes
+      id = document.id.not_nil!
+
+      # FIXME: Please fix me, I am slow
+      document_any = JSON.parse(document.to_json).as_h
+
+      doc_type = self.document_type(document)
+      document_action_header = self.bulk_action_header(action, index, id)
+      document_body = self.document_body(
+        document: document_any,
+        document_type: doc_type,
+        no_children: no_children,
+      )
+      document_action = "#{document_action_header}\n#{document_body}"
+
+      # Create actions to mutate all parent indices
+      parent_actions = parents.compact_map do |parent|
+        # Get the parents id to route to correct es shard
+        parent_id = attributes[parent[:routing_attr]].to_s
+        next if parent_id.empty?
+
+        action_header = self.bulk_action_header(
+          action: action,
+          id: id,
+          index: parent[:index],
+          routing: parent_id,
+        )
+
+        body = self.document_body(
+          document: document_any,
+          document_type: doc_type,
+          parent_id: parent_id
+        )
+        "#{action_header}\n#{body}"
+      end
+
+
+      {document_action, parent_actions.join('\n')}.join('\n')
+    end
+
+    # Generate delete headers for a bulk request
+    #
+    def self.bulk_delete(document, index, parents) : String
+      id = document.id.not_nil!
+      attributes = document.attributes
+      document_action = bulk_action_header(
+        action: Action::Delete,
+        index: index,
+        id: id,
+      )
+
+      parent_actions = parents.compact_map do |parent|
+        # Get the parents id to route to correct es shard
+        parent_id = attributes[parent[:routing_attr]].to_s
+        next if parent_id.empty?
+        bulk_action_header(
+          action: Action::Delete,
+          index: parent[:index],
+          id: id,
+          routing: parent_id,
+        )
+      end
+
+      {document_action, parent_actions.join('\n')}.join('\n')
+    end
+
+    # Generates the header for an es action, preceeds an optional document
+    #
+    def self.bulk_action_header(action : Action, index : String, id : String, routing : String? = nil)
+      routing = id unless routing
+      {
+        action.to_s.downcase => {
+          :_index   => index,
+          :_id      => id,
+          :routing => routing,
+        },
+      }.to_json
+    end
+
+    # # Single API calls
+
     # Saving Documents
     #############################################################################################
 
@@ -133,21 +244,12 @@ module RubberSoul
     # - Adds document to all parent table indices, routing by the parent id
     def self.save_document(document, index, parents = [] of Parent, children = [] of String)
       return if document.nil? # FIXME: Currently, from_trusted_json is nillable, remove once fixed
-      document.id ||= ""      # Will never be nil, this is just to collapse the nillable union
-
-      # Saving to parent indices
-      self.association_save(document, parents)
-
-      # Saving to own index
-      type = self.document_type(document)
-      body = self.generate_body(type, document, no_children: children.empty?)
-
-      self.es_save(index, document.id, body)
+      no_children = children.empty?
+      self.bulk_operation(self.bulk_save(Action::Create, document, index, no_children, parents))
     end
 
     # Account for joins with parents
     def self.association_save(document, parents)
-      type = self.document_type(document)
       id = document.id
       attributes = document.attributes
 
@@ -157,7 +259,7 @@ module RubberSoul
         parent_id = attributes[parent[:routing_attr]].to_s
         next if parent_id.empty?
 
-        body = self.generate_body(type: type, document: document, parent_id: parent_id)
+        body = self.generate_body(document: document, parent_id: parent_id)
         self.es_save(index: parent[:index], id: id, body: body, routing: parent_id)
       end
     end
@@ -168,14 +270,15 @@ module RubberSoul
     # Remove RethinkDB document from all relevant ES
     # - Remove document in the table index
     # - Add document to all parent table indices, routing by association id
-    def self.delete_document(document, index, parents = [] of Parent, children = [] of String)
+    def self.delete_document(document, index, parents = [] of Parent)
       return if document.nil?
-      id = document.id || ""
+      # id = document.id || ""
 
-      self.association_delete(id, parents, document.attributes)
+      # self.association_delete(id, parents, document.attributes)
 
-      # Remove document from table index
-      self.es_delete(index, id)
+      # # Remove document from table index
+      # self.es_delete(index, id)
+      self.bulk_operation(self.bulk_delete(document, index, parents))
     end
 
     # Remove document from all parent indices
@@ -199,19 +302,32 @@ module RubberSoul
 
     # Create a join field for a document body
     # Can set just the document type if document is the parent
-    def self.document_join_field(type, parent_id = nil)
-      parent_id ? {name: type, parent: parent_id} : type
+    def self.document_join_field(document_type, parent_id = nil)
+      parent_id ? {name: document_type, parent: parent_id} : document_type
     end
 
     # Sets the type and join field, and generates body json
-    private def self.generate_body(type, document, parent_id = nil, no_children = false) : String
-      # FIXME: Optimize selecting attributes that respects attribute conversion
+    private def self.document_body(document : Hash(String, JSON::Any), document_type, parent_id = nil, no_children = true) : String
+      attributes = {} of String => String | NamedTuple(name: String, parent: String)
+      attributes["type"] = document_type
+
+      # Don't set a join field if there are no children on the index
+      attributes["join"] = self.document_join_field(document_type, parent_id) unless no_children
+
+      document.merge(attributes).to_json
+    end
+
+    # Sets the type and join field, and generates body json
+    private def self.generate_body(document, parent_id = nil, no_children = false) : String
+      # FIXME: (SLOW!) Optimize selecting attributes that _respects_ attribute conversion
       body = JSON.parse(document.to_json).as_h
-      body["type"] = JSON::Any.new(type)
+
+      doc_type = self.document_type(document)
+      body["type"] = JSON::Any.new(doc_type)
 
       # Don't set a join field if there are no children on the index
       unless no_children
-        body = body.merge({"join" => self.document_join_field(type, parent_id)})
+        body = body.merge({"join" => self.document_join_field(doc_type, parent_id)})
       end
 
       body.to_json
