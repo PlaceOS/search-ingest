@@ -23,6 +23,15 @@ def delete_test_indices
   end
 end
 
+# Clear test tables on exit
+at_exit do
+  RethinkORM::Connection.raw do |q|
+    q.db("test").table_list.for_each do |t|
+      q.db("test").table(t).delete
+    end
+  end
+end
+
 # Remove all documents from an index, retaining index mappings
 def clear_test_indices
   table_names.each do |name|
@@ -38,12 +47,12 @@ end
 
 # Helper to get document count for an es index
 def es_document_count(index)
-  response_body = JSON.parse(RubberSoul::Elastic.client.get("/#{index}/_count").body)
+  response_body = JSON.parse(RubberSoul::Elastic.client &.get("/#{index}/_count").body)
   response_body["count"].as_i
 end
 
 def es_doc_exists?(index, id, routing)
-  RubberSoul::Elastic.client.get("/#{index}/_doc/#{id}").success?
+  RubberSoul::Elastic.client &.get("/#{index}/_doc/#{id}").success?
 end
 
 # Empty rethinkdb test tables

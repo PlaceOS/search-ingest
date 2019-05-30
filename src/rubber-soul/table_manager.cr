@@ -127,15 +127,15 @@ module RubberSoul
 
       index = index_name(model)
       parents = parents(model)
-      children = children(model)
-      all(model).each_slice(10) do |docs|
+      no_children = children(model).empty?
+      all(model).each_slice(15) do |docs|
         actions = docs.map do |d|
-          Elastic.generate_bulk_body(
+          Elastic.bulk_save_body(
             action: Elastic::Action::Create,
             document: d,
             index: index,
             parents: parents,
-            no_children: children.empty?
+            no_children: no_children,
           )
         end
         Elastic.bulk_operation(actions.join('\n'))
@@ -189,7 +189,7 @@ module RubberSoul
     def watch_table(model)
       index = index_name(model)
       parents = parents(model)
-      children = children(model)
+      no_children = children(model).empty?
 
       # Exceptions to fail on
       no_retry = {
@@ -208,19 +208,30 @@ module RubberSoul
 
           # Asynchronously mutate elasticsearch
           spawn do
-            if event == RethinkORM::Changefeed::Event::Deleted
+            case event
+            when RethinkORM::Changefeed::Event::Deleted
               Elastic.delete_document(
                 index: index,
-                document: document,
+                document: document.not_nil!,
                 parents: parents,
+              )
+            when RethinkORM::Changefeed::Event::Created
+              Elastic.create_document(
+                index: index,
+                document: document.not_nil!,
+                parents: parents,
+                no_children: no_children,
+              )
+            when RethinkORM::Changefeed::Event::Updated
+              Elastic.update_document(
+                index: index,
+                document: document.not_nil!,
+                parents: parents,
+                no_children: no_children,
               )
             else
-              Elastic.save_document(
-                index: index,
-                document: document,
-                parents: parents,
-                children: children,
-              )
+              # Crystal really should check enum case exhaustion
+              raise Error.new
             end
           rescue e
             self.settings.logger.warn("#{event}: #{e.class} #{e.message}")

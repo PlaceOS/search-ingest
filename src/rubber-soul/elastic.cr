@@ -19,7 +19,8 @@ module RubberSoul
     @@pool : Pool(HTTP::Client)?
 
     # Yield an acquired client from the pool
-    def self.es
+    #
+    def self.client
       unless @@pool
         config = {
           initial_pool:  1,
@@ -33,9 +34,49 @@ module RubberSoul
         end
       end
 
-      @@pool.not_nil!.acquire do |client|
-        yield client
+      @@pool.not_nil!.acquire do |elastic|
+        yield elastic
       end
+    end
+
+    # Single Document Requests
+    #############################################################################################
+
+    # Create a new document in ES from a RethinkORM model
+    #
+    def self.create_document(index, document, parents = [] of Parent, no_children = true)
+      body = Elastic.bulk_save_body(
+        action: Elastic::Action::Create,
+        index: index,
+        document: document,
+        parents: parents,
+        no_children: no_children,
+      )
+      self.bulk_operation(body)
+    end
+
+    # Update a document in ES from a RethinkORM model
+    #
+    def self.update_document(index, document, parents = [] of Parent, no_children = true)
+      body = Elastic.bulk_save_body(
+        action: Elastic::Action::Update,
+        index: index,
+        document: document,
+        parents: parents,
+        no_children: no_children,
+      )
+      self.bulk_operation(body)
+    end
+
+    # Delete a document in ES from a RethinkORM model
+    #
+    def self.delete_document(index, document, parents = [] of Parent)
+      body = Elastic.bulk_delete_body(
+        index: index,
+        document: document,
+        parents: parents,
+      )
+      self.bulk_operation(body)
     end
 
     # Indices
@@ -43,17 +84,17 @@ module RubberSoul
 
     # Check index present in elasticsearch
     def self.check_index?(index)
-      es &.head("/#{index}").success?
+      client &.head("/#{index}").success?
     end
 
     # Delete an index elasticsearch
     def self.delete_index(index)
-      es &.delete("/#{index}").success?
+      client &.delete("/#{index}").success?
     end
 
     # Delete several indices elasticsearch
     def self.delete_indices(indices)
-      es &.delete("/#{indices.join(',')}").success?
+      client &.delete("/#{indices.join(',')}").success?
     end
 
     # Mapping
@@ -74,17 +115,17 @@ module RubberSoul
       left = JSON.parse(left_schema)["mappings"]["properties"].as_h
       right = JSON.parse(right_schema)["mappings"]["properties"].as_h
 
-      equivalent_array(left.keys, right.keys) && left.all? do |prop, mapping|
+      (left.keys.sort == right.keys.sort) && left.all? do |prop, mapping|
         if prop == "join"
           left_relations = mapping["relations"].as_h
           right_relations = right[prop]["relations"].as_h
 
-          equivalent_array(left_relations.keys, right_relations.keys) && left_relations.all? do |k, v|
+          (left_relations.keys.sort == right_relations.keys.sort) && left_relations.all? do |k, v|
             # Relations can be an array of join names, or a single join name
             l = v.as_a?.try(&.map(&.as_s)) || v
             r = right_relations[k].as_a?.try(&.map(&.as_s)) || right_relations[k]
             if l.is_a? Array && r.is_a? Array
-              equivalent_array(l, r)
+              l.sort == r.sort
             else
               l == r
             end
@@ -95,15 +136,9 @@ module RubberSoul
       end
     end
 
-    # Takes 2 arrays returns whether they contain the same elements (irrespective of order)
-    #
-    private def self.equivalent_array(l : Array, r : Array)
-      l.sort == r.sort
-    end
-
     # Get the mapping applied to an index
     def self.get_mapping?(index) : String?
-      response = es &.get("/#{index}")
+      response = client &.get("/#{index}")
       if response.success?
         body = JSON.parse(response.body)
         body[index].as_h?
@@ -116,7 +151,7 @@ module RubberSoul
 
     # Applies a mapping to an index in elasticsearch
     def self.apply_index_mapping(index, mapping)
-      res = es &.put(
+      res = client &.put(
         "/#{index}",
         headers: self.headers,
         body: mapping
@@ -125,7 +160,8 @@ module RubberSoul
       raise Error::MappingFailed.new(index: index, schema: mapping, response: res) unless res.success?
     end
 
-    # # Bulk API calls
+    # Bulk API Body Generation
+    #############################################################################################
 
     enum Action
       Create
@@ -133,35 +169,17 @@ module RubberSoul
       Delete
     end
 
-    # Post body to the Elasticsearch bulk API endpoint
-    def self.bulk_operation(body)
-      # Bulk requests must be newline terminated
-      body += "\n"
-      res = es &.post(
-        "_bulk",
-        headers: self.headers,
-        body: body+"\n"
-      )
-      handle_response("save", res)
-    end
-
-    def self.generate_bulk_body(action, document, index, no_children = true, parents = [] of Parent)
-      case action
-      when Action::Create, Action::Update
-        bulk_save(action, document, index, no_children, parents)
-      when Action::Delete
-        bulk_delete(document, index, parents)
-      end
-    end
-
-    def self.bulk_save(action, document, index, no_children, parents)
+    # Generates the body of a Bulk request for a RethinkDB document in ES
+    # - Creates document in table index
+    # - Adds document to all parent table indices, routing by the parent id
+    def self.bulk_save_body(action, document, index, parents = [] of Parent, no_children = true)
+      doc_type = self.document_type(document)
       attributes = document.attributes
       id = document.id.not_nil!
 
-      # FIXME: Please fix me, I am slow
+      # FIXME: Please, I am very slow
       document_any = JSON.parse(document.to_json).as_h
 
-      doc_type = self.document_type(document)
       document_action_header = self.bulk_action_header(action, index, id)
       document_body = self.document_body(
         document: document_any,
@@ -188,16 +206,16 @@ module RubberSoul
           document_type: doc_type,
           parent_id: parent_id
         )
+
         "#{action_header}\n#{body}"
       end
-
 
       {document_action, parent_actions.join('\n')}.join('\n')
     end
 
     # Generate delete headers for a bulk request
     #
-    def self.bulk_delete(document, index, parents) : String
+    def self.bulk_delete_body(document, index, parents) : String
       id = document.id.not_nil!
       attributes = document.attributes
       document_action = bulk_action_header(
@@ -227,86 +245,31 @@ module RubberSoul
       routing = id unless routing
       {
         action.to_s.downcase => {
-          :_index   => index,
-          :_id      => id,
+          :_index  => index,
+          :_id     => id,
           :routing => routing,
         },
       }.to_json
-    end
-
-    # # Single API calls
-
-    # Saving Documents
-    #############################################################################################
-
-    # Replicates a RethinkDB document in ES
-    # - Creates document in table index
-    # - Adds document to all parent table indices, routing by the parent id
-    def self.save_document(document, index, parents = [] of Parent, children = [] of String)
-      return if document.nil? # FIXME: Currently, from_trusted_json is nillable, remove once fixed
-      no_children = children.empty?
-      self.bulk_operation(self.bulk_save(Action::Create, document, index, no_children, parents))
-    end
-
-    # Account for joins with parents
-    def self.association_save(document, parents)
-      id = document.id
-      attributes = document.attributes
-
-      # Save document to all parent indices
-      parents.each do |parent|
-        # Get the parents id to route to correct es shard
-        parent_id = attributes[parent[:routing_attr]].to_s
-        next if parent_id.empty?
-
-        body = self.generate_body(document: document, parent_id: parent_id)
-        self.es_save(index: parent[:index], id: id, body: body, routing: parent_id)
-      end
-    end
-
-    # Deleting Documents
-    #############################################################################################
-
-    # Remove RethinkDB document from all relevant ES
-    # - Remove document in the table index
-    # - Add document to all parent table indices, routing by association id
-    def self.delete_document(document, index, parents = [] of Parent)
-      return if document.nil?
-      # id = document.id || ""
-
-      # self.association_delete(id, parents, document.attributes)
-
-      # # Remove document from table index
-      # self.es_delete(index, id)
-      self.bulk_operation(self.bulk_delete(document, index, parents))
-    end
-
-    # Remove document from all parent indices
-    def self.association_delete(id, parents, attributes)
-      parents.each do |parent|
-        # Get the parents id to route to correct es shard
-        parent_id = attributes[parent[:routing_attr]].to_s
-        next if parent_id.empty?
-
-        self.es_delete(parent[:index], id, parent_id)
-      end
     end
 
     # Document Utils
     #############################################################################################
 
     # Picks off the model type from the class name
+    #
     def self.document_type(document)
       document.class.name.split("::")[-1]
     end
 
     # Create a join field for a document body
     # Can set just the document type if document is the parent
+    #
     def self.document_join_field(document_type, parent_id = nil)
       parent_id ? {name: document_type, parent: parent_id} : document_type
     end
 
     # Sets the type and join field, and generates body json
+    #
     private def self.document_body(document : Hash(String, JSON::Any), document_type, parent_id = nil, no_children = true) : String
       attributes = {} of String => String | NamedTuple(name: String, parent: String)
       attributes["type"] = document_type
@@ -317,81 +280,42 @@ module RubberSoul
       document.merge(attributes).to_json
     end
 
-    # Sets the type and join field, and generates body json
-    private def self.generate_body(document, parent_id = nil, no_children = false) : String
-      # FIXME: (SLOW!) Optimize selecting attributes that _respects_ attribute conversion
-      body = JSON.parse(document.to_json).as_h
-
-      doc_type = self.document_type(document)
-      body["type"] = JSON::Any.new(doc_type)
-
-      # Don't set a join field if there are no children on the index
-      unless no_children
-        body = body.merge({"join" => self.document_join_field(doc_type, parent_id)})
-      end
-
-      body.to_json
-    end
-
-    # ES API calls
+    # ES API Calls
     #############################################################################################
 
-    # Save document to an elastic search index
-    def self.es_save(index, id, body : String, routing : String? = nil)
-      url = self.document_path(index, id, routing)
-      res = es &.put(
-        url,
-        headers: self.headers,
-        body: body
-      )
-      handle_response("save", res)
-    end
-
-    # Delete document from an elastic search index
-    def self.es_delete(index, id, routing = nil)
-      url = self.document_path(index, id, routing)
-      res = es &.delete(url)
-      handle_response("delete", res)
-    end
-
-    # Checks the status of a mutation in elasticsearch, ignores not_found responses.
+    # Make a request to the Elasticsearch bulk API endpoint
     #
-    # Raises `RubberSoul::Error`
-    private def self.handle_response(action, result)
-      unless result.success? || JSON.parse(result.body)["result"]? == "not_found"
-        raise Error.new("ES #{action}: #{result.body}")
+    # Throws on failure
+    def self.bulk_operation(body)
+      # Bulk requests must be newline terminated
+      body += "\n"
+      result = client &.post(
+        "_bulk",
+        headers: self.headers,
+        body: body + "\n"
+      )
+
+      unless result.success?
+        raise Error.new("ES Bulk: #{result.body}")
       end
-    end
-
-    # ES Utils
-    #############################################################################################
-
-    # Constucts the ES path
-    def self.document_path(index, id, routing = nil)
-      # When routing not specified, route by document id
-      routing = id unless routing
-      "/#{index}/_doc/#{id}?routing=#{routing}"
-    end
-
-    # Checks availablity of RethinkDB and Elasticsearch
-    def self.ensure_elastic!
-      response = es &.get("/")
-      raise Error.new("Failed to connect to ES") unless response.success?
-    end
-
-    def self.headers
-      headers = HTTP::Headers.new
-      headers["Content-Type"] = "application/json"
-      headers
     end
 
     # Delete all indices
+    #
     def self.delete_all
-      es &.delete("/_all").success?
+      client &.delete("/_all").success?
+    end
+
+    # Checks availablity of RethinkDB and Elasticsearch
+    #
+    def self.ensure_elastic!
+      response = client &.get("/")
+      raise Error.new("Failed to connect to ES") unless response.success?
     end
 
     # Remove documents from indices
     # Removes from _all_ indices if no argument given.
+    #
     def self.empty_indices(indices : Array(String)? = nil)
       query = {
         query: {
@@ -405,16 +329,30 @@ module RubberSoul
               "/_all/_delete_by_query"
             end
 
-      res = es &.post(url,
+      res = client &.post(url,
         headers: self.headers,
         body: query)
 
       res.success?
     end
 
-    # Yields a raw HTTP client to elasticsearch
-    def self.client
-      HTTP::Client.new(host: self.settings.host, port: self.settings.port)
+    # ES Utils
+    #############################################################################################
+
+    # Generate JSON header for ES requests
+    #
+    def self.headers
+      headers = HTTP::Headers.new
+      headers["Content-Type"] = "application/json"
+      headers
+    end
+
+    # Constucts the ES path of a document
+    #
+    def self.document_path(index, id, routing = nil)
+      # When routing not specified, route by document id
+      routing = id unless routing
+      "/#{index}/_doc/#{id}?routing=#{routing}"
     end
   end
 end
