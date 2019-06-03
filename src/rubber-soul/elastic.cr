@@ -179,7 +179,15 @@ module RubberSoul
       attributes = document.attributes
 
       # FIXME: Please, I am very slow
-      doc_any = JSON.parse(document.to_json).as_h
+      doc_any = case action
+                when Action::Create
+                  JSON.parse(document.to_json).as_h
+                when Action::Update
+                  JSON.parse(document.changed_json).as_h
+                else
+                  nil
+                end
+
       document_action = self.bulk_request(
         action: action,
         document_any: doc_any,
