@@ -10,7 +10,7 @@ RUN shards build --production
 RUN ldd bin/rubber-soul | tr -s '[:blank:]' '\n' | grep '^/' | xargs -I % sh -c 'mkdir -p $(dirname deps%); cp % deps%;'
 
 # Build a minimal docker image ontop of alpine linux
-FROM alpine:latest
+FROM busybox:glibc
 COPY --from=0 /src/deps /
 COPY --from=0 /src/bin/rubber-soul /rubber-soul
 

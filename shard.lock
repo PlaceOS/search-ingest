@@ -6,11 +6,11 @@ shards:
 
   action-controller:
     github: spider-gazelle/action-controller
-    version: 1.5.1
+    version: 1.6.0
 
   active-model:
     github: spider-gazelle/active-model
-    commit: 1da98e6cdc4deda7773126501439099ad5b7c8a2
+    commit: 93241cd16bd3d7336e02a35f0b2c1f20936170af
 
   ameba:
     github: veelenga/ameba
@@ -46,7 +46,7 @@ shards:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    commit: 139ae04d0fb2d794986c85bc5a62b47c23ad751d
+    commit: 4f08082b8defb656c4dcf8c2f116ffe970a31da6
 
   retriable:
     github: Sija/retriable.cr

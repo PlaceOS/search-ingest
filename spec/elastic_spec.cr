@@ -21,7 +21,7 @@ module RubberSoul
       child.id = RethinkORM::IdGenerator.next(child)
 
       # Save a child document in child and parent indices
-      bulk_request = Elastic.bulk_save_body(
+      bulk_request = Elastic.document_request(
         action: Elastic::Action::Create,
         document: child,
         index: child_index,

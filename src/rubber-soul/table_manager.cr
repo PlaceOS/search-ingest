@@ -128,9 +128,9 @@ module RubberSoul
       index = index_name(model)
       parents = parents(model)
       no_children = children(model).empty?
-      all(model).each_slice(15) do |docs|
+      all(model).each_slice(100) do |docs|
         actions = docs.map do |d|
-          Elastic.bulk_save_body(
+          Elastic.document_request(
             action: Elastic::Action::Create,
             document: d,
             index: index,

@@ -45,8 +45,8 @@ module RubberSoul
     # Create a new document in ES from a RethinkORM model
     #
     def self.create_document(index, document, parents = [] of Parent, no_children = true)
-      body = Elastic.bulk_save_body(
-        action: Elastic::Action::Create,
+      body = self.document_request(
+        action: Action::Create,
         index: index,
         document: document,
         parents: parents,
@@ -58,8 +58,8 @@ module RubberSoul
     # Update a document in ES from a RethinkORM model
     #
     def self.update_document(index, document, parents = [] of Parent, no_children = true)
-      body = Elastic.bulk_save_body(
-        action: Elastic::Action::Update,
+      body = self.document_request(
+        action: Action::Update,
         index: index,
         document: document,
         parents: parents,
@@ -71,7 +71,8 @@ module RubberSoul
     # Delete a document in ES from a RethinkORM model
     #
     def self.delete_document(index, document, parents = [] of Parent)
-      body = Elastic.bulk_delete_body(
+      body = self.document_request(
+        action: Action::Delete,
         index: index,
         document: document,
         parents: parents,
@@ -172,71 +173,89 @@ module RubberSoul
     # Generates the body of a Bulk request for a RethinkDB document in ES
     # - Creates document in table index
     # - Adds document to all parent table indices, routing by the parent id
-    def self.bulk_save_body(action, document, index, parents = [] of Parent, no_children = true)
+    def self.document_request(action, document, index, parents = [] of Parent, no_children = true)
+      id = document.id.not_nil!
       doc_type = self.document_type(document)
       attributes = document.attributes
-      id = document.id.not_nil!
 
       # FIXME: Please, I am very slow
-      document_any = JSON.parse(document.to_json).as_h
-
-      document_action_header = self.bulk_action_header(action, index, id)
-      document_body = self.document_body(
-        document: document_any,
+      doc_any = JSON.parse(document.to_json).as_h
+      document_action = self.bulk_request(
+        action: action,
+        document_any: doc_any,
         document_type: doc_type,
-        no_children: no_children,
+        index: index,
+        id: id,
+        no_children: no_children
       )
-      document_action = "#{document_action_header}\n#{document_body}"
 
       # Create actions to mutate all parent indices
       parent_actions = parents.compact_map do |parent|
         # Get the parents id to route to correct es shard
         parent_id = attributes[parent[:routing_attr]].to_s
         next if parent_id.empty?
-
-        action_header = self.bulk_action_header(
+        self.bulk_request(
           action: action,
-          id: id,
-          index: parent[:index],
-          routing: parent_id,
-        )
-
-        body = self.document_body(
-          document: document_any,
+          document_any: doc_any,
           document_type: doc_type,
+          index: parent[:index],
+          id: id,
           parent_id: parent_id
         )
-
-        "#{action_header}\n#{body}"
       end
 
       {document_action, parent_actions.join('\n')}.join('\n')
     end
 
-    # Generate delete headers for a bulk request
-    #
-    def self.bulk_delete_body(document, index, parents) : String
-      id = document.id.not_nil!
-      attributes = document.attributes
-      document_action = bulk_action_header(
-        action: Action::Delete,
-        index: index,
-        id: id,
-      )
+    # Constructs the bulk request for a single ES document
+    def self.bulk_request(
+      action : Action,
+      index : String,
+      id : String,
+      document_type : String,
+      document_any : Hash(String, JSON::Any)? = nil,
+      parent_id : String? = nil,
+      no_children : Bool = true
+    )
+      case action
+      when Action::Update
+        header = self.bulk_action_header(action: action,
+          index: index,
+          id: id,
+          routing: parent_id)
 
-      parent_actions = parents.compact_map do |parent|
-        # Get the parents id to route to correct es shard
-        parent_id = attributes[parent[:routing_attr]].to_s
-        next if parent_id.empty?
-        bulk_action_header(
-          action: Action::Delete,
-          index: parent[:index],
+        body = self.document_body(
+          document: document_any.not_nil!,
+          document_type: document_type,
+          no_children: no_children,
+          parent_id: parent_id,
+        )
+
+        "#{header}\n#{self.update_body(body)}"
+      when Action::Create
+        header = self.bulk_action_header(
+          action: action,
+          index: index,
           id: id,
           routing: parent_id,
         )
-      end
 
-      {document_action, parent_actions.join('\n')}.join('\n')
+        body = self.document_body(
+          document: document_any.not_nil!,
+          document_type: document_type,
+          no_children: no_children,
+          parent_id: parent_id
+        )
+
+        "#{header}\n#{body}"
+      when Action::Delete
+        self.bulk_action_header(
+          action: action,
+          index: index,
+          id: id,
+          routing: parent_id,
+        )
+      end.not_nil! # Crystal should check for enum exhaustion in case statements.
     end
 
     # Generates the header for an es action, preceeds an optional document
@@ -259,6 +278,13 @@ module RubberSoul
     #
     def self.document_type(document)
       document.class.name.split("::")[-1]
+    end
+
+    # Embeds document inside doc field.
+    # _the bulk api sucks_
+    #
+    def self.update_body(document)
+      %({"doc": #{document}})
     end
 
     # Create a join field for a document body
@@ -296,7 +322,7 @@ module RubberSoul
       )
 
       unless result.success?
-        raise Error.new("ES Bulk: #{result.body}")
+        raise Error.new("ES Bulk: #{body.strip} #{result.body}")
       end
     end
 
