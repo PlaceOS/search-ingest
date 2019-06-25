@@ -31,6 +31,10 @@ RubberSoul::MANAGED_TABLES = [ # ameba:disable Style/ConstantNames
   Engine::Model::Zone,
 ]
 
+unless ENV["SG_ENV"]? == "production"
+  ActionController::Base.settings.logger.level = Logger::DEBUG
+end
+
 RubberSoul::TableManager.configure do |settings|
   settings.logger = ActionController::Base.settings.logger
 end

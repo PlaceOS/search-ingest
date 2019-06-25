@@ -1,7 +1,7 @@
 require "action-controller"
 require "active-model"
 
-require "../rubber-soul"
+require "./rubber-soul"
 
 module RubberSoul
   class API < ActionController::Base

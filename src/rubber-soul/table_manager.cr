@@ -123,7 +123,7 @@ module RubberSoul
 
     # Backfills from a model to all relevant indices
     def backfill(model)
-      self.settings.logger.info("Backfill: #{model}")
+      self.settings.logger.info("backfill #{model}")
 
       index = index_name(model)
       parents = parents(model)
@@ -162,7 +162,7 @@ module RubberSoul
 
     # Clear, update mapping an ES index and refill with rethinkdb documents
     def reindex(model : String)
-      self.settings.logger.info("Reindex: #{model}")
+      self.settings.logger.info("reindex #{model}")
 
       index = index_name(model)
       # Delete index
@@ -179,7 +179,7 @@ module RubberSoul
         spawn do
           watch_table(model)
         rescue e
-          self.settings.logger.error "While watching #{model}:\n #{e.inspect}"
+          self.settings.logger.error "while watching #{model}:\n #{e.inspect}"
           # Fatal error
           exit 1
         end
@@ -201,10 +201,10 @@ module RubberSoul
       Retriable.retry(except: no_retry) do
         changes(model).each do |change|
           event = change[:event]
-          self.settings.logger.info("#{event}: #{model}")
-
           document = change[:value]
           next if document.nil?
+
+          self.settings.logger.debug("#{event.to_s.downcase} #{model} #{document.id}")
 
           # Asynchronously mutate elasticsearch
           spawn do
@@ -234,7 +234,7 @@ module RubberSoul
               raise Error.new
             end
           rescue e
-            self.settings.logger.warn("#{event}: #{e.class} #{e.message}")
+            self.settings.logger.warn("#{event.to_s.downcase} #{e.class} #{e.message}")
           end
         end
       end
