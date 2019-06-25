@@ -1,5 +1,5 @@
 name: rubber-soul
-version: 1.0.1
+version: 1.1.0
 
 authors:
   - Caspian Baska <caspianbaska@gmail.com>
@@ -35,13 +35,13 @@ dependencies:
     github: Sija/retriable.cr
     branch: develop
 
-development_dependencies:
-  ameba:
-    github: veelenga/ameba
-  coverage:
-    github: anykeyh/crystal-coverage
-    branch: master
-
+# development_dependencies:
+#  ameba:
+#    github: veelenga/ameba
+#    version: ~> 0.10.0
+#  coverage:
+#    github: anykeyh/crystal-coverage
+#    branch: master
 
 crystal: 0.29.0
 
