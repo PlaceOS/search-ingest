@@ -12,14 +12,6 @@ shards:
     github: spider-gazelle/active-model
     commit: 0bc32c0145e367e78b12725d28fa31ccf0b458f0
 
-  ameba:
-    github: veelenga/ameba
-    version: 0.10.0
-
-  coverage:
-    github: anykeyh/crystal-coverage
-    commit: 865383b31c51130612a9f6900a9666bcbfe9a426
-
   crystal-rethinkdb:
     github: kingsleyh/crystal-rethinkdb
     version: 0.1.6

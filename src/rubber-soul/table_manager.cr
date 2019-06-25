@@ -293,7 +293,7 @@ module RubberSoul
       properties = MODEL_METADATA[model][:attributes].compact_map do |field, options|
         type_tag = options.dig?(:tags, :es_type)
         if type_tag
-          unless valid_es_type?(type_tag)
+          if !type_tag.is_a?(String) || !valid_es_type?(type_tag)
             raise Error.new("Invalid ES type '#{type_tag}' for #{field} of #{model}")
           end
           {field, {type: type_tag}}
@@ -320,25 +320,6 @@ module RubberSoul
         props[model] = generate_index_properties(model)
         props
       end
-    end
-
-    # Map from crystal types to Elasticsearch field datatypes
-    def generate_index_properties(model) : Array(Property)
-      properties = MODEL_METADATA[model][:attributes].compact_map do |field, options|
-        type_tag = options.dig?(:tags, :es_type)
-        if type_tag
-          unless valid_es_type?(type_tag)
-            raise Error.new("Invalid ES type '#{type_tag}' for #{field} of #{model}")
-          end
-          {field, {type: type_tag}}
-        else
-          # Map the klass of field to es_type
-          es_type = klass_to_es_type(options[:klass])
-          # Could the klass be mapped?
-          es_type ? {field, {type: es_type}} : nil
-        end
-      end
-      properties << TYPE_PROPERTY
     end
 
     # Generate join fields for parent relations
@@ -408,7 +389,7 @@ module RubberSoul
     def parents(model) : Array(Parent)
       MODEL_METADATA[model][:attributes].compact_map do |field, attr|
         parent_name = attr.dig? :tags, :parent
-        unless parent_name.nil?
+        if !parent_name.nil? && parent_name.is_a?(String)
           {
             name:         parent_name,
             index:        index_name(parent_name),
