@@ -1,7 +1,7 @@
 version: 1.0
 shards:
   CrystalEmail:
-    git: https://git.sceptique.eu/Sceptique/CrystalEmail
+    github: Nephos/CrystalEmail
     version: 0.2.4
 
   action-controller:
@@ -10,11 +10,15 @@ shards:
 
   active-model:
     github: spider-gazelle/active-model
-    commit: 93241cd16bd3d7336e02a35f0b2c1f20936170af
+    commit: bde695c5877415ce6ff9078dc00bd049c25d3f5c
 
   ameba:
     github: veelenga/ameba
-    version: 0.9.1
+    version: 0.10.0
+
+  coverage:
+    github: anykeyh/crystal-coverage
+    commit: 865383b31c51130612a9f6900a9666bcbfe9a426
 
   crystal-rethinkdb:
     github: kingsleyh/crystal-rethinkdb
@@ -22,7 +26,7 @@ shards:
 
   engine-models:
     github: aca-labs/crystal-engine-models
-    commit: e4e6bf090bec75bc3f78c3be776ec68a69ec3158
+    commit: b3a63493a8b9d4ec7930154fbe2973f4c15c5de8
 
   habitat:
     github: luckyframework/habitat
@@ -34,7 +38,7 @@ shards:
 
   neuroplastic:
     github: aca-labs/neuroplastic
-    commit: 73cba9efe47191a056d95d76da8577c38320ddb0
+    commit: f7a99e26aeed95f2c986a48e8428d097ed4f5f4e
 
   promise:
     github: spider-gazelle/promise
@@ -46,7 +50,7 @@ shards:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    commit: 4f08082b8defb656c4dcf8c2f116ffe970a31da6
+    commit: 3fc9cb88049661c6db0f51b79bb4537ba759c804
 
   retriable:
     github: Sija/retriable.cr

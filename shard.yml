@@ -38,7 +38,11 @@ dependencies:
 development_dependencies:
   ameba:
     github: veelenga/ameba
+  coverage:
+    github: anykeyh/crystal-coverage
+    branch: master
 
-crystal: 0.28.0
+
+crystal: 0.29.0
 
 license: MIT
