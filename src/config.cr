@@ -1,7 +1,7 @@
-# stdlib
 require "http"
 require "logger"
 
+# Engine Models
 require "engine-models"
 
 # Application code
@@ -18,7 +18,7 @@ ActionController::Server.before(
 )
 
 # Tables watched by TableManager
-# FIXME: This is not ideal, however a constant array is required for macro methods
+# FIXME: This is not ideal. A constant array is required for macro methods
 RubberSoul::MANAGED_TABLES = [ # ameba:disable Style/ConstantNames
   Engine::Model::Authority,
   Engine::Model::ControlSystem,
@@ -31,10 +31,12 @@ RubberSoul::MANAGED_TABLES = [ # ameba:disable Style/ConstantNames
   Engine::Model::Zone,
 ]
 
-unless ENV["SG_ENV"]? == "production"
-  ActionController::Base.settings.logger.level = Logger::DEBUG
-end
-
+# Configure logger
 RubberSoul::TableManager.configure do |settings|
   settings.logger = ActionController::Base.settings.logger
+end
+
+# Log level
+unless ENV["SG_ENV"]? == "production"
+  ActionController::Base.settings.logger.level = Logger::DEBUG
 end

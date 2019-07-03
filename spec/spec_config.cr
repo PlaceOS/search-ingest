@@ -19,8 +19,5 @@ ActionController::Server.before(
   HTTP::CompressHandler.new
 )
 
-# ACA engine configuration... necessary if using models?
-ACA_ENGINE_DB = "engine"
-
 APP_NAME = "rubber-soul"
 VERSION  = "1.0.0"
