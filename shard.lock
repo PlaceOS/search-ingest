@@ -12,9 +12,17 @@ shards:
     github: spider-gazelle/active-model
     commit: 0bc32c0145e367e78b12725d28fa31ccf0b458f0
 
+  ameba:
+    github: veelenga/ameba
+    version: 0.10.0
+
   bisect:
     github: spider-gazelle/bisect
     version: 1.1.1
+
+  coverage:
+    github: anykeyh/crystal-coverage
+    commit: 865383b31c51130612a9f6900a9666bcbfe9a426
 
   cron_parser:
     github: kostya/cron_parser
