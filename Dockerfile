@@ -8,6 +8,11 @@ RUN apt-get install -y curl
 
 # Build App
 RUN shards install
+
+# Manually remake libscrypt, PostInstall fails inexplicably
+RUN make -C ./lib/scrypt/ clean
+RUN make -C ./lib/scrypt/
+
 RUN shards build --production
 
 # Extract dependencies
