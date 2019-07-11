@@ -31,17 +31,26 @@ module RubberSoul
 
       Elastic.bulk_operation(bulk_request)
 
-      headers, _ = bulk_request.split('\n').in_groups_of(2).transpose
+      headers, sources = bulk_request.split('\n').in_groups_of(2).transpose
       child_header, parent_header = headers.compact.map { |h| JSON.parse(h)["create"] }
+
+      child_index_routing, parent_index_routing = sources.compact.map { |h| JSON.parse(h)["join"]? }
+
+      child_index_routing.should be_nil
+
+      name_field = parent_index_routing.not_nil!["name"]
+      parent_field = parent_index_routing.not_nil!["parent"]
+
+      # Ensure correct join field
+      name_field.should eq child.class.name.to_s
+      parent_field.should eq parent.id
 
       # Ensure child is routed via parent in parent table
       parent_header["routing"].to_s.should eq child.programmer_id
       child_header["routing"].to_s.should eq child.id
 
       parent_index_path = Elastic.document_path(index: parent_index, id: child.id)
-
       parent_index_doc = JSON.parse(Elastic.client &.get(parent_index_path).body)
-      puts ""
 
       # Ensure child is routed via parent in parent table
       parent_index_doc["_routing"].to_s.should eq child.programmer_id

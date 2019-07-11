@@ -114,7 +114,11 @@ module RubberSoul
     # - a single index does not exist
     # - a single mapping is different
     def initialise_indices(backfill = false)
-      reindex_all unless consistent_indices?
+      unless consistent_indices?
+        self.settings.logger.info("action=initialise_indices event=\"reindex to consistency\"")
+        reindex_all
+      end
+
       backfill_all if backfill
     end
 
@@ -128,6 +132,7 @@ module RubberSoul
       index = index_name(model)
       parents = parents(model)
       no_children = children(model).empty?
+
       all(model).each_slice(100) do |docs|
         actions = docs.map do |d|
           Elastic.document_request(
@@ -204,9 +209,9 @@ module RubberSoul
           document = change[:value]
           next if document.nil?
 
-          self.settings.logger.debug("action=watch_table event=#{event.to_s.downcase} model=#{model} document_id=#{document.id}")
+          self.settings.logger.debug("action=watch_table event=#{event.to_s.downcase} model=#{model} document_id=#{document.id} parents=#{parents}")
 
-          # Asynchronously mutate elasticsearch
+          # Asynchronously mutate Elasticsearch
           spawn do
             case event
             when RethinkORM::Changefeed::Event::Deleted
@@ -230,11 +235,10 @@ module RubberSoul
                 no_children: no_children,
               )
             else
-              # Crystal really should check enum case exhaustion
               raise Error.new
             end
           rescue e
-            self.settings.logger.warn("#{event.to_s.downcase} #{e.class} #{e.message}")
+            self.settings.logger.warn("action=watch_table event=#{event.to_s.downcase} error=#{e.class} message=#{e.message}")
           end
         end
       end
@@ -242,20 +246,34 @@ module RubberSoul
 
     # Elasticsearch mapping
     #############################################################################################
-    # Checks if any index does not exist or has a different mapping
-    def consistent_indices?
-      @models.all? do |model|
-        index = index_name(model)
-        Elastic.check_index?(index) && !Elastic.mapping_conflict?(index, index_schema(model))
-      end
-    end
 
     # Applies a schema to an index in elasticsearch
+    #
     def create_index(model)
       index = index_name(model)
       mapping = index_schema(model)
 
       Elastic.apply_index_mapping(index, mapping)
+    end
+
+    # Checks if any index does not exist or has a different mapping
+    #
+    def consistent_indices?
+      @models.all? do |model|
+        Elastic.check_index?(index_name(model)) && !mapping_conflict?(model)
+      end
+    end
+
+    # Diff the current mapping schema (if any) against provided mapping schema
+    #
+    def mapping_conflict?(model)
+      proposed = index_schema(model)
+      existing = Elastic.get_mapping?(index_name(model))
+
+      equivalent = Elastic.equivalent_schema?(existing, proposed)
+      self.settings.logger.warn("action=mapping_conflict? model=#{model} proposed=#{proposed} existing=#{existing}") unless equivalent
+
+      !equivalent
     end
 
     # Schema Generation
@@ -301,7 +319,7 @@ module RubberSoul
           # Map the klass of field to es_type
           es_type = klass_to_es_type(options[:klass])
           # Could the klass be mapped?
-          es_type ? {field, {type: es_type}} : nil
+          es_type ? {field, {"type": es_type}} : nil
         end
       end
       properties << TYPE_PROPERTY

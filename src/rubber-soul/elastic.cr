@@ -101,13 +101,6 @@ module RubberSoul
     # Mapping
     #############################################################################################
 
-    # Diff the current mapping schema (if any) against provided mapping schema
-    #
-    def self.mapping_conflict?(index, proposed_schema)
-      existing_schema = get_mapping?(index)
-      !equivalent_schema?(existing_schema, proposed_schema)
-    end
-
     # Traverse schemas and test equality
     #
     def self.equivalent_schema?(left_schema : String?, right_schema : String?)
@@ -124,7 +117,7 @@ module RubberSoul
           (left_relations.keys.sort == right_relations.keys.sort) && left_relations.all? do |k, v|
             # Relations can be an array of join names, or a single join name
             l = v.as_a?.try(&.map(&.as_s)) || v
-            r = right_relations[k].as_a?.try(&.map(&.as_s)) || right_relations[k]
+            r = right_relations[k]?.try &.as_a?.try(&.map(&.as_s)) || right_relations[k]?
             if l.is_a? Array && r.is_a? Array
               l.sort == r.sort
             else
@@ -132,7 +125,7 @@ module RubberSoul
             end
           end
         else
-          right[prop] == mapping
+          right[prop]? == mapping
         end
       end
     end
@@ -201,6 +194,7 @@ module RubberSoul
       parent_actions = parents.compact_map do |parent|
         # Get the parents id to route to correct es shard
         parent_id = attributes[parent[:routing_attr]].to_s
+
         next if parent_id.empty?
         self.bulk_request(
           action: action,
@@ -208,7 +202,8 @@ module RubberSoul
           document_type: doc_type,
           index: parent[:index],
           id: id,
-          parent_id: parent_id
+          parent_id: parent_id,
+          no_children: false,
         )
       end
 
@@ -230,7 +225,8 @@ module RubberSoul
         header = self.bulk_action_header(action: action,
           index: index,
           id: id,
-          routing: parent_id)
+          routing: parent_id
+        )
 
         body = self.document_body(
           document: document_any.not_nil!,

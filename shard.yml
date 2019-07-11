@@ -19,6 +19,7 @@ dependencies:
 
   active-model:
     github: spider-gazelle/active-model
+    branch: master
 
   engine-rest-api:
     github: aca-labs/crystal-engine-rest-api
