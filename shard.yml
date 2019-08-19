@@ -1,5 +1,8 @@
 name: rubber-soul
 version: 1.2.0
+license: MIT
+
+crystal: 0.30.1
 
 authors:
   - Caspian Baska <caspianbaska@gmail.com>
@@ -44,7 +47,3 @@ development_dependencies:
   coverage:
     github: anykeyh/crystal-coverage
     branch: master
-
-crystal: 0.29.0
-
-license: MIT
