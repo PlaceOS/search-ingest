@@ -51,6 +51,7 @@ module RubberSoul
             {{ model.stringify.split("::").last }} => {
               attributes: {
               {% for attr, options in fields %}
+                {% options[:klass] = options[:klass].stringify %}
                 {{ attr.symbolize }} => {{ options }},
               {% end %}
               },
@@ -377,8 +378,8 @@ module RubberSoul
     end
 
     # Map from a class type to an es type
-    private def klass_to_es_type(klass) : String | Nil
-      case klass.name
+    private def klass_to_es_type(klass_name) : String | Nil
+      case klass_name
       when "String"
         "text"
       when "Time"

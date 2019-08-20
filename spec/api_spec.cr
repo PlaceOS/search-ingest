@@ -17,7 +17,7 @@ describe RubberSoul::API do
   # ==============
   with_server do
     it "healthz" do
-      result = curl("GET", "/api/healthz")
+      result = curl("GET", "/healthz")
       result.success?.should be_true
     end
   end
