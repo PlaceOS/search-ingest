@@ -134,7 +134,7 @@ module RubberSoul
         index = Programmer.table_name
         model_name = Programmer.name
 
-        model = Programmer.new(name: "Knuth")
+        model = Programmer.new(name: "tenderlove")
         model.id = RethinkORM::IdGenerator.next(model)
 
         parents = tm.parents(model_name)
@@ -162,6 +162,9 @@ module RubberSoul
 
         # Ensure local document is replicated in elasticsearch
         es_document.should eq local_document
+
+        # Remove document
+        Elastic.delete_document(index: index, document: model, parents: parents)
       end
     end
   end
