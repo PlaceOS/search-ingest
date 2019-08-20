@@ -9,7 +9,7 @@ authors:
 
 targets:
   rubber-soul:
-    main: src/app.cr
+    main: src/rubber-soul.cr
 
 dependencies:
   action-controller:
@@ -26,6 +26,7 @@ dependencies:
 
   engine-rest-api:
     github: aca-labs/crystal-engine-rest-api
+    branch: master
 
   habitat:
     github: luckyframework/habitat

@@ -3,7 +3,6 @@ require "spec"
 # Application config
 require "./spec_config"
 
-require "../src/rubber-soul"
 require "../src/rubber-soul/*"
 require "../src/api"
 

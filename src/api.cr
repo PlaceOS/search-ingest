@@ -1,23 +1,18 @@
 require "action-controller"
 require "active-model"
 
-require "./rubber-soul"
+require "./constants"
+require "./rubber-soul/*"
 
 module RubberSoul
   class API < ActionController::Base
-    base "/api/v1"
-
     @@table_manager = RubberSoul::TableManager.new(RubberSoul::MANAGED_TABLES, watch: true)
 
     def table_manager
       @@table_manager
     end
 
-    get "/", :root do
-      head :ok
-    end
-
-    get "/healthz", :healthz do
+    get "/healthz", :root do
       head :ok
     end
 

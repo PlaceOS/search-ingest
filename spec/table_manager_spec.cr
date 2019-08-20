@@ -10,7 +10,7 @@ module RubberSoul
         count_before_create = es_document_count(index)
         prog = Programmer.create(name: "Rob Pike")
 
-        sleep 0.5 # Wait for change to propagate to es
+        sleep 1 # Wait for change to propagate to es
         es_document_count(index).should eq (count_before_create + 1)
 
         expect_raises(Error, message: "TableManager cancelled") do
@@ -132,11 +132,11 @@ module RubberSoul
 
       # Reindex
       tm.reindex_all
-      sleep 0.5
+      sleep 1
       es_document_count(index).should eq 0
 
       tm.backfill_all
-      sleep 0.5
+      sleep 1
       # Check number of documents in elastic search
       es_document_count(index).should eq (num_created + count_before_create)
 
@@ -163,7 +163,7 @@ module RubberSoul
         # Backfill a single index
         tm.backfill(Programmer.name)
 
-        sleep 0.5 # Wait for es
+        sleep 1 # Wait for es
         es_document_count(index).should eq Programmer.count
 
         programmers.each &.destroy

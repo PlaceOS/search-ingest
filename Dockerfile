@@ -23,5 +23,5 @@ COPY --from=builder rubber-soul rubber-soul
 
 # Run the app binding on port 3000
 EXPOSE 3000
-HEALTHCHECK CMD wget --spider localhost:3000/api/v1
+HEALTHCHECK CMD wget --spider localhost:3000/healthz
 CMD ["/rubber-soul", "-b", "0.0.0.0", "-p", "3000"]
