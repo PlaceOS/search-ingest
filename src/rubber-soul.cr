@@ -139,8 +139,14 @@ else
   # Start the server
   server.run do
     puts "Listening on #{server.print_addresses}"
+    puts "With RethinkDB \"#{rethink_db}\" on #{RethinkORM::Connection.settings.host}:#{RethinkORM::Connection.settings.port}"
+    puts "With Elasticsearch on #{RubberSoul::Elastic.settings.host}:#{RubberSoul::Elastic.settings.port}"
   end
 end
+
+# Application models included in config.
+require "./config"
+require "./rubber-soul"
 
 # Shutdown message
 puts "#{RubberSoul::APP_NAME} signing off :}\n"

@@ -9,7 +9,7 @@ module RubberSoul
   class Elastic
     # Settings for elastic client
     Habitat.create do
-      setting host : String = ENV["ES_HOST"]? || "127.0.0.1"
+      setting host : String = ENV["ES_HOST"]? || "localhost"
       setting port : Int32 = ENV["ES_PORT"]?.try(&.to_i) || 9200
       setting pool_size : Int32 = ENV["ES_CONN_POOL"]?.try(&.to_i) || 10
       setting idle_pool_size : Int32 = ENV["ES_IDLE_POOL"]?.try(&.to_i) || 2
