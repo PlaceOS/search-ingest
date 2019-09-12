@@ -38,7 +38,7 @@ shards:
 
   engine-rest-api:
     github: aca-labs/crystal-engine-rest-api
-    commit: c6b4d9ace85574204ab52433ad45a6dab13d7d93
+    commit: 5cb8c4766ac45efcbd3ee888c2661bdc7771480d
 
   habitat:
     github: luckyframework/habitat
