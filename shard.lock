@@ -10,7 +10,7 @@ shards:
 
   active-model:
     github: spider-gazelle/active-model
-    commit: 50ef8092777620eb1fa2e1cb4bce4f10919ea55d
+    version: 1.6.0
 
   ameba:
     github: veelenga/ameba
@@ -34,11 +34,11 @@ shards:
 
   engine-driver:
     github: aca-labs/crystal-engine-driver
-    commit: 145ddd867905676992fac91edb33a8e494b358c4
+    commit: 5646bfa00cad15ca17840784e9474b7b92a820b2
 
   engine-rest-api:
     github: aca-labs/crystal-engine-rest-api
-    commit: 7fd9d09a293c48ac5b0f5220ff255bfae45a0705
+    commit: c6b4d9ace85574204ab52433ad45a6dab13d7d93
 
   habitat:
     github: luckyframework/habitat
@@ -94,7 +94,7 @@ shards:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    commit: 3c11f55eda81f081ffe7a734b414c3d541a45d6d
+    commit: b2eb4e9284b9cb8c86c48d871a04406581c1926d
 
   retriable:
     github: Sija/retriable.cr

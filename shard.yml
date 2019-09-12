@@ -14,7 +14,7 @@ targets:
 dependencies:
   action-controller:
     github: spider-gazelle/action-controller
-    version: "~> 1.4"
+    version: ~> 1.4
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
@@ -22,7 +22,7 @@ dependencies:
 
   active-model:
     github: spider-gazelle/active-model
-    branch: master
+    version: 1.6.0
 
   engine-rest-api:
     github: aca-labs/crystal-engine-rest-api
