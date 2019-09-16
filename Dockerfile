@@ -26,4 +26,4 @@ RUN crystal build /app/src/rubber-soul.cr --release --no-debug
 # Run the app binding on port 3000
 EXPOSE 3000
 HEALTHCHECK CMD wget --spider localhost:3000/healthz
-CMD ["/rubber-soul", "-b", "0.0.0.0", "-p", "3000"]
+CMD ["/app/rubber-soul", "-b", "0.0.0.0", "-p", "3000"]
