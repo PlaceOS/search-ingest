@@ -20,15 +20,15 @@ ActionController::Server.before(
 # Tables watched by TableManager
 # FIXME: This is not ideal. A constant array is required for macro methods
 RubberSoul::MANAGED_TABLES = [ # ameba:disable Style/ConstantNames
-  Engine::Model::Authority,
-  Engine::Model::ControlSystem,
-  Engine::Model::Driver,
-  Engine::Model::Module,
-  Engine::Model::Repository,
-  Engine::Model::Trigger,
-  Engine::Model::TriggerInstance,
-  Engine::Model::User,
-  Engine::Model::Zone,
+  ACAEngine::Model::Authority,
+  ACAEngine::Model::ControlSystem,
+  ACAEngine::Model::Driver,
+  ACAEngine::Model::Module,
+  ACAEngine::Model::Repository,
+  ACAEngine::Model::Trigger,
+  ACAEngine::Model::TriggerInstance,
+  ACAEngine::Model::User,
+  ACAEngine::Model::Zone,
 ]
 
 # Configure logger
