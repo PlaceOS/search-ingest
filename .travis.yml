@@ -1,25 +1,26 @@
 sudo: required
 language: crystal
 
-addons:
-  # Add RethinkDB
-  rethinkdb: '2.3'
+env:
+  - TRAVIS_TEST=true
 
 services:
   - docker
 
 before_install:
-  # Add elasticsearch 7.0.x
-  - docker run -p9300:9300 -p9200:9200 -e discovery.type=single-node -d elasticsearch:7.0.1
+  # Add elasticsearch 7.4
+  - docker run --net="host" -p "9300:9300" -p "9200:9200" -e discovery.type=single-node -d blacktop/elasticsearch:7.4
+  # Add rethinkdb 2.3.6
+  - docker run --net="host" -p "29015:29015" -p "28015:28015" -d acalabs/rethinkdb:2.3.6
 
 install:
   - shards install
 
 before_script:
-  # Wait for ES
+  # Wait for elasticsearch
   - sleep 10
 
 script:
   - crystal spec
   - bin/ameba
-
+  - crystal tool format --check
