@@ -38,15 +38,23 @@ shards:
 
   engine-driver:
     github: aca-labs/crystal-engine-driver
-    commit: 871fb2811c33d4002d022eca26d16100688d74f3
+    commit: 8d79a4543e24e65def499bd33c69d3ca33aec997
 
   engine-rest-api:
     github: aca-labs/crystal-engine-rest-api
-    commit: d2fc3ade8225f60b72a189f21fb8e3af619a45f0
+    commit: de8bd1d96bd3bfa9d1bb5ee5b35879ec397f2b48
+
+  etcd:
+    github: aca-labs/crystal-etcd
+    commit: 46bfecae1e277d1f9bd4a45c8b3bcb2723facd0e
 
   habitat:
     github: luckyframework/habitat
     version: 0.4.3
+
+  hound-dog:
+    github: aca-labs/hound-dog
+    commit: cc6a18654527997fbe381db74766a07c5eccef5e
 
   ipaddress:
     github: Sija/ipaddress.cr
@@ -59,6 +67,10 @@ shards:
   kilt:
     github: jeromegn/kilt
     version: 0.4.0
+
+  murmur3:
+    github: aca-labs/murmur3
+    commit: 7cbe25c0ca8d052c9d98c377c824dcb0e038c790
 
   neuroplastic:
     github: aca-labs/neuroplastic
@@ -96,6 +108,10 @@ shards:
     github: stefanwille/crystal-redis
     version: 2.2.1
 
+  rendezvous-hash:
+    github: caspiano/rendezvous-hash
+    commit: 7daf4bcd8778b02bea037222310ddc9a4d3e13dd
+
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
     commit: 6ddc7b3cb636e394ac3d8729c251a6dc1c6b1010
@@ -114,5 +130,5 @@ shards:
 
   tokenizer:
     github: spider-gazelle/tokenizer
-    version: 1.0.2
+    version: 1.1.0
 
