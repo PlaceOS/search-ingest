@@ -6,7 +6,7 @@ shards:
 
   action-controller:
     github: spider-gazelle/action-controller
-    version: 1.8.0
+    version: 1.8.3
 
   active-model:
     github: spider-gazelle/active-model
@@ -42,7 +42,7 @@ shards:
 
   engine-rest-api:
     github: aca-labs/crystal-engine-rest-api
-    commit: de8bd1d96bd3bfa9d1bb5ee5b35879ec397f2b48
+    commit: de054701be60394c21422e7edf59ef11a9299782
 
   etcd:
     github: aca-labs/crystal-etcd
