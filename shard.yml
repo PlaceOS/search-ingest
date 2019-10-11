@@ -24,8 +24,8 @@ dependencies:
     github: spider-gazelle/active-model
     version: 1.6.0
 
-  engine-rest-api:
-    github: aca-labs/crystal-engine-rest-api
+  engine-models:
+    github: aca-labs/crystal-engine-models
     branch: master
 
   habitat:

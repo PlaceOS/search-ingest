@@ -16,49 +16,21 @@ shards:
     github: veelenga/ameba
     version: 0.10.1
 
-  bisect:
-    github: spider-gazelle/bisect
-    version: 1.2.0
-
-  connect-proxy:
-    github: spider-gazelle/connect-proxy
-    version: 1.0.0
-
   coverage:
     github: anykeyh/crystal-coverage
     commit: 865383b31c51130612a9f6900a9666bcbfe9a426
-
-  cron_parser:
-    github: kostya/cron_parser
-    version: 0.2.0
 
   crystal-rethinkdb:
     github: caspiano/crystal-rethinkdb
     commit: d7c3195db9ad0db7e5cfe4150d65615afbbad636
 
-  engine-driver:
-    github: aca-labs/crystal-engine-driver
-    commit: 8d79a4543e24e65def499bd33c69d3ca33aec997
-
-  engine-rest-api:
-    github: aca-labs/crystal-engine-rest-api
-    commit: de054701be60394c21422e7edf59ef11a9299782
-
-  etcd:
-    github: aca-labs/crystal-etcd
-    commit: 46bfecae1e277d1f9bd4a45c8b3bcb2723facd0e
+  engine-models:
+    github: aca-labs/crystal-engine-models
+    commit: 2816d0f7a2b48c54a92ba4b907154c798c83e17e
 
   habitat:
     github: luckyframework/habitat
     version: 0.4.3
-
-  hound-dog:
-    github: aca-labs/hound-dog
-    commit: cc6a18654527997fbe381db74766a07c5eccef5e
-
-  ipaddress:
-    github: Sija/ipaddress.cr
-    version: 0.2.1
 
   jwt:
     github: crystal-community/jwt
@@ -68,10 +40,6 @@ shards:
     github: jeromegn/kilt
     version: 0.4.0
 
-  murmur3:
-    github: aca-labs/murmur3
-    commit: 7cbe25c0ca8d052c9d98c377c824dcb0e038c790
-
   neuroplastic:
     github: aca-labs/neuroplastic
     commit: 54375dfc1f9472850dfa44afa11a830919f3ccce
@@ -80,55 +48,19 @@ shards:
     github: stakach/openssl_ext
     version: 1.0.0
 
-  pinger:
-    github: spider-gazelle/pinger
-    version: 1.0.0
-
-  pool:
-    github: ysbaddaden/pool
-    version: 0.2.3
-
-  priority-queue:
-    github: spider-gazelle/priority-queue
-    commit: cd8dc4f0803d7e00a4bb0d79e4c98c5d72223012
-
   promise:
     github: spider-gazelle/promise
     version: 1.3.0
-
-  protobuf:
-    github: jeromegn/protobuf.cr
-    version: 2.1.2
 
   radix:
     github: luislavena/radix
     version: 0.3.9
 
-  redis:
-    github: stefanwille/crystal-redis
-    version: 2.2.1
-
-  rendezvous-hash:
-    github: caspiano/rendezvous-hash
-    commit: 7daf4bcd8778b02bea037222310ddc9a4d3e13dd
-
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    commit: 6ddc7b3cb636e394ac3d8729c251a6dc1c6b1010
+    commit: d4b57179a9cb0c1e14b61d106957140170f85b64
 
   retriable:
     github: Sija/retriable.cr
-    version: 0.2.0
-
-  ssh2:
-    github: spider-gazelle/ssh2.cr
-    commit: fd9946c951eea33636b38cac999c6deeb0ca28ef
-
-  tasker:
-    github: spider-gazelle/tasker
-    version: 1.2.2
-
-  tokenizer:
-    github: spider-gazelle/tokenizer
-    version: 1.1.0
+    commit: 016b9ebfae7e30f56c2db6fbca5dd95cbf7702aa
 

@@ -2,7 +2,7 @@ require "http"
 require "logger"
 
 # Engine Models
-require "engine-rest-api/models"
+require "engine-models"
 
 # Application code
 require "./api"
