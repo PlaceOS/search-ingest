@@ -242,6 +242,8 @@ module RubberSoul
             self.settings.logger.warn("action=watch_table event=#{event.to_s.downcase} error=#{e.class} message=#{e.message}")
           end
         end
+
+        Fiber.yield
       end
     end
 
