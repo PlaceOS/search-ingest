@@ -144,9 +144,5 @@ else
   end
 end
 
-# Application models included in config.
-require "./config"
-require "./rubber-soul"
-
 # Shutdown message
 puts "#{RubberSoul::APP_NAME} signing off :}\n"
