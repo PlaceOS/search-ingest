@@ -138,9 +138,9 @@ else
 
   # Start the server
   server.run do
-    puts "Listening on #{server.print_addresses}"
     puts "With RethinkDB \"#{rethink_db}\" on #{RethinkORM::Connection.settings.host}:#{RethinkORM::Connection.settings.port}"
     puts "With Elasticsearch on #{RubberSoul::Elastic.settings.host}:#{RubberSoul::Elastic.settings.port}"
+    puts "Listening on #{server.print_addresses}"
   end
 end
 

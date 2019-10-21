@@ -1,19 +1,19 @@
-require "http"
-require "logger"
-
 # Engine Models
 require "engine-models"
 
 # Application code
 require "./api"
 
-# Server required after application controllers
+# Server
+require "action-controller"
 require "action-controller/server"
+
+PROD = ENV["SG_ENV"]? == "production"
 
 # Add handlers that should run before your application
 ActionController::Server.before(
-  HTTP::LogHandler.new(STDOUT),
-  HTTP::ErrorHandler.new(ENV["SG_ENV"]? != "production"),
+  HTTP::ErrorHandler.new(!PROD),
+  ActionController::LogHandler.new,
   HTTP::CompressHandler.new
 )
 
@@ -32,11 +32,8 @@ RubberSoul::MANAGED_TABLES = [ # ameba:disable Style/ConstantNames
 ]
 
 # Configure logger
+logger = ActionController::Base.settings.logger
+logger.level = PROD ? Logger::INFO : Logger::DEBUG
 RubberSoul::TableManager.configure do |settings|
-  settings.logger = ActionController::Base.settings.logger
-end
-
-# Log level
-unless ENV["SG_ENV"]? == "production"
-  ActionController::Base.settings.logger.level = Logger::DEBUG
+  settings.logger = logger
 end

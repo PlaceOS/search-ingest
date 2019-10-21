@@ -7,3 +7,4 @@ app
 *.dwarf
 bin
 .vscode
+rubber-soul

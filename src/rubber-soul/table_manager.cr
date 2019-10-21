@@ -1,9 +1,8 @@
-require "logger"
+require "action-controller/logger"
 require "habitat"
+require "promise"
 require "rethinkdb-orm"
 require "retriable"
-
-require "promise"
 
 require "./elastic"
 require "./types"
@@ -14,7 +13,7 @@ module RubberSoul
     alias Property = Tuple(Symbol, NamedTuple(type: String))
 
     Habitat.create do
-      setting logger : Logger = Logger.new(STDOUT)
+      setting logger : Logger = ActionController::Logger.new(STDOUT)
     end
 
     # Map class name to model properties

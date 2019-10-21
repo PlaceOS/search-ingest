@@ -1,16 +1,13 @@
 require "action-controller"
-require "active-model"
 
 require "./constants"
 require "./rubber-soul/*"
 
 module RubberSoul
   class API < ActionController::Base
-    @@table_manager = RubberSoul::TableManager.new(RubberSoul::MANAGED_TABLES, watch: true)
+    base "/api/rubber-soul/v1"
 
-    def table_manager
-      @@table_manager
-    end
+    @@table_manager = RubberSoul::TableManager.new(RubberSoul::MANAGED_TABLES, watch: true)
 
     get "/healthz", :root do
       head :ok
@@ -22,21 +19,16 @@ module RubberSoul
       }
     end
 
-    class ReindexParams < ActiveModel::Model
-      attribute backfill : Bool = true
-    end
-
-    # Reindex all tables
-    # Backfills by default
+    # Reindex all tables, backfills by default
+    # /reindex?[backfill=true]
     post "/reindex", :reindex do
-      args = ReindexParams.new(params)
-      table_manager.reindex_all
-      table_manager.backfill_all if args.backfill
+      @@table_manager.reindex_all
+      @@table_manager.backfill_all if params["backfill"] == true
     end
 
     # Backfill all tables
     post "/backfill", :backfill do
-      table_manager.backfill_all
+      @@table_manager.backfill_all
     end
   end
 end

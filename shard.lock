@@ -6,7 +6,7 @@ shards:
 
   action-controller:
     github: spider-gazelle/action-controller
-    version: 1.8.3
+    version: 2.0.2
 
   active-model:
     github: spider-gazelle/active-model
@@ -26,7 +26,7 @@ shards:
 
   engine-models:
     github: aca-labs/crystal-engine-models
-    commit: 37a4490829c233f768982b382794ddc4dfc0664c
+    commit: 7c6867fad28368fc17c176d202a9e05899ae97e7
 
   habitat:
     github: luckyframework/habitat
@@ -34,7 +34,7 @@ shards:
 
   jwt:
     github: crystal-community/jwt
-    version: 1.1.1
+    version: 1.1.2
 
   kilt:
     github: jeromegn/kilt
@@ -58,7 +58,7 @@ shards:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    commit: d4b57179a9cb0c1e14b61d106957140170f85b64
+    commit: bdb4dca0a78ff5c342f26f9f24c7f23440896046
 
   retriable:
     github: Sija/retriable.cr
