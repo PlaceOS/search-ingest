@@ -127,7 +127,7 @@ else
 
   terminate = Proc(Signal, Nil).new do |signal|
     puts " > terminating gracefully"
-    spawn { server.close }
+    spawn(same_thread: true) { server.close }
     signal.ignore
   end
 

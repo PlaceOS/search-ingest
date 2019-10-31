@@ -32,7 +32,7 @@ module RubberSoul
 
       pool.available_resources.should eq 1
 
-      spawn do
+      spawn(same_thread: true) do
         comm_channel.receive.should eq DummyResource::Event::GotIt
         comm_channel.receive.should eq DummyResource::Event::Closed
       end
