@@ -16,9 +16,9 @@ RUN shards install --production
 COPY ./src /app/src
 
 # Build application
-RUN crystal build /app/src/rubber-soul.cr --release --no-debug --error-trace
+RUN crystal build /app/src/rubber-soul.cr --release --error-trace
 
 # Run the app binding on port 3000
 EXPOSE 3000
-HEALTHCHECK CMD curl -I localhost:3000/healthz
+HEALTHCHECK CMD curl -I localhost:3000/api/rubber-soul/v1
 CMD ["/app/rubber-soul", "-b", "0.0.0.0", "-p", "3000"]
