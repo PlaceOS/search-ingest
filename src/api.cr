@@ -9,7 +9,7 @@ module RubberSoul
 
     @@table_manager = RubberSoul::TableManager.new(RubberSoul::MANAGED_TABLES, watch: true)
 
-    get "/healthz", :root do
+    get "/", :root do
       head :ok
     end
 
@@ -23,7 +23,7 @@ module RubberSoul
     # /reindex?[backfill=true]
     post "/reindex", :reindex do
       @@table_manager.reindex_all
-      @@table_manager.backfill_all if params["backfill"] == true
+      @@table_manager.backfill_all if params["backfill"]? == true
     end
 
     # Backfill all tables
