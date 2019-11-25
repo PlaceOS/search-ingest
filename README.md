@@ -3,10 +3,6 @@
 A small (one might even say 'micro') service that hooks into [rethinkdb-orm](https://github.com/spider-gazelle/rethinkdb-orm) models and generates elasticsearch indicies.  
 `rubber-soul` exposes a REST API to reindex/backfill specific models.
 
-# TODO
-
-- refactor to use the bulk api
-
 ## Usage
 
 - Set the tables to be mirrored in ES through setting `RubberSoul::MANAGED_TABLES` with an array of `(T < RethinkORM::Base).class`

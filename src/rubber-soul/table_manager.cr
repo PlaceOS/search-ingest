@@ -30,6 +30,7 @@ module RubberSoul
 
     macro finished
       # All RethinkORM models with abstract and empty classes removed
+      # :nodoc:
       MODELS = {} of Nil => Nil
       __create_model_metadata
       __generate_methods([:changes, :all])
@@ -50,7 +51,7 @@ module RubberSoul
             {{ model.stringify.split("::").last }} => {
               attributes: {
               {% for attr, options in fields %}
-                {% options[:klass] = options[:klass].stringify %}
+                {% options[:klass] = options[:klass].stringify unless options[:klass].is_a?(StringLiteral) %}
                 {{ attr.symbolize }} => {{ options }},
               {% end %}
               },

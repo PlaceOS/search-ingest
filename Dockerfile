@@ -10,6 +10,8 @@ RUN apt-get update && \
 
 # Install shards for caching
 COPY shard.yml shard.yml
+COPY shard.lock shard.lock
+
 RUN shards install --production
 
 # Add src

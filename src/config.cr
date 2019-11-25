@@ -1,6 +1,21 @@
 # Engine Models
 require "engine-models"
 
+# Tables watched by TableManager
+# FIXME: This is not ideal. A constant array is required for macro methods
+RubberSoul::MANAGED_TABLES = [ # ameba:disable Style/ConstantNames
+  ACAEngine::Model::Authority,
+  ACAEngine::Model::ControlSystem,
+  ACAEngine::Model::Driver,
+  ACAEngine::Model::Module,
+  ACAEngine::Model::Repository,
+  ACAEngine::Model::Settings,
+  ACAEngine::Model::Trigger,
+  ACAEngine::Model::TriggerInstance,
+  ACAEngine::Model::User,
+  ACAEngine::Model::Zone,
+]
+
 # Application code
 require "./api"
 
@@ -16,21 +31,6 @@ ActionController::Server.before(
   ActionController::LogHandler.new,
   HTTP::CompressHandler.new
 )
-
-# Tables watched by TableManager
-# FIXME: This is not ideal. A constant array is required for macro methods
-RubberSoul::MANAGED_TABLES = [ # ameba:disable Style/ConstantNames
-  ACAEngine::Model::Authority,
-  ACAEngine::Model::ControlSystem,
-  ACAEngine::Model::Driver,
-  ACAEngine::Model::Module,
-  ACAEngine::Model::Repository,
-  ACAEngine::Model::Settings,
-  ACAEngine::Model::Trigger,
-  ACAEngine::Model::TriggerInstance,
-  ACAEngine::Model::User,
-  ACAEngine::Model::Zone,
-]
 
 # Configure logger
 logger = ActionController::Base.settings.logger
