@@ -26,7 +26,7 @@ shards:
 
   engine-models:
     github: aca-labs/crystal-engine-models
-    commit: 604fb8ca524b038dfb58ccddd4c391a465073f11
+    commit: 09221165452b229c6f605e4a58ee4a0bf2dddfef
 
   habitat:
     github: luckyframework/habitat
@@ -58,7 +58,7 @@ shards:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    commit: 8f540d9fd67d7fa25ccec31bf4aa8e182b5c5832
+    commit: e3655f6b9a25d932c27f32cbaf847b2668bb1f6d
 
   retriable:
     github: Sija/retriable.cr

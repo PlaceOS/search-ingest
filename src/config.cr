@@ -25,6 +25,7 @@ RubberSoul::MANAGED_TABLES = [ # ameba:disable Style/ConstantNames
   ACAEngine::Model::Driver,
   ACAEngine::Model::Module,
   ACAEngine::Model::Repository,
+  ACAEngine::Model::Settings,
   ACAEngine::Model::Trigger,
   ACAEngine::Model::TriggerInstance,
   ACAEngine::Model::User,
