@@ -398,6 +398,9 @@ module RubberSoul
         "double"
       when "Float32"
         "float"
+      when .starts_with?("Array(")
+        # Arrays allowed as long as they are homogeneous
+        klass_to_es_type(klass_name.lchop("Array(").rstrip(')'))
       else
         nil
       end
