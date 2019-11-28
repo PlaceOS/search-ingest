@@ -26,7 +26,7 @@ shards:
 
   engine-models:
     github: aca-labs/crystal-engine-models
-    commit: 09221165452b229c6f605e4a58ee4a0bf2dddfef
+    commit: 7f654af21deaa603b90644f7d7344506a7dbf6b5
 
   habitat:
     github: luckyframework/habitat
