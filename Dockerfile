@@ -1,11 +1,11 @@
-FROM crystallang/crystal:0.31.1
+FROM crystallang/crystal:0.32.0
 
 WORKDIR /app
 
 # Add
 # - ping (not in base xenial image the crystal image is based off)
 RUN apt-get update && \
-    apt-get install --no-install-recommends -y iputils-ping=3:20121221-5ubuntu2 curl && \
+    apt-get install --no-install-recommends -y iputils-ping curl && \
     rm -rf /var/lib/apt/lists/*
 
 # Install shards for caching

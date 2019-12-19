@@ -1,8 +1,8 @@
 name: rubber-soul
-version: 1.4.0
+version: 1.4.1
 license: MIT
 
-crystal: 0.31.1
+crystal: 0.32.0
 
 authors:
   - Caspian Baska <caspianbaska@gmail.com>

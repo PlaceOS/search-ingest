@@ -6,7 +6,7 @@ shards:
 
   action-controller:
     github: spider-gazelle/action-controller
-    version: 2.0.2
+    version: 2.3.0
 
   active-model:
     github: spider-gazelle/active-model
@@ -16,17 +16,33 @@ shards:
     github: veelenga/ameba
     version: 0.10.1
 
+  bindata:
+    github: spider-gazelle/bindata
+    version: 1.2.0
+
+  bisect:
+    github: spider-gazelle/bisect
+    version: 1.2.0
+
   coverage:
     github: anykeyh/crystal-coverage
     commit: 865383b31c51130612a9f6900a9666bcbfe9a426
+
+  cron_parser:
+    github: kostya/cron_parser
+    version: 0.3.0
 
   crystal-rethinkdb:
     github: kingsleyh/crystal-rethinkdb
     version: 0.1.10
 
+  delimiter_tree:
+    github: drujensen/delimiter_tree
+    version: 0.1.4
+
   engine-models:
     github: aca-labs/crystal-engine-models
-    commit: fd5a4448dbd2443d643c1c180d7d1efa19a56b88
+    commit: ab16126e8e4e9b9b2c8eb344a80f4be4a2520e4a
 
   habitat:
     github: luckyframework/habitat
@@ -34,7 +50,7 @@ shards:
 
   jwt:
     github: crystal-community/jwt
-    version: 1.1.2
+    version: 1.4.0
 
   kilt:
     github: jeromegn/kilt
@@ -46,15 +62,11 @@ shards:
 
   openssl_ext:
     github: stakach/openssl_ext
-    version: 1.0.0
+    version: 1.2.0
 
   promise:
     github: spider-gazelle/promise
-    version: 1.3.0
-
-  radix:
-    github: luislavena/radix
-    version: 0.3.9
+    version: 2.1.0
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
@@ -63,4 +75,8 @@ shards:
   retriable:
     github: Sija/retriable.cr
     commit: 016b9ebfae7e30f56c2db6fbca5dd95cbf7702aa
+
+  tasker:
+    github: spider-gazelle/tasker
+    version: 1.2.2
 
