@@ -17,16 +17,13 @@ module RubberSoul
     end
 
     # Map class name to model properties
-    @properties = {} of String => Array(Property)
-    getter properties
+    getter properties : Hash(String, Array(Property))
 
     # Map from class name to schema
-    @index_schemas = {} of String => String
-    getter index_schemas
+    getter index_schemas : Hash(String, String)
 
     # Class names of managed tables
-    @models = [] of String
-    getter models
+    getter models : Array(String)
 
     macro finished
       # All RethinkORM models with abstract and empty classes removed
@@ -47,19 +44,21 @@ module RubberSoul
 
       # Extracted metadata from ORM classes
       MODEL_METADATA = {
-        {% for model, fields in MODELS %}
-            {{ model.stringify.split("::").last }} => {
+        {% for klass, fields in MODELS %}
+          {{ klass.stringify.split("::").last }} => {
               attributes: {
               {% for attr, options in fields %}
                 {% options[:klass] = options[:klass].stringify unless options[:klass].is_a?(StringLiteral) %}
                 {{ attr.symbolize }} => {{ options }},
               {% end %}
               },
-              table_name: {{ model.id }}.table_name
+              table_name: {{ klass.id }}.table_name
             },
         {% end %}
       } {% if MODELS.empty? %} of Nil => Nil {% end %}
     end
+
+    # TODO: Move away from String backed stores, use Class
 
     macro __generate_methods(methods)
       {% for method in methods %}
@@ -70,8 +69,9 @@ module RubberSoul
     macro __generate_method(method)
       # Dispatcher for {{ method.id }}
       def {{ method.id }}(model)
+        document_name = TableManager.document_name(model)
         # Generate {{ method.id }} method calls
-        case model
+        case document_name
         {% for klass in MODELS.keys %}
         when {{ klass.stringify.split("::").last }}
           {{ klass.id }}.{{ method.id }}
@@ -83,32 +83,33 @@ module RubberSoul
     end
 
     # Look up model schema by class
-    def index_schema(model) : String
-      @index_schemas[model]
+    def index_schema(model : Class | String) : String
+      document_name = TableManager.document_name(model)
+      index_schemas[TableManager.document_name(model)]
     end
 
     # Look up index name by class
     def index_name(model) : String
-      MODEL_METADATA[model][:table_name]
+      MODEL_METADATA[TableManager.document_name(model)][:table_name]
     end
 
     # Initialisation
     #############################################################################################
 
     def initialize(klasses = MANAGED_TABLES, backfill = false, watch = false)
-      @models = klasses.map { |klass| strip_namespace(klass.name) }
+      @models = klasses.map { |klass| TableManager.document_name(klass) }
 
       # Collate model properties
-      @properties = generate_properties(@models)
+      @properties = generate_properties(models)
 
       # Generate schemas
-      @index_schemas = generate_schemas(@models)
+      @index_schemas = generate_schemas(models)
 
       # Initialise indices to a consistent state
       initialise_indices(backfill)
 
       # Begin rethinkdb sync
-      watch_tables(@models) if watch
+      watch_tables(models) if watch
     end
 
     # Currently a reindex is triggered if...
@@ -151,9 +152,7 @@ module RubberSoul
 
     # Save all documents in all tables to the correct indices
     def backfill_all
-      Promise.all(
-        @models.map { |model| Promise.defer { backfill(model) } }
-      ).get
+      models.map { |model| backfill(model) }
     end
 
     # Reindex
@@ -161,20 +160,19 @@ module RubberSoul
 
     # Clear and update all index mappings
     def reindex_all
-      Promise.all(
-        @models.map { |model| Promise.defer { reindex(model) } }
-      ).get
+      models.map { |model| reindex(model) }
     end
 
     # Clear, update mapping an ES index and refill with rethinkdb documents
-    def reindex(model : String)
+    def reindex(model : String | Class)
       self.settings.logger.info("action=reindex model=#{model}")
+      name = TableManager.document_name(model)
 
-      index = index_name(model)
+      index = index_name(name)
       # Delete index
       Elastic.delete_index(index)
       # Apply current mapping
-      create_index(model)
+      create_index(name)
     end
 
     # Watch
@@ -192,10 +190,12 @@ module RubberSoul
       end
     end
 
-    def watch_table(model)
-      index = index_name(model)
-      parents = parents(model)
-      no_children = children(model).empty?
+    def watch_table(model : String | Class)
+      name = TableManager.document_name(model)
+
+      index = index_name(name)
+      parents = parents(name)
+      no_children = children(name).empty?
 
       # Exceptions to fail on
       no_retry = {
@@ -205,7 +205,7 @@ module RubberSoul
 
       # Retry on all exceptions excluding internal exceptions
       Retriable.retry(except: no_retry) do
-        changes(model).each do |change|
+        changes(name).each do |change|
           event = change[:event]
           document = change[:value]
           next if document.nil?
@@ -252,7 +252,7 @@ module RubberSoul
 
     # Applies a schema to an index in elasticsearch
     #
-    def create_index(model)
+    def create_index(model : String | Class)
       index = index_name(model)
       mapping = index_schema(model)
 
@@ -262,7 +262,7 @@ module RubberSoul
     # Checks if any index does not exist or has a different mapping
     #
     def consistent_indices?
-      @models.all? do |model|
+      models.all? do |model|
         Elastic.check_index?(index_name(model)) && !mapping_conflict?(model)
       end
     end
@@ -286,17 +286,19 @@ module RubberSoul
     def generate_schemas(models)
       schemas = {} of String => String
       models.each do |model|
-        schemas[model] = construct_document_schema(model)
+        name = TableManager.document_name(model)
+        schemas[name] = construct_document_schema(name)
       end
       schemas
     end
 
     # Generate the index type mapping structure
     def construct_document_schema(model) : String
-      children = children(model)
-      properties = collect_index_properties(model, children)
+      name = TableManager.document_name(model)
+      children = children(name)
+      properties = collect_index_properties(name, children)
       # Only include join if model has children
-      properties = properties.merge(join_field(model, children)) unless children.empty?
+      properties = properties.merge(join_field(name, children)) unless children.empty?
       {
         mappings: {
           properties: properties,
@@ -311,7 +313,8 @@ module RubberSoul
     # a child or a single document
     # Maps from crystal types to Elasticsearch field datatypes
     def generate_index_properties(model, child = false) : Array(Property)
-      properties = MODEL_METADATA[model][:attributes].compact_map do |field, options|
+      document_name = TableManager.document_name(model)
+      properties = MODEL_METADATA[document_name][:attributes].compact_map do |field, options|
         type_tag = options.dig?(:tags, :es_type)
         if type_tag
           if !type_tag.is_a?(String) || !valid_es_type?(type_tag)
@@ -329,16 +332,18 @@ module RubberSoul
     end
 
     # Collects all properties relevant to an index and collapse them into a schema
-    def collect_index_properties(model : String, children : Array(String)? = [] of String)
-      index_models = children.dup << model
+    def collect_index_properties(model : String | Class, children : Array(String)? = [] of String)
+      name = TableManager.document_name(model)
+      index_models = children.dup << name
       # Get the properties of all relevent tables, create flat index properties
-      @properties.select(index_models).values.flatten.uniq.to_h
+      properties.select(index_models).values.flatten.uniq.to_h
     end
 
     # Construct properties for given models
     def generate_properties(models)
       models.reduce({} of String => Array(Property)) do |props, model|
-        props[model] = generate_index_properties(model)
+        name = TableManager.document_name(model)
+        props[name] = generate_index_properties(name)
         props
       end
     end
@@ -410,8 +415,9 @@ module RubberSoul
     #############################################################################################
 
     # Find name and ES routing of document's parents
-    def parents(model) : Array(Parent)
-      MODEL_METADATA[model][:attributes].compact_map do |field, attr|
+    def parents(model : Class | String) : Array(Parent)
+      document_name = TableManager.document_name(model)
+      MODEL_METADATA[document_name][:attributes].compact_map do |field, attr|
         parent_name = attr.dig? :tags, :parent
         if !parent_name.nil? && parent_name.is_a?(String)
           {
@@ -424,17 +430,28 @@ module RubberSoul
     end
 
     # Get names of all children associated with model
-    def children(model)
+    def children(model : Class | String)
+      document_name = TableManager.document_name(model)
       MODEL_METADATA.compact_map do |name, metadata|
         # Ignore self
-        next if name == model
+        next if name == document_name
         # Do any of the attributes define a parent relationship with current model?
         is_child = metadata[:attributes].any? do |_, attr_data|
           options = attr_data[:tags]
-          !!(options && options[:parent]?.try { |p| p == model })
+          !!(options && options[:parent]?.try { |p| p == document_name })
         end
         name if is_child
       end
+    end
+
+    # Property accessors via class
+
+    def properties(klass : Class | String)
+      properties[TableManager.document_name(klass)]
+    end
+
+    def index_schemas(klass : Class | String)
+      index_schemas[TableManager.document_name(klass)]
     end
 
     # Utils
@@ -444,8 +461,10 @@ module RubberSoul
       raise Error.new("TableManager cancelled")
     end
 
-    private def strip_namespace(model)
-      model.split("::").last
+    # Strips the namespace from the model
+    def self.document_name(model)
+      name = model.is_a?(Class) ? model.name : model
+      name.split("::").last
     end
   end
 end

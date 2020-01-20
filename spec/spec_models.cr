@@ -20,7 +20,7 @@ class Broke < AbstractBase
   attribute breaks : String
 end
 
-class Coffee < AbstractBase
+class Beverage::Coffee < AbstractBase
   attribute temperature : Int32 = 54
   attribute created_at : Time = ->{ Time.utc }
 
@@ -35,4 +35,4 @@ class Migraine < AbstractBase
 end
 
 # ameba:disable Style/ConstantNames
-RubberSoul::MANAGED_TABLES = [RayGun, Programmer, Broke, Coffee, Migraine]
+RubberSoul::MANAGED_TABLES = [RayGun, Programmer, Broke, Beverage::Coffee, Migraine]

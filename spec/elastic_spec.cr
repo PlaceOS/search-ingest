@@ -9,14 +9,14 @@ module RubberSoul
     it "routes to correct parent documents" do
       tm = TableManager.new(backfill: false, watch: false)
 
-      child_index = Coffee.table_name
-      child_name = Coffee.name
+      child_index = Beverage::Coffee.table_name
+      child_name = TableManager.document_name(Beverage::Coffee)
       parent_index = Programmer.table_name
 
       parent = Programmer.new(name: "Knuth")
       parent.id = RethinkORM::IdGenerator.next(parent)
 
-      child = Coffee.new
+      child = Beverage::Coffee.new
       child.programmer = parent
       child.id = RethinkORM::IdGenerator.next(child)
 
@@ -42,7 +42,8 @@ module RubberSoul
       parent_field = parent_index_routing.not_nil!["parent"]
 
       # Ensure correct join field
-      name_field.should eq child.class.name.to_s
+
+      name_field.should eq TableManager.document_name(child.class)
       parent_field.should eq parent.id
 
       # Ensure child is routed via parent in parent table
@@ -90,8 +91,8 @@ module RubberSoul
       end
 
       it "deletes documents from associated indices" do
-        index = Coffee.table_name
-        model_name = Coffee.name
+        index = Beverage::Coffee.table_name
+        model_name = TableManager.document_name(Beverage::Coffee)
 
         tm = TableManager.new(backfill: false, watch: false)
 
@@ -101,7 +102,7 @@ module RubberSoul
         parent_model = Programmer.new(name: "Isaacs")
         parent_model.id = RethinkORM::IdGenerator.next(parent_model)
 
-        model = Coffee.new(temperature: 50)
+        model = Beverage::Coffee.new(temperature: 50)
         model.id = RethinkORM::IdGenerator.next(model)
         model.programmer = parent_model
 
@@ -132,7 +133,7 @@ module RubberSoul
       it "saves a document" do
         tm = TableManager.new(backfill: false, watch: false)
         index = Programmer.table_name
-        model_name = Programmer.name
+        model_name = TableManager.document_name(Programmer)
 
         model = Programmer.new(name: "tenderlove")
         model.id = RethinkORM::IdGenerator.next(model)

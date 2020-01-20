@@ -38,7 +38,9 @@ module RubberSoul
 
       tm = TableManager.new([Broke])
 
-      schema = JSON.parse(tm.index_schema(Broke.name))
+      document_name = TableManager.document_name(Broke)
+
+      schema = JSON.parse(tm.index_schema(document_name))
       updated_schema = JSON.parse(get_schema.call)
 
       # Check if updated schema applied
@@ -48,7 +50,7 @@ module RubberSoul
 
     it "generates a schema for a model" do
       tm = TableManager.new([Broke])
-      schema = tm.index_schema(Broke.name)
+      schema = tm.index_schema(Broke)
       schema.should be_a(String)
 
       # Check that the path to a field mapping exists
@@ -59,7 +61,7 @@ module RubberSoul
     describe "elasticsearch properties" do
       it "creates a mapping of table attributes to es types" do
         tm = TableManager.new([Broke])
-        mappings = tm.properties[Broke.name]
+        mappings = tm.properties(Broke)
         mappings.should eq ([
           {:id, {type: "keyword"}},
           {:breaks, {type: "text"}},
@@ -84,9 +86,8 @@ module RubberSoul
 
       it "collects properties for a model with associations" do
         tm = TableManager.new
-        name = Programmer.name
-        children = tm.children(name)
-        mappings = tm.collect_index_properties(name, children)
+        children = tm.children(Programmer)
+        mappings = tm.collect_index_properties(Programmer, children)
         mappings.should eq ({
           :created_at    => {type: "date"},
           :duration      => {type: "date"},
@@ -102,9 +103,9 @@ module RubberSoul
     describe "relations" do
       it "finds parent relations of a model" do
         tm = TableManager.new
-        parents = tm.parents(Migraine.name)
+        parents = tm.parents(Migraine)
         parents.should eq [{
-          name:         Programmer.name,
+          name:         TableManager.document_name(Programmer),
           index:        Programmer.table_name,
           routing_attr: :programmer_id,
         }]
@@ -112,8 +113,11 @@ module RubberSoul
 
       it "finds the child relations of a model" do
         tm = TableManager.new
-        children = tm.children(Programmer.name)
-        children.should eq [Coffee.name, Migraine.name]
+        children = tm.children(Programmer)
+        children.should eq [
+          TableManager.document_name(Beverage::Coffee),
+          TableManager.document_name(Migraine),
+        ]
       end
     end
 
@@ -125,18 +129,18 @@ module RubberSoul
       count_before_create = es_document_count(index)
 
       # Place some data in rethinkdb
-      num_created = 5
+      num_created = 3
       programmers = Array.new(size: num_created) do |n|
         Programmer.create(name: "Jim the #{n}th")
       end
 
       # Reindex
       tm.reindex_all
-      sleep 1
+      sleep 0.5
       es_document_count(index).should eq 0
 
       tm.backfill_all
-      sleep 1
+      sleep 0.5
       # Check number of documents in elastic search
       es_document_count(index).should eq (num_created + count_before_create)
 
@@ -161,7 +165,7 @@ module RubberSoul
         Elastic.empty_indices([index])
 
         # Backfill a single index
-        tm.backfill(Programmer.name)
+        tm.backfill(Programmer)
 
         sleep 1 # Wait for es
         es_document_count(index).should eq Programmer.count
