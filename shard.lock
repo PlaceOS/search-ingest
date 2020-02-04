@@ -6,7 +6,7 @@ shards:
 
   action-controller:
     github: spider-gazelle/action-controller
-    version: 2.3.0
+    version: 2.3.2
 
   active-model:
     github: spider-gazelle/active-model
@@ -70,7 +70,7 @@ shards:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    commit: e3655f6b9a25d932c27f32cbaf847b2668bb1f6d
+    commit: 994b644d62378f5c691c7eb6562b737321898edc
 
   retriable:
     github: Sija/retriable.cr
