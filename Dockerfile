@@ -1,4 +1,4 @@
-FROM crystallang/crystal:0.32.1
+FROM crystallang/crystal:0.33.0-alpine
 ADD . /src
 WORKDIR /src
 
@@ -15,12 +15,10 @@ WORKDIR /
 ENV PATH=$PATH:/
 COPY --from=0 /src/deps /
 COPY --from=0 /src/bin/rubber-soul /rubber-soul
-
-# These are required if your application needs to communicate with a database
-# or any other external service where DNS is used to connect.
-COPY --from=0 /lib/x86_64-linux-gnu/libnss_dns.so.2 /lib/x86_64-linux-gnu/libnss_dns.so.2
-COPY --from=0 /lib/x86_64-linux-gnu/libresolv.so.2 /lib/x86_64-linux-gnu/libresolv.so.2
 COPY --from=0 /etc/hosts /etc/hosts
+
+# This is required for Timezone support
+COPY --from=0 /usr/share/zoneinfo/ /usr/share/zoneinfo/
 
 # Run the app binding on port 3000
 EXPOSE 3000
