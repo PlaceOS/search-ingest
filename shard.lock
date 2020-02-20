@@ -6,11 +6,11 @@ shards:
 
   action-controller:
     github: spider-gazelle/action-controller
-    version: 2.3.2
+    version: 2.3.4
 
   active-model:
     github: spider-gazelle/active-model
-    version: 1.6.0
+    version: 1.8.2
 
   ameba:
     github: veelenga/ameba
@@ -42,7 +42,7 @@ shards:
 
   engine-models:
     github: aca-labs/crystal-engine-models
-    commit: 98acd836d37380ebaa8d56c4eb214d19d377f41c
+    commit: 4d4c497f3927d1e9d75fec72a776e5330045a847
 
   habitat:
     github: luckyframework/habitat
@@ -58,7 +58,7 @@ shards:
 
   neuroplastic:
     github: aca-labs/neuroplastic
-    commit: 2e764788efa0e59f8b24605e3d71770459f3fb3a
+    commit: 090e63375a5c12d81fb006e737c28bb3a325f27c
 
   openssl_ext:
     github: stakach/openssl_ext
@@ -70,7 +70,7 @@ shards:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    commit: 994b644d62378f5c691c7eb6562b737321898edc
+    commit: 38784393f6de59f1b9b97f7c673e1db0560dfb91
 
   retriable:
     github: Sija/retriable.cr
