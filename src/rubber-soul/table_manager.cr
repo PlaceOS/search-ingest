@@ -1,6 +1,5 @@
 require "action-controller/logger"
 require "habitat"
-require "promise"
 require "rethinkdb-orm"
 require "retriable"
 
