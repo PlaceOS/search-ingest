@@ -114,9 +114,9 @@ module RubberSoul
     # Currently a reindex is triggered if...
     # - a single index does not exist
     # - a single mapping is different
-    def initialise_indices(backfill = false)
+    def initialise_indices(backfill : Bool = false)
       unless consistent_indices?
-        self.settings.logger.info("action=initialise_indices event=\"reindex to consistency\"")
+        logger.info { "action=initialise_indices event=\"reindex to consistency\"" }
         reindex_all
       end
 
@@ -126,16 +126,23 @@ module RubberSoul
     # Backfill
     #############################################################################################
 
+    # Save all documents in all tables to the correct indices
+    def backfill_all
+      models.each { |model| backfill(model) }
+    end
+
     # Backfills from a model to all relevant indices
     def backfill(model)
-      self.settings.logger.info("action=backfill model=#{model}")
+      logger.info { "action=backfill model=#{model}" }
 
       index = index_name(model)
       parents = parents(model)
       no_children = children(model).empty?
 
+      backfill_count = 0
       all(model).each_slice(100) do |docs|
         actions = docs.map do |d|
+          backfill_count += 1
           Elastic.document_request(
             action: Elastic::Action::Create,
             document: d,
@@ -146,12 +153,9 @@ module RubberSoul
         end
         Elastic.bulk_operation(actions.join('\n'))
       end
-      true
-    end
 
-    # Save all documents in all tables to the correct indices
-    def backfill_all
-      models.map { |model| backfill(model) }
+      logger.info { "action=backfill model=#{model} count=#{backfill_count}" }
+      true
     end
 
     # Reindex
@@ -159,12 +163,12 @@ module RubberSoul
 
     # Clear and update all index mappings
     def reindex_all
-      models.map { |model| reindex(model) }
+      models.each { |model| reindex(model) }
     end
 
     # Clear, update mapping an ES index and refill with rethinkdb documents
     def reindex(model : String | Class)
-      self.settings.logger.info("action=reindex model=#{model}")
+      logger.info("action=reindex model=#{model}")
       name = TableManager.document_name(model)
 
       index = index_name(name)
@@ -182,7 +186,7 @@ module RubberSoul
         spawn do
           watch_table(model)
         rescue e
-          self.settings.logger.error "action=watch_table model=#{model} error=#{e.inspect}"
+          logger.error { "action=watch_table model=#{model} error=#{e.inspect}" }
           # Fatal error
           exit 1
         end
@@ -209,7 +213,7 @@ module RubberSoul
           document = change[:value]
           next if document.nil?
 
-          self.settings.logger.debug("action=watch_table event=#{event.to_s.downcase} model=#{model} document_id=#{document.id} parents=#{parents}")
+          logger.debug { "action=watch_table event=#{event.to_s.downcase} model=#{model} document_id=#{document.id} parents=#{parents}" }
 
           # Asynchronously mutate Elasticsearch
           spawn do
@@ -238,7 +242,7 @@ module RubberSoul
               raise Error.new
             end
           rescue e
-            self.settings.logger.warn("action=watch_table event=#{event.to_s.downcase} error=#{e.class} message=#{e.message}")
+            logger.warn { "action=watch_table event=#{event.to_s.downcase} error=#{e.class} message=#{e.message}" }
           end
         end
 
@@ -273,7 +277,7 @@ module RubberSoul
       existing = Elastic.get_mapping?(index_name(model))
 
       equivalent = Elastic.equivalent_schema?(existing, proposed)
-      self.settings.logger.warn("action=mapping_conflict? model=#{model} proposed=#{proposed} existing=#{existing}") unless equivalent
+      logger.warn { "action=mapping_conflict? model=#{model} proposed=#{proposed} existing=#{existing}" } unless equivalent
 
       !equivalent
     end
@@ -464,6 +468,10 @@ module RubberSoul
     def self.document_name(model)
       name = model.is_a?(Class) ? model.name : model
       name.split("::").last
+    end
+
+    def logger
+      self.settings.logger
     end
   end
 end
