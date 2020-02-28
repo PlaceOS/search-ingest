@@ -1,5 +1,5 @@
-sudo: required
 language: crystal
+os: linux
 
 env:
   - TRAVIS_TEST=true
