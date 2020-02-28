@@ -35,6 +35,7 @@ ActionController::Server.before(
 # Configure logger
 logger = ActionController::Base.settings.logger
 logger.level = PROD ? Logger::INFO : Logger::DEBUG
+
 RubberSoul::TableManager.configure do |settings|
   settings.logger = logger
 end

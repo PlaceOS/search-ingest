@@ -1,15 +1,15 @@
 name: rubber-soul
-version: 1.4.3
+version: 1.5.0
 license: MIT
 
-crystal: 0.32.0
+crystal: 0.33.0
 
 authors:
   - Caspian Baska <caspianbaska@gmail.com>
 
 targets:
   rubber-soul:
-    main: src/rubber-soul.cr
+    main: src/app.cr
 
 dependencies:
   action-controller:
@@ -28,18 +28,11 @@ dependencies:
     github: luckyframework/habitat
     version: ~> 0.4.0
 
-  promise:
-    github: spider-gazelle/promise
-
   retriable:
-    github: Sija/retriable.cr
-    branch: develop
+    github: sija/retriable.cr
+    version: ~> 0.2.0
 
 development_dependencies:
   ameba:
-    github: veelenga/ameba
+    github: crystal-ameba/ameba
     version: ~> 0.10.0
-
-  coverage:
-    github: anykeyh/crystal-coverage
-    branch: master
