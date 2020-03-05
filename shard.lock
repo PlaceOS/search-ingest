@@ -21,8 +21,8 @@ shards:
     version: 1.2.0
 
   crystal-rethinkdb:
-    github: kingsleyh/crystal-rethinkdb
-    version: 0.1.10
+    github: aca-labs/crystal-rethinkdb
+    commit: 30fc428bfe70c6e87912265a2bdc0d9fc6e27f8c
 
   delimiter_tree:
     github: drujensen/delimiter_tree
@@ -30,7 +30,7 @@ shards:
 
   engine-models:
     github: aca-labs/crystal-engine-models
-    commit: 4435810abcf49af3537b2f9e87dda044e5cbbacc
+    commit: f5d8d849b4df2a12062f158b2373e4bd5a7b077a
 
   habitat:
     github: luckyframework/habitat
@@ -54,7 +54,7 @@ shards:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    commit: 84d358e2b66b3a3afb059720898d34a20c34e5d3
+    commit: 1bdc4210236a20fb01e88c13b59dab397938ae75
 
   retriable:
     github: sija/retriable.cr
