@@ -41,6 +41,7 @@ def clear_test_indices
       RubberSoul::Elastic.empty_indices([name])
     }
   end.each &.get
+  Fiber.yield
 end
 
 # Delete all test indices on start up
@@ -50,6 +51,7 @@ def delete_test_indices
       RubberSoul::Elastic.delete_index(name)
     }
   end.each &.get
+  Fiber.yield
 end
 
 macro clear_test_tables

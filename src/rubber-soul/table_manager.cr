@@ -133,6 +133,7 @@ module RubberSoul
       models.map do |model|
         future { backfill(model) }
       end.each &.get
+      Fiber.yield
     end
 
     # Backfills from a model to all relevant indices
@@ -166,6 +167,7 @@ module RubberSoul
           logger.info { "action=backfill model=#{model} count=#{backfill_count}" }
         }
       end.each &.get
+      Fiber.yield
     end
 
     # Reindex
@@ -176,6 +178,7 @@ module RubberSoul
       models.map do |model|
         future { reindex(model) }
       end.each &.get
+      Fiber.yield
     end
 
     # Clear, update mapping an ES index and refill with rethinkdb documents
