@@ -1,8 +1,8 @@
-require "http"
+require "db"
 require "habitat"
+require "http"
 
 require "./error"
-require "./pool"
 require "./types"
 
 module RubberSoul
@@ -11,32 +11,37 @@ module RubberSoul
     Habitat.create do
       setting host : String = ENV["ES_HOST"]? || "localhost"
       setting port : Int32 = ENV["ES_PORT"]?.try(&.to_i) || 9200
-      setting pool_size : Int32 = ENV["ES_CONN_POOL"]?.try(&.to_i) || 10
-      setting idle_pool_size : Int32 = ENV["ES_IDLE_POOL"]?.try(&.to_i) || 2
+      setting pool_size : Int32 = ENV["ES_CONN_POOL"]?.try(&.to_i) || RubberSoul::MANAGED_TABLES.size
+      setting idle_pool_size : Int32 = ENV["ES_IDLE_POOL"]?.try(&.to_i) || (RubberSoul::MANAGED_TABLES.size // 4)
       setting pool_timeout : Float64 = ENV["ES_CONN_POOL_TIMEOUT"]?.try(&.to_f64) || 1.0
     end
 
-    @@pool : Pool(HTTP::Client)?
+    forward_missing_to @client
+
+    def initialize(
+      host : String = settings.host,
+      port : Int32 = settings.port
+    )
+      @client = HTTP::Client.new(host: host, port: port)
+    end
+
+    @@pool : DB::Pool(Elastic)?
 
     # Yield an acquired client from the pool
     #
     def self.client
-      unless @@pool
-        config = {
-          initial_pool:  1,
-          max_pool:      settings.pool_size,
-          max_idle_pool: settings.idle_pool_size,
-          timeout:       settings.pool_timeout,
-        }
+      pool = (@@pool ||= DB::Pool(Elastic).new(
+        initial_pool_size: settings.pool_size // 4,
+        max_pool_size: settings.pool_size,
+        max_idle_pool_size: settings.idle_pool_size,
+        checkout_timeout: settings.pool_timeout
+      ) { Elastic.new }).as(DB::Pool(Elastic))
 
-        @@pool = Pool(HTTP::Client).new(**config) do
-          HTTP::Client.new(host: settings.host, port: settings.port)
-        end
-      end
+      client = pool.checkout
+      result = yield client
+      pool.release(client)
 
-      @@pool.not_nil!.acquire do |elastic|
-        yield elastic
-      end
+      result
     end
 
     # Single Document Requests
@@ -383,6 +388,17 @@ module RubberSoul
       # When routing not specified, route by document id
       routing = id unless routing
       "/#{index}/_doc/#{id}?routing=#{routing}"
+    end
+
+    # DB::Pool stubs
+    #############################################################################################
+
+    # :nodoc:
+    def before_checkout
+    end
+
+    # :nodoc:
+    def after_release
     end
   end
 end

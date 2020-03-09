@@ -15,20 +15,14 @@ macro table_names
   [{% for klass in RubberSoul::MANAGED_TABLES %} {{ klass }}.table_name, {% end %}]
 end
 
-# Delete all test indices on start up
-def delete_test_indices
-  table_names.each do |name|
-    RubberSoul::Elastic.delete_index(name)
-  end
-end
-
 Spec.before_suite &->cleanup
 Spec.after_suite &->cleanup
 
 def cleanup
   # Empty rethinkdb test tables
-  clear_test_tables
+  drop_tables
   # Remove any of the test indices
+  clear_test_indices
   delete_test_indices
 end
 

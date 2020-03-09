@@ -10,7 +10,7 @@ shards:
 
   active-model:
     github: spider-gazelle/active-model
-    version: 1.8.2
+    commit: cfb070793fd53cc20c799761aa5fe8b195e75739
 
   ameba:
     github: crystal-ameba/ameba
@@ -20,17 +20,13 @@ shards:
     github: spider-gazelle/bindata
     version: 1.2.0
 
-  bisect:
-    github: spider-gazelle/bisect
-    version: 1.2.0
-
-  cron_parser:
-    github: kostya/cron_parser
-    version: 0.3.0
-
   crystal-rethinkdb:
     github: aca-labs/crystal-rethinkdb
     commit: 8155487b5cdbced9fd84cc242d459bcb9cd3b015
+
+  db:
+    github: crystal-lang/crystal-db
+    version: 0.8.0
 
   delimiter_tree:
     github: drujensen/delimiter_tree
@@ -60,10 +56,6 @@ shards:
     github: stakach/openssl_ext
     version: 1.2.0
 
-  promise:
-    github: spider-gazelle/promise
-    version: 2.1.0
-
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
     commit: db9633d99c3b51d656f94859eabfec7633b35723
@@ -71,8 +63,4 @@ shards:
   retriable:
     github: sija/retriable.cr
     version: 0.2.0
-
-  tasker:
-    github: spider-gazelle/tasker
-    version: 1.2.2
 

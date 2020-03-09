@@ -10,7 +10,7 @@ module RubberSoul
     @@table_manager : TableManager? = nil
 
     def self.table_manager
-      (@@table_manager ||= TableManager.new(MANAGED_TABLES, watch: true))
+      (@@table_manager ||= TableManager.new(MANAGED_TABLES, backfill: true, watch: true))
     end
 
     get "/", :root do

@@ -24,6 +24,8 @@ module RubberSoul
     # Class names of managed tables
     getter models : Array(String)
 
+    private getter coordination : Channel(Nil) = Channel(Nil).new
+
     macro finished
       # All RethinkORM models with abstract and empty classes removed
       # :nodoc:
@@ -140,8 +142,13 @@ module RubberSoul
       no_children = children(model).empty?
 
       backfill_count = 0
-      all(model).each_slice(100) do |docs|
-        actions = docs.map do |d|
+
+      # NOTE: remove `#to_a` when this Map iterator type issue resolves
+      # TODO: fix the memory overhead of the `#to_a`
+      all(model).in_groups_of(100).to_a.map do |docs|
+        actions = docs.compact_map do |d|
+          next unless d
+
           backfill_count += 1
           Elastic.document_request(
             action: Elastic::Action::Create,
@@ -193,6 +200,10 @@ module RubberSoul
       end
     end
 
+    def stop
+      coordination.close
+    end
+
     def watch_table(model : String | Class)
       name = TableManager.document_name(model)
 
@@ -200,49 +211,65 @@ module RubberSoul
       parents = parents(name)
       no_children = children(name).empty?
 
-      # Exceptions to fail on
-      no_retry = {
-        Error     => nil,
-        IO::Error => /Closed stream/,
+      retry_handler = ->(ex : Exception, _attempt : Int32, _elapsed_time : Time::Span, _next_interval : Time::Span) {
+        logger.warn { "action=watch_table model=#{model} error=#{ex.message} message=backfilling after changefeed error" }
+        begin
+          backfill(model)
+        rescue e
+          logger.error { "action=watch_table model=#{model} error=#{ex.message} message=failed to backfill after changefeed dropped" }
+        end
       }
 
-      # Retry on all exceptions excluding internal exceptions
-      Retriable.retry(except: no_retry) do
-        changes(name).each do |change|
-          event = change[:event]
-          document = change[:value]
-          next if document.nil?
+      changefeed = nil
+      spawn do
+        coordination.receive?
+        changefeed.try &.stop
+      end
 
-          logger.debug { "action=watch_table event=#{event.to_s.downcase} model=#{model} document_id=#{document.id} parents=#{parents}" }
+      # NOTE: in the event of losing connection, the table is backfilled.
+      Retriable.retry(on_retry: retry_handler) do
+        begin
+          changefeed = changes(name)
+          logger.info { "action=changes model=#{model}" }
+          changefeed.not_nil!.each do |change|
+            event = change[:event]
+            document = change[:value]
+            next if document.nil?
 
-          # Asynchronously mutate Elasticsearch
-          spawn do
-            case event
-            when RethinkORM::Changefeed::Event::Deleted
-              Elastic.delete_document(
-                index: index,
-                document: document.not_nil!,
-                parents: parents,
-              )
-            when RethinkORM::Changefeed::Event::Created
-              Elastic.create_document(
-                index: index,
-                document: document.not_nil!,
-                parents: parents,
-                no_children: no_children,
-              )
-            when RethinkORM::Changefeed::Event::Updated
-              Elastic.update_document(
-                index: index,
-                document: document.not_nil!,
-                parents: parents,
-                no_children: no_children,
-              )
-            else
-              raise Error.new
+            logger.debug { "action=watch_table event=#{event.to_s.downcase} model=#{model} document_id=#{document.id} parents=#{parents}" }
+
+            # Asynchronously mutate Elasticsearch
+            spawn do
+              case event
+              when RethinkORM::Changefeed::Event::Deleted
+                Elastic.delete_document(
+                  index: index,
+                  document: document.not_nil!,
+                  parents: parents,
+                )
+              when RethinkORM::Changefeed::Event::Created
+                Elastic.create_document(
+                  index: index,
+                  document: document.not_nil!,
+                  parents: parents,
+                  no_children: no_children,
+                )
+              when RethinkORM::Changefeed::Event::Updated
+                Elastic.update_document(
+                  index: index,
+                  document: document.not_nil!,
+                  parents: parents,
+                  no_children: no_children,
+                )
+              else raise Error.new
+              end
+            rescue e
+              logger.warn { "action=watch_table event=#{event.to_s.downcase} error=#{e.class} message=#{e.message}" }
             end
           rescue e
-            logger.warn { "action=watch_table event=#{event.to_s.downcase} error=#{e.class} message=#{e.message}" }
+            logger.error { "action=watch_table error=#{e.inspect_with_backtrace}" }
+            changefeed.try &.stop
+            raise e
           end
         end
 

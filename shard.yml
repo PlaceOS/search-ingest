@@ -1,5 +1,5 @@
 name: rubber-soul
-version: 1.5.0
+version: 1.5.1
 license: MIT
 
 crystal: 0.33.0
@@ -16,20 +16,20 @@ dependencies:
     github: spider-gazelle/action-controller
     version: ~> 2.0
 
-  rethinkdb-orm:
-    github: spider-gazelle/rethinkdb-orm
-    branch: master
-
-  models:
-    github: placeos/models
-    branch: master
+  db:
+    github: crystal-lang/crystal-db
 
   habitat:
     github: luckyframework/habitat
     version: ~> 0.4.0
 
-  promise:
-    github: spider-gazelle/promise
+  models:
+    github: placeos/models
+    branch: master
+
+  rethinkdb-orm:
+    github: spider-gazelle/rethinkdb-orm
+    branch: master
 
   retriable:
     github: sija/retriable.cr

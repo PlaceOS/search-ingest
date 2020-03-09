@@ -2,7 +2,7 @@ require "./helper"
 
 module RubberSoul
   describe TableManager do
-    pending "watch" do
+    describe "watch" do
       it "creates ES documents from changefeed" do
         tm = TableManager.new(backfill: false, watch: true)
         index = Programmer.table_name
