@@ -1,20 +1,29 @@
 FROM crystallang/crystal:0.33.0-alpine
-ADD . /src
-WORKDIR /src
 
-# Build App
-RUN shards build --error-trace --production
+WORKDIR /app
+
+# Install shards for caching
+COPY shard.yml shard.yml
+COPY shard.lock shard.lock
+
+RUN shards install --production
+
+# Add src
+ADD ./src /app/src
+
+# Compile
+RUN crystal build --release --no-debug --error-trace /app/src/app.cr -o /app/rubber-soul
 
 # Extract dependencies
-RUN ldd bin/rubber-soul | tr -s '[:blank:]' '\n' | grep '^/' | \
+RUN ldd /app/rubber-soul | tr -s '[:blank:]' '\n' | grep '^/' | \
     xargs -I % sh -c 'mkdir -p $(dirname deps%); cp % deps%;'
 
 # Build a minimal docker image
 FROM scratch
 WORKDIR /
 ENV PATH=$PATH:/
-COPY --from=0 /src/deps /
-COPY --from=0 /src/bin/rubber-soul /rubber-soul
+COPY --from=0 /app/deps /
+COPY --from=0 /app/rubber-soul /rubber-soul
 COPY --from=0 /etc/hosts /etc/hosts
 
 # This is required for Timezone support
