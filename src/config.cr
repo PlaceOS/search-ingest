@@ -1,19 +1,19 @@
 # Engine Models
-require "engine-models"
+require "models"
 
 # Tables watched by TableManager
 # FIXME: This is not ideal. A constant array is required for macro methods
 RubberSoul::MANAGED_TABLES = [ # ameba:disable Style/ConstantNames
-  ACAEngine::Model::Authority,
-  ACAEngine::Model::ControlSystem,
-  ACAEngine::Model::Driver,
-  ACAEngine::Model::Module,
-  ACAEngine::Model::Repository,
-  ACAEngine::Model::Settings,
-  ACAEngine::Model::Trigger,
-  ACAEngine::Model::TriggerInstance,
-  ACAEngine::Model::User,
-  ACAEngine::Model::Zone,
+  PlaceOS::Model::Authority,
+  PlaceOS::Model::ControlSystem,
+  PlaceOS::Model::Driver,
+  PlaceOS::Model::Module,
+  PlaceOS::Model::Repository,
+  PlaceOS::Model::Settings,
+  PlaceOS::Model::Trigger,
+  PlaceOS::Model::TriggerInstance,
+  PlaceOS::Model::User,
+  PlaceOS::Model::Zone,
 ]
 
 # Application code

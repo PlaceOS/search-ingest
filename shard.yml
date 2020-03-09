@@ -20,13 +20,16 @@ dependencies:
     github: spider-gazelle/rethinkdb-orm
     branch: master
 
-  engine-models:
-    github: aca-labs/crystal-engine-models
+  models:
+    github: placeos/models
     branch: master
 
   habitat:
     github: luckyframework/habitat
     version: ~> 0.4.0
+
+  promise:
+    github: spider-gazelle/promise
 
   retriable:
     github: sija/retriable.cr
