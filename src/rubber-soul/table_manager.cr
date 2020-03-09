@@ -130,7 +130,9 @@ module RubberSoul
 
     # Save all documents in all tables to the correct indices
     def backfill_all
-      models.each { |model| backfill(model) }
+      models.map do |model|
+        future { backfill(model) }
+      end.each &.get
     end
 
     # Backfills from a model to all relevant indices
@@ -158,11 +160,12 @@ module RubberSoul
             no_children: no_children,
           )
         end
-        Elastic.bulk_operation(actions.join('\n'))
-      end
 
-      logger.info { "action=backfill model=#{model} count=#{backfill_count}" }
-      true
+        future {
+          Elastic.bulk_operation(actions.join('\n'))
+          logger.info { "action=backfill model=#{model} count=#{backfill_count}" }
+        }
+      end.each &.get
     end
 
     # Reindex
@@ -170,7 +173,9 @@ module RubberSoul
 
     # Clear and update all index mappings
     def reindex_all
-      models.each { |model| reindex(model) }
+      models.map do |model|
+        future { reindex(model) }
+      end.each &.get
     end
 
     # Clear, update mapping an ES index and refill with rethinkdb documents

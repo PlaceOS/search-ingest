@@ -13,10 +13,9 @@ module RubberSoul
         sleep 1 # Wait for change to propagate to es
         es_document_count(index).should eq (count_before_create + 1)
 
-        expect_raises(Error, message: "TableManager cancelled") do
-          tm.cancel!
-        end
+        tm.stop
         prog.destroy
+        es_document_count(index).should eq (count_before_create + 1)
       end
     end
 
