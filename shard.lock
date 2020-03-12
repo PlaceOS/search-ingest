@@ -20,10 +20,6 @@ shards:
     github: spider-gazelle/bindata
     version: 1.2.0
 
-  crystal-rethinkdb:
-    github: aca-labs/crystal-rethinkdb
-    commit: 8155487b5cdbced9fd84cc242d459bcb9cd3b015
-
   db:
     github: crystal-lang/crystal-db
     version: 0.8.0
@@ -46,7 +42,7 @@ shards:
 
   models:
     github: placeos/models
-    commit: 6c068d5466ea1186a7cedb16987c753cb3078851
+    commit: 22120dfedf73f28473db75014ab25fdf270b76a7
 
   neuroplastic:
     github: aca-labs/neuroplastic
@@ -56,9 +52,13 @@ shards:
     github: stakach/openssl_ext
     version: 1.2.0
 
+  rethinkdb:
+    github: aca-labs/crystal-rethinkdb
+    version: 0.2.0
+
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    commit: db9633d99c3b51d656f94859eabfec7633b35723
+    commit: 3e383e53dd13aeffb9d6fb6d745a933e18982161
 
   retriable:
     github: sija/retriable.cr

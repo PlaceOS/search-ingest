@@ -98,7 +98,7 @@ OptionParser.parse(ARGV.dup) do |parser|
 end
 
 # We must configure the RethinkDB connection before including the models...
-RethinkORM::Connection.configure do |settings|
+RethinkORM.configure do |settings|
   rethink_host.try { |host| settings.host = host }
   rethink_port.try { |port| settings.port = port }
   settings.db = rethink_db
