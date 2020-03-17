@@ -13,7 +13,7 @@ module RubberSoul
       setting port : Int32 = ENV["ES_PORT"]?.try(&.to_i) || 9200
       setting pool_size : Int32 = ENV["ES_CONN_POOL"]?.try(&.to_i) || RubberSoul::MANAGED_TABLES.size
       setting idle_pool_size : Int32 = ENV["ES_IDLE_POOL"]?.try(&.to_i) || (RubberSoul::MANAGED_TABLES.size // 4)
-      setting pool_timeout : Float64 = ENV["ES_CONN_POOL_TIMEOUT"]?.try(&.to_f64) || 1.0
+      setting pool_timeout : Float64 = ENV["ES_CONN_POOL_TIMEOUT"]?.try(&.to_f64) || 5.0
     end
 
     forward_missing_to @client

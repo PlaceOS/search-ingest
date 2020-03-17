@@ -42,11 +42,11 @@ shards:
 
   models:
     github: placeos/models
-    commit: c88461cda10a2e06b7dfdb5cc040a12a749e11d4
+    commit: f5eb5d7c6b1d869d015009676808273b3edea7ac
 
   neuroplastic:
-    github: aca-labs/neuroplastic
-    commit: 090e63375a5c12d81fb006e737c28bb3a325f27c
+    github: spider-gazelle/neuroplastic
+    version: 1.3.6
 
   openssl_ext:
     github: stakach/openssl_ext
