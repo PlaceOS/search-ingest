@@ -6,9 +6,13 @@ require "models"
 RubberSoul::MANAGED_TABLES = [ # ameba:disable Style/ConstantNames
   PlaceOS::Model::Authority,
   PlaceOS::Model::ControlSystem,
+  PlaceOS::Model::DoorkeeperApplication,
   PlaceOS::Model::Driver,
+  PlaceOS::Model::LdapAuthentication,
   PlaceOS::Model::Module,
+  PlaceOS::Model::OAuthAuthentication,
   PlaceOS::Model::Repository,
+  PlaceOS::Model::SamlAuthentication,
   PlaceOS::Model::Settings,
   PlaceOS::Model::Trigger,
   PlaceOS::Model::TriggerInstance,
