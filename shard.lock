@@ -42,7 +42,7 @@ shards:
 
   models:
     github: placeos/models
-    commit: 91c7a77df3968853d52b90e2671b3394769ce8d7
+    commit: 37be713d94b15df07db5e661ae704be7dbae2976
 
   neuroplastic:
     github: spider-gazelle/neuroplastic
