@@ -75,7 +75,7 @@ module RubberSoul
         case document_name
         {% for klass in MODELS.keys %}
         when {{ klass.stringify.split("::").last }}
-          {{ klass.id }}.{{ method.id }}
+          {{ klass.id }}.{{ method.id }}(runopts: {"read_mode" => "majority"})
         {% end %}
         else
           raise "No #{ {{ method.stringify }} } for '#{model}'"

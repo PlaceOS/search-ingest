@@ -6,7 +6,7 @@ shards:
 
   action-controller:
     github: spider-gazelle/action-controller
-    version: 2.3.4
+    version: 2.4.0
 
   active-model:
     github: spider-gazelle/active-model
@@ -42,7 +42,7 @@ shards:
 
   models:
     github: placeos/models
-    commit: 12420c62ed1aa175f39643cce23e58844be36494
+    commit: b2f202483c9217ae3e5456a007806757f8528787
 
   neuroplastic:
     github: spider-gazelle/neuroplastic
@@ -54,11 +54,11 @@ shards:
 
   rethinkdb:
     github: aca-labs/crystal-rethinkdb
-    version: 0.2.3
+    version: 0.2.4
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    commit: 69afec9f9c293dbab410e7bf3eb412fc769bf5ee
+    commit: 4ab73abe90f1c71c0bd593a604ef81d644b69a33
 
   retriable:
     github: sija/retriable.cr
