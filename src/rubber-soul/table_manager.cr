@@ -445,6 +445,7 @@ module RubberSoul
         # Arrays allowed as long as they are homogeneous
         klass_to_es_type(klass_name.lchop("Array(").rstrip(')'))
       else
+        logger.warn("no defined ES mapping for #{klass_name}")
         nil
       end
     end
