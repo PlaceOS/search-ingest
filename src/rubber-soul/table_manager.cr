@@ -16,13 +16,13 @@ module RubberSoul
     end
 
     # Map class name to model properties
-    getter properties : Hash(String, Array(Property))
+    getter properties : Hash(String, Array(Property)) = {} of String => Array(Property)
 
     # Map from class name to schema
-    getter index_schemas : Hash(String, String)
+    getter index_schemas : Hash(String, String) = {} of String => String
 
     # Class names of managed tables
-    getter models : Array(String)
+    getter models : Array(String) = [] of String
 
     private getter coordination : Channel(Nil) = Channel(Nil).new
 
@@ -97,7 +97,11 @@ module RubberSoul
     # Initialisation
     #############################################################################################
 
-    def initialize(klasses = MANAGED_TABLES, backfill = false, watch = false)
+    def initialize(
+      klasses : Array(Class) = MANAGED_TABLES,
+      backfill : Bool = false,
+      watch : Bool = false
+    )
       @models = klasses.map { |klass| TableManager.document_name(klass) }
 
       # Collate model properties
@@ -118,7 +122,7 @@ module RubberSoul
     # - a single mapping is different
     def initialise_indices(backfill : Bool = false)
       unless consistent_indices?
-        logger.info { "action=initialise_indices event=\"reindex to consistency\"" }
+        logger.info { %(action=initialise_indices event="reindex to consistency") }
         reindex_all
       end
 
@@ -231,12 +235,14 @@ module RubberSoul
       changefeed = nil
       spawn do
         coordination.receive?
+        logger.warn { "action=watch_table message=table_manager stopped" }
         changefeed.try &.stop
       end
 
       # NOTE: in the event of losing connection, the table is backfilled.
       Retriable.retry(on_retry: retry_handler) do
         begin
+          return if coordination.closed?
           changefeed = changes(name)
           logger.info { "action=changes model=#{model}" }
           changefeed.not_nil!.each do |change|

@@ -42,7 +42,7 @@ shards:
 
   models:
     github: placeos/models
-    commit: b2f202483c9217ae3e5456a007806757f8528787
+    commit: 802fe0fc4f5bfabc2591877f0e39bb4d53b02364
 
   neuroplastic:
     github: spider-gazelle/neuroplastic
@@ -58,7 +58,7 @@ shards:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    commit: 4ab73abe90f1c71c0bd593a604ef81d644b69a33
+    commit: b7968cf242a4973930ad57042c98b356f82a2bb0
 
   retriable:
     github: sija/retriable.cr

@@ -8,7 +8,7 @@ module RubberSoul
         index = Programmer.table_name
 
         count_before_create = es_document_count(index)
-        prog = Programmer.create(name: "Rob Pike")
+        prog = Programmer.create!(name: "Rob Pike")
 
         sleep 1 # Wait for change to propagate to es
         es_document_count(index).should eq (count_before_create + 1)
@@ -130,7 +130,7 @@ module RubberSoul
       # Place some data in rethinkdb
       num_created = 3
       programmers = Array.new(size: num_created) do |n|
-        Programmer.create(name: "Jim the #{n}th")
+        Programmer.create!(name: "Jim the #{n}th")
       end
 
       # Reindex
@@ -148,16 +148,15 @@ module RubberSoul
 
     describe "backfill" do
       it "refills a single es index with existing data in rethinkdb" do
-        tm = TableManager.new(watch: false, backfill: false)
-
+        Programmer.clear
         index = Programmer.table_name
 
-        Programmer.clear
+        tm = TableManager.new(watch: false, backfill: false)
 
         # Generate some data in rethinkdb
         num_created = 5
         programmers = Array.new(size: num_created) do |n|
-          Programmer.create(name: "Jim the #{n}th")
+          Programmer.create!(name: "Jim the #{n}th")
         end
 
         # Remove documents from es
