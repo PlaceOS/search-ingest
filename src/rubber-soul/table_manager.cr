@@ -1,7 +1,7 @@
 require "action-controller/logger"
 require "habitat"
 require "rethinkdb-orm"
-require "retriable"
+require "simple_retry"
 
 require "./elastic"
 require "./types"
@@ -223,15 +223,6 @@ module RubberSoul
       parents = parents(name)
       no_children = children(name).empty?
 
-      retry_handler = ->(ex : Exception, _attempt : Int32, _elapsed_time : Time::Span, _next_interval : Time::Span) {
-        logger.warn { "action=watch_table model=#{model} error=#{ex.message} message=backfilling after changefeed error" }
-        begin
-          backfill(model)
-        rescue e
-          logger.error { "action=watch_table model=#{model} error=#{ex.message} message=failed to backfill after changefeed dropped" }
-        end
-      }
-
       changefeed = nil
       spawn do
         coordination.receive?
@@ -240,8 +231,10 @@ module RubberSoul
       end
 
       # NOTE: in the event of losing connection, the table is backfilled.
-      Retriable.retry(on_retry: retry_handler) do
+      SimpleRetry.try_to(base_interval: 50.milliseconds, max_elapsed_time: 15.seconds) do |_, exception, _|
         begin
+          handle_retry(model, exception)
+
           return if coordination.closed?
           changefeed = changes(name)
           logger.info { "action=changes model=#{model}" }
@@ -289,6 +282,15 @@ module RubberSoul
 
         Fiber.yield
       end
+    end
+
+    private def handle_retry(model, exception : Exception?)
+      if exception
+        logger.warn { "action=watch_table model=#{model} error=#{exception.message} message=backfilling after changefeed error" }
+        backfill(model)
+      end
+    rescue e
+      logger.error { "action=watch_table model=#{model} error=#{exception.try &.message} message=failed to backfill after changefeed dropped" }
     end
 
     # Elasticsearch mapping

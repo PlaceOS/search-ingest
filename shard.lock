@@ -22,7 +22,7 @@ shards:
 
   db:
     github: crystal-lang/crystal-db
-    version: 0.8.0
+    version: 0.9.0
 
   delimiter_tree:
     github: drujensen/delimiter_tree
@@ -42,7 +42,7 @@ shards:
 
   models:
     github: placeos/models
-    commit: 802fe0fc4f5bfabc2591877f0e39bb4d53b02364
+    commit: 508da438ad509e3e2563bd3a418810f432bde6ab
 
   neuroplastic:
     github: spider-gazelle/neuroplastic
