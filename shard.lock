@@ -10,7 +10,7 @@ shards:
 
   active-model:
     github: spider-gazelle/active-model
-    commit: cfb070793fd53cc20c799761aa5fe8b195e75739
+    version: 1.8.2
 
   ameba:
     github: crystal-ameba/ameba
@@ -42,7 +42,7 @@ shards:
 
   models:
     github: placeos/models
-    commit: 508da438ad509e3e2563bd3a418810f432bde6ab
+    version: 0.8.0
 
   neuroplastic:
     github: spider-gazelle/neuroplastic
@@ -54,7 +54,7 @@ shards:
 
   rethinkdb:
     github: aca-labs/crystal-rethinkdb
-    version: 0.2.4
+    version: 0.2.5
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
@@ -63,4 +63,8 @@ shards:
   retriable:
     github: sija/retriable.cr
     version: 0.2.0
+
+  simple_retry:
+    github: spider-gazelle/simple_retry
+    version: 1.1.0
 
