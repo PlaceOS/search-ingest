@@ -430,31 +430,34 @@ module RubberSoul
       ES_TYPES.includes?(es_type)
     end
 
+    private ES_MAPPINGS = {
+      "Bool":    "boolean",
+      "Float32": "float",
+      "Float64": "double",
+      "Int16":   "short",
+      "Int32":   "integer",
+      "Int64":   "long",
+      "Int8":    "byte",
+      "String":  "text",
+      "Time":    "date",
+    }
+
     # Map from a class type to an es type
     private def klass_to_es_type(klass_name) : String | Nil
-      case klass_name
-      when "String"
-        "text"
-      when "Time"
-        "date"
-      when "Int64"
-        "long"
-      when "Int32"
-        "integer"
-      when "Int16"
-        "short"
-      when "Int8"
-        "byte"
-      when "Float64"
-        "double"
-      when "Float32"
-        "float"
-      when .starts_with?("Array(")
+      if klass_name.starts_with?("Array(")
         # Arrays allowed as long as they are homogeneous
         klass_to_es_type(klass_name.lchop("Array(").rstrip(')'))
+      elsif klass_name == "JSON::Any" || klass_name.starts_with?("Hash(") || klass_name.starts_with?("NamedTuple(")
+        "object"
       else
-        logger.warn("no defined ES mapping for #{klass_name}")
-        nil
+        es_type = ES_MAPPINGS[klass_name]?
+
+        if es_type.nil?
+          logger.warn("no defined ES mapping for #{klass_name}")
+          nil
+        else
+          es_type
+        end
       end
     end
 

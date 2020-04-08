@@ -25,11 +25,10 @@ dependencies:
 
   models:
     github: placeos/models
-    branch: master
+    version: ~> 0.8.0
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    branch: master
 
   retriable:
     github: sija/retriable.cr
