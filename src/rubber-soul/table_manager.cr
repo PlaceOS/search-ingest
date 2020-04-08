@@ -49,6 +49,7 @@ module RubberSoul
           {{ klass.stringify.split("::").last }} => {
               attributes: {
               {% for attr, options in fields %}
+                {% options[:klass] = options[:klass].resolve if options[:klass].is_a?(Path) %}
                 {% options[:klass] = options[:klass].stringify unless options[:klass].is_a?(StringLiteral) %}
                 {{ attr.symbolize }} => {{ options }},
               {% end %}
