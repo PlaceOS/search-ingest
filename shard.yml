@@ -1,8 +1,6 @@
 name: rubber-soul
-version: 1.5.5
+version: 1.6.0
 license: MIT
-
-crystal: 0.33.0
 
 authors:
   - Caspian Baska <caspianbaska@gmail.com>
@@ -21,20 +19,17 @@ dependencies:
 
   habitat:
     github: luckyframework/habitat
-    version: ~> 0.4.0
 
   models:
     github: placeos/models
-    version: ~> 0.8.0
+    version: ~> 1.0
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
 
-  retriable:
-    github: sija/retriable.cr
-    version: ~> 0.2.0
+  simple_retry:
+    github: spider-gazelle/simple_retry
 
 development_dependencies:
   ameba:
     github: crystal-ameba/ameba
-    version: ~> 0.10.0

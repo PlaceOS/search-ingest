@@ -14,7 +14,7 @@ shards:
 
   ameba:
     github: crystal-ameba/ameba
-    version: 0.10.1
+    version: 0.12.0
 
   bindata:
     github: spider-gazelle/bindata
@@ -42,11 +42,11 @@ shards:
 
   models:
     github: placeos/models
-    version: 0.8.1
+    version: 1.0.0
 
   neuroplastic:
     github: spider-gazelle/neuroplastic
-    version: 1.3.6
+    version: 1.4.0
 
   openssl_ext:
     github: stakach/openssl_ext
@@ -58,11 +58,7 @@ shards:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    version: 2.7.3
-
-  retriable:
-    github: sija/retriable.cr
-    version: 0.2.0
+    version: 2.7.4
 
   simple_retry:
     github: spider-gazelle/simple_retry
