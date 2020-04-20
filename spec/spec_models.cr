@@ -18,6 +18,8 @@ end
 
 class Broke < AbstractBase
   attribute breaks : String
+  attribute status : Bool
+  attribute hasho : Hash(String, String)
 end
 
 class Beverage::Coffee < AbstractBase
@@ -34,5 +36,4 @@ class Migraine < AbstractBase
   belongs_to Programmer
 end
 
-# ameba:disable Style/ConstantNames
 RubberSoul::MANAGED_TABLES = [RayGun, Programmer, Broke, Beverage::Coffee, Migraine]

@@ -64,6 +64,8 @@ module RubberSoul
         mappings.should eq ([
           {:id, {type: "keyword"}},
           {:breaks, {type: "text"}},
+          {:status, {type: "boolean"}},
+          {:hasho, {type: "object"}},
           TableManager::TYPE_PROPERTY,
         ])
       end
