@@ -36,10 +36,9 @@ ActionController::Server.before(
   HTTP::CompressHandler.new
 )
 
-# Configure logger
-logger = ActionController::Base.settings.logger
-logger.level = PROD ? Logger::INFO : Logger::DEBUG
+log_level = PROD ? Log::Severity::Info : Log::Severity::Debug
 
-RubberSoul::TableManager.configure do |settings|
-  settings.logger = logger
-end
+# Configure logging
+Log.builder.bind "*", :warning, RubberSoul::LOG_BACKEND
+Log.builder.bind "action-controller.*", log_level, RubberSoul::LOG_BACKEND
+Log.builder.bind "#{RubberSoul::APP_NAME}.*", log_level, RubberSoul::LOG_BACKEND

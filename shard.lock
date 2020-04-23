@@ -6,7 +6,7 @@ shards:
 
   action-controller:
     github: spider-gazelle/action-controller
-    version: 2.4.0
+    version: 3.0.1
 
   active-model:
     github: spider-gazelle/active-model
@@ -39,6 +39,10 @@ shards:
   kilt:
     github: jeromegn/kilt
     version: 0.6.0
+
+  log_helper:
+    github: spider-gazelle/log_helper
+    version: 0.1.2
 
   models:
     github: placeos/models

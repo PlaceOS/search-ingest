@@ -1,4 +1,3 @@
-require "action-controller/logger"
 require "habitat"
 require "rethinkdb-orm"
 require "simple_retry"
@@ -10,10 +9,6 @@ require "./types"
 module RubberSoul
   class TableManager
     alias Property = Tuple(Symbol, NamedTuple(type: String))
-
-    Habitat.create do
-      setting logger : Logger = ActionController::Logger.new(STDOUT)
-    end
 
     # Map class name to model properties
     getter properties : Hash(String, Array(Property)) = {} of String => Array(Property)
@@ -123,7 +118,7 @@ module RubberSoul
     # - a single mapping is different
     def initialise_indices(backfill : Bool = false)
       unless consistent_indices?
-        logger.info { %(action=initialise_indices event="reindex to consistency") }
+        Log.info { "reindexing all indices to consistency" }
         reindex_all
       end
 
@@ -143,7 +138,7 @@ module RubberSoul
 
     # Backfills from a model to all relevant indices
     def backfill(model)
-      logger.info { "action=backfill model=#{model}" }
+      Log.info { {message: "backfilling", model: model} }
 
       index = index_name(model)
       parents = parents(model)
@@ -169,7 +164,7 @@ module RubberSoul
 
         future {
           Elastic.bulk_operation(actions.join('\n'))
-          logger.info { "action=backfill model=#{model} count=#{backfill_count}" }
+          Log.info { {method: "backfill", model: model, count: backfill_count} }
         }
       end.each &.get
       Fiber.yield
@@ -188,7 +183,7 @@ module RubberSoul
 
     # Clear, update mapping an ES index and refill with rethinkdb documents
     def reindex(model : String | Class)
-      logger.info("action=reindex model=#{model}")
+      Log.info { {method: "reindex", model: model} }
       name = TableManager.document_name(model)
 
       index = index_name(name)
@@ -206,7 +201,7 @@ module RubberSoul
         spawn do
           watch_table(model)
         rescue e
-          logger.error { "action=watch_table model=#{model} error=#{e.inspect}" }
+          Log.error(exception: e) { {method: "watch_table", model: model} }
           # Fatal error
           exit 1
         end
@@ -227,7 +222,7 @@ module RubberSoul
       changefeed = nil
       spawn do
         coordination.receive?
-        logger.warn { "action=watch_table message=table_manager stopped" }
+        Log.warn { {method: "watch_table", message: "table_manager stopped"} }
         changefeed.try &.stop
       end
 
@@ -238,13 +233,13 @@ module RubberSoul
 
           return if coordination.closed?
           changefeed = changes(name)
-          logger.info { "action=changes model=#{model}" }
+          Log.info { {method: "changes", model: model} }
           changefeed.not_nil!.each do |change|
             event = change[:event]
             document = change[:value]
             next if document.nil?
 
-            logger.debug { "action=watch_table event=#{event.to_s.downcase} model=#{model} document_id=#{document.id} parents=#{parents}" }
+            Log.debug { {method: "watch_table", event: event.to_s.downcase, model: model, document_id: document.id, parents: parents} }
 
             # Asynchronously mutate Elasticsearch
             spawn do
@@ -272,10 +267,10 @@ module RubberSoul
               else raise Error.new
               end
             rescue e
-              logger.warn { "action=watch_table event=#{event.to_s.downcase} error=#{e.class} message=#{e.message}" }
+              Log.warn(exception: e) { {message: "error while watching table", event: event.to_s.downcase} }
             end
           rescue e
-            logger.error { "action=watch_table error=#{e.inspect_with_backtrace}" }
+            Log.error(exception: e) { "in watch_table" }
             changefeed.try &.stop
             raise e
           end
@@ -287,11 +282,11 @@ module RubberSoul
 
     private def handle_retry(model, exception : Exception?)
       if exception
-        logger.warn { "action=watch_table model=#{model} error=#{exception.message} message=backfilling after changefeed error" }
+        Log.warn(exception: exception) { {model: model, message: "backfilling after changefeed error"} }
         backfill(model)
       end
     rescue e
-      logger.error { "action=watch_table model=#{model} error=#{exception.try &.message} message=failed to backfill after changefeed dropped" }
+      Log.error(exception: e) { {model: model, message: "failed to backfill after changefeed dropped"} }
     end
 
     # Elasticsearch mapping
@@ -321,7 +316,7 @@ module RubberSoul
       existing = Elastic.get_mapping?(index_name(model))
 
       equivalent = Elastic.equivalent_schema?(existing, proposed)
-      logger.warn { "action=mapping_conflict? model=#{model} proposed=#{proposed} existing=#{existing}" } unless equivalent
+      Log.warn { {model: model, proposed: proposed, existing: existing, message: "index mapping conflict"} } unless equivalent
 
       !equivalent
     end
@@ -454,7 +449,7 @@ module RubberSoul
         es_type = ES_MAPPINGS[klass_name]?
 
         if es_type.nil?
-          logger.warn("no defined ES mapping for #{klass_name}")
+          Log.warn { "no ES mapping for #{klass_name}" }
           nil
         else
           es_type
@@ -516,10 +511,6 @@ module RubberSoul
     def self.document_name(model)
       name = model.is_a?(Class) ? model.name : model
       name.split("::").last
-    end
-
-    def logger
-      self.settings.logger
     end
   end
 end

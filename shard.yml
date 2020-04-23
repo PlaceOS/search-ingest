@@ -1,5 +1,5 @@
 name: rubber-soul
-version: 1.6.3
+version: 1.7.0
 license: MIT
 
 authors:
@@ -12,13 +12,16 @@ targets:
 dependencies:
   action-controller:
     github: spider-gazelle/action-controller
-    version: ~> 2.0
+    version: ~> 3.0
 
   db:
     github: crystal-lang/crystal-db
 
   habitat:
     github: luckyframework/habitat
+
+  log_helper:
+    github: spider-gazelle/log_helper
 
   models:
     github: placeos/models
