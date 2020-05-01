@@ -6,7 +6,7 @@ shards:
 
   action-controller:
     github: spider-gazelle/action-controller
-    version: 3.0.1
+    version: 3.0.2
 
   active-model:
     github: spider-gazelle/active-model
@@ -28,6 +28,10 @@ shards:
     github: drujensen/delimiter_tree
     version: 0.1.4
 
+  future:
+    github: crystal-community/future.cr
+    version: 0.1.0
+
   habitat:
     github: luckyframework/habitat
     version: 0.4.3
@@ -46,7 +50,7 @@ shards:
 
   models:
     github: placeos/models
-    version: 1.0.3
+    version: 1.0.4
 
   neuroplastic:
     github: spider-gazelle/neuroplastic

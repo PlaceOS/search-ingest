@@ -1,5 +1,5 @@
 name: rubber-soul
-version: 1.7.0
+version: 1.7.1
 license: MIT
 
 authors:
@@ -16,6 +16,9 @@ dependencies:
 
   db:
     github: crystal-lang/crystal-db
+
+  future:
+    github: crystal-community/future.cr
 
   habitat:
     github: luckyframework/habitat

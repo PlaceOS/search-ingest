@@ -1,4 +1,5 @@
 require "spec"
+require "future"
 
 # Application config
 require "./spec_config"
