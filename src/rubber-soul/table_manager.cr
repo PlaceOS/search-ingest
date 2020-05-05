@@ -1,4 +1,5 @@
 require "habitat"
+require "log"
 require "rethinkdb-orm"
 require "simple_retry"
 
@@ -8,6 +9,8 @@ require "./types"
 # Class to manage rethinkdb models sync with elasticsearch
 module RubberSoul
   class TableManager
+    Log = ::Log.for("rubber-soul").for("table_manager")
+
     alias Property = Tuple(Symbol, NamedTuple(type: String))
 
     # Map class name to model properties
