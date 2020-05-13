@@ -18,7 +18,7 @@ shards:
 
   bindata:
     github: spider-gazelle/bindata
-    version: 1.5.0
+    version: 1.5.1
 
   db:
     github: crystal-lang/crystal-db
@@ -46,11 +46,11 @@ shards:
 
   models:
     github: placeos/models
-    version: 1.0.4
+    version: 1.0.6
 
   neuroplastic:
     github: spider-gazelle/neuroplastic
-    version: 1.4.0
+    version: 1.4.1
 
   openssl_ext:
     github: stakach/openssl_ext
@@ -62,7 +62,7 @@ shards:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    version: 2.8.0
+    version: 2.8.1
 
   simple_retry:
     github: spider-gazelle/simple_retry
