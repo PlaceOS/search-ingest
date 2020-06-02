@@ -1,5 +1,5 @@
 name: rubber-soul
-version: 1.7.4
+version: 1.8.0
 license: MIT
 
 authors:
@@ -26,9 +26,9 @@ dependencies:
   log_helper:
     github: spider-gazelle/log_helper
 
-  models:
+  placeos-models:
     github: placeos/models
-    version: ~> 1.0
+    version: ~> 2.0
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
