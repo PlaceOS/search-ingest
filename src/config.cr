@@ -1,5 +1,5 @@
 # Engine Models
-require "models"
+require "placeos-models"
 
 # Tables watched by TableManager
 # FIXME: This is not ideal. A constant array is required for macro methods
