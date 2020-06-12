@@ -31,7 +31,7 @@ PROD = ENV["SG_ENV"]? == "production"
 
 # Add handlers that should run before your application
 ActionController::Server.before(
-  HTTP::ErrorHandler.new(!PROD),
+  HTTP::ErrorHandler.new(PROD),
   ActionController::LogHandler.new,
   HTTP::CompressHandler.new
 )
