@@ -39,6 +39,4 @@ ActionController::Server.before(
 log_level = PROD ? Log::Severity::Info : Log::Severity::Debug
 
 # Configure logging
-Log.builder.bind "*", :warning, RubberSoul::LOG_BACKEND
-Log.builder.bind "action-controller.*", log_level, RubberSoul::LOG_BACKEND
-Log.builder.bind "#{RubberSoul::APP_NAME}.*", log_level, RubberSoul::LOG_BACKEND
+::Log.setup "*", log_level, RubberSoul::LOG_BACKEND
