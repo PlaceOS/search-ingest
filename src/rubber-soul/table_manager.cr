@@ -462,14 +462,14 @@ module RubberSoul
 
     # Map from a class type to an es type
     private def klass_to_es_type(klass_name) : String | Nil
-      if klass_name.starts_with?("Array(")
-        # Arrays allowed as long as they are homogeneous
-        klass_to_es_type(klass_name.lchop("Array(").rstrip(')'))
-      elsif klass_name == "JSON::Any" || klass_name.starts_with?("Hash(") || klass_name.starts_with?("NamedTuple(")
+      if klass_name.starts_with?("Array")
+        collection_type(klass_name, "Array")
+      elsif klass_name.starts_with?("Set")
+        collection_type(klass_name, "Set")
+      elsif klass_name == "JSON::Any" || klass_name.starts_with?("Hash") || klass_name.starts_with?("NamedTuple")
         "object"
       else
         es_type = ES_MAPPINGS[klass_name]?
-
         if es_type.nil?
           Log.warn { "no ES mapping for #{klass_name}" }
           nil
@@ -477,6 +477,11 @@ module RubberSoul
           es_type
         end
       end
+    end
+
+    # Collections allowed as long as they are homogeneous
+    private def collection_type(klass_name : String, collection_type : String)
+      klass_to_es_type(klass_name.lchop("#{collection_type}(").rstrip(')'))
     end
 
     # Relations
