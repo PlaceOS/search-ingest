@@ -16,6 +16,7 @@ dependencies:
 
   db:
     github: crystal-lang/crystal-db
+    version: ~> 0.9
 
   future:
     github: crystal-community/future.cr
@@ -30,11 +31,17 @@ dependencies:
     github: placeos/models
     version: ~> 2.0
 
+  promise:
+    github: spider-gazelle/promise
+    version: ~> 2.1
+
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
+    version: ~> 2.9
 
   simple_retry:
     github: spider-gazelle/simple_retry
+    version: ~> 1
 
 development_dependencies:
   ameba:

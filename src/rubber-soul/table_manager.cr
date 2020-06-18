@@ -1,5 +1,7 @@
+require "future"
 require "habitat"
 require "log"
+require "promise"
 require "rethinkdb-orm"
 require "simple_retry"
 
@@ -133,9 +135,7 @@ module RubberSoul
 
     # Save all documents in all tables to the correct indices
     def backfill_all
-      models.map do |model|
-        future { backfill(model) }
-      end.each &.get
+      Promise.map(models) { |m| backfill(m) }.get
       Fiber.yield
     end
 
@@ -149,28 +149,29 @@ module RubberSoul
 
       backfill_count = 0
 
-      # NOTE: remove `#to_a` when this Map iterator type issue resolves
-      # TODO: fix the memory overhead of the `#to_a`
       all(model).in_groups_of(100).to_a.map do |docs|
-        actions = docs.compact_map do |d|
-          next unless d
-
-          backfill_count += 1
-          Elastic.document_request(
-            action: Elastic::Action::Create,
-            document: d,
-            index: index,
-            parents: parents,
-            no_children: no_children,
-          )
-        end
-
         future {
-          Elastic.bulk_operation(actions.join('\n'))
-          Log.info { {method: "backfill", model: model, count: backfill_count} }
+          actions = docs.compact_map do |d|
+            next unless d
+            backfill_count += 1
+            Elastic.document_request(
+              action: Elastic::Action::Create,
+              document: d,
+              index: index,
+              parents: parents,
+              no_children: no_children,
+            )
+          end
+
+          begin
+            Elastic.bulk_operation(actions.join('\n'))
+            Log.debug { {method: "backfill", model: model, subcount: actions.size} }
+          rescue e
+            Log.error(exception: e) { {method: "backfill", model: model, missed: actions.size} }
+          end
         }
       end.each &.get
-      Fiber.yield
+      Log.info { {method: "backfill", model: model, count: backfill_count} }
     end
 
     # Reindex
@@ -178,9 +179,7 @@ module RubberSoul
 
     # Clear and update all index mappings
     def reindex_all
-      models.map do |model|
-        future { reindex(model) }
-      end.each &.get
+      Promise.map(models) { |m| reindex(m) }.get
       Fiber.yield
     end
 
@@ -194,6 +193,8 @@ module RubberSoul
       Elastic.delete_index(index)
       # Apply current mapping
       create_index(name)
+    rescue e
+      Log.error(exception: e) { {method: "reindex", model: model} }
     end
 
     # Watch
