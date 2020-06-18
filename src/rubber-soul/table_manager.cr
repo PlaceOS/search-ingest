@@ -338,6 +338,23 @@ module RubberSoul
       schemas
     end
 
+    private INDEX_SETTINGS = {
+      analysis: {
+        analyzer: {
+          default: {
+            tokenizer: "whitespace",
+            filter:    ["lowercase", "preserved_ascii_folding"],
+          },
+        },
+        filter: {
+          preserved_ascii_folding: {
+            type:              "asciifolding",
+            preserve_original: true,
+          },
+        },
+      },
+    }
+
     # Generate the index type mapping structure
     def construct_document_schema(model) : String
       name = TableManager.document_name(model)
@@ -346,6 +363,7 @@ module RubberSoul
       # Only include join if model has children
       properties = properties.merge(join_field(name, children)) unless children.empty?
       {
+        settings: INDEX_SETTINGS,
         mappings: {
           properties: properties,
         },

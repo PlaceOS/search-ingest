@@ -22,8 +22,16 @@ module RubberSoul
     it "applies new mapping to an index" do
       delete_test_indices
       index = Broke.table_name
-      get_schema = ->{ {mappings: JSON.parse(Elastic.client &.get("/#{index}").body)[index]["mappings"]}.to_json }
+      get_schema = ->{
+        response = JSON.parse(Elastic.client &.get("/#{index}").body)
+        # Pluck the fields of interest
+        mappings_field = response.dig(index, "mappings")
+        settings_field = response.dig(index, "settings")
+        {settings: settings_field, mappings: mappings_field}.to_json
+      }
+
       wrong_schema = {
+        settings: {} of Nil => Nil,
         mappings: {
           properties: {
             wrong: {type: "keyword"},
@@ -33,7 +41,7 @@ module RubberSoul
 
       # Apply an incorrect schema and check currently applied schema
       Elastic.client &.put("/#{index}", Elastic.headers, body: wrong_schema)
-      get_schema.call.should eq wrong_schema
+      get_schema.call["mappings"].should eq wrong_schema["mappings"]
 
       tm = TableManager.new([Broke])
 
@@ -44,7 +52,9 @@ module RubberSoul
 
       # Check if updated schema applied
       updated_schema.should_not eq JSON.parse(wrong_schema)
-      updated_schema.should eq schema
+
+      updated_schema["mappings"].should eq schema["mappings"]
+      updated_schema.dig("settings", "index", "analysis").as_h.rehash.should eq schema.dig("settings", "analysis").as_h.rehash
     end
 
     it "generates a schema for a model" do
