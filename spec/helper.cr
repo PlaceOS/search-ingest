@@ -1,5 +1,5 @@
+require "promise"
 require "spec"
-require "future"
 
 # Application config
 require "./spec_config"
@@ -37,21 +37,17 @@ end
 
 # Remove all documents from an index, retaining index mappings
 def clear_test_indices
-  table_names.map do |name|
-    future {
-      RubberSoul::Elastic.empty_indices([name])
-    }
-  end.each &.get
+  Promise.map(table_names) do |name|
+    RubberSoul::Elastic.empty_indices([name])
+  end.get
   Fiber.yield
 end
 
 # Delete all test indices on start up
 def delete_test_indices
-  table_names.map do |name|
-    future {
-      RubberSoul::Elastic.delete_index(name)
-    }
-  end.each &.get
+  Promise.map(table_names) do |name|
+    RubberSoul::Elastic.delete_index(name)
+  end.get
   Fiber.yield
 end
 

@@ -6,7 +6,7 @@ shards:
 
   action-controller:
     git: https://github.com/spider-gazelle/action-controller.git
-    version: 3.1.5
+    version: 3.1.6
 
   active-model:
     git: https://github.com/spider-gazelle/active-model.git
@@ -19,6 +19,14 @@ shards:
   bindata:
     git: https://github.com/spider-gazelle/bindata.git
     version: 1.5.4
+
+  bisect:
+    git: https://github.com/spider-gazelle/bisect.git
+    version: 1.2.0
+
+  cron_parser:
+    git: https://github.com/kostya/cron_parser.git
+    version: 0.3.0
 
   db:
     git: https://github.com/crystal-lang/crystal-db.git
@@ -50,7 +58,7 @@ shards:
 
   neuroplastic:
     git: https://github.com/spider-gazelle/neuroplastic.git
-    version: 1.4.1
+    version: 1.4.2
 
   openssl_ext:
     git: https://github.com/stakach/openssl_ext.git
@@ -60,8 +68,12 @@ shards:
     git: https://github.com/placeos/models.git
     version: 2.0.3
 
+  promise:
+    git: https://github.com/spider-gazelle/promise.git
+    version: 2.2.0
+
   rethinkdb:
-    git: https://github.com/aca-labs/crystal-rethinkdb.git
+    git: https://github.com/place-labs/crystal-rethinkdb.git
     version: 1.0.0
 
   rethinkdb-orm:
@@ -71,6 +83,10 @@ shards:
   simple_retry:
     git: https://github.com/spider-gazelle/simple_retry.git
     version: 1.1.0
+
+  tasker:
+    git: https://github.com/spider-gazelle/tasker.git
+    version: 1.3.0
 
   yaml_mapping:
     git: https://github.com/crystal-lang/yaml_mapping.cr.git
