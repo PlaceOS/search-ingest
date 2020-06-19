@@ -8,6 +8,8 @@ require "logger"
 
 # Application code
 require "../src/api"
+require "../src/rubber-soul"
+require "../src/constants"
 
 # Server required after application controllers
 require "action-controller/server"
@@ -15,9 +17,11 @@ require "action-controller/server"
 # Add handlers that should run before your application
 ActionController::Server.before(
   HTTP::LogHandler.new,
-  HTTP::ErrorHandler.new(ENV["SG_ENV"]? != "production"),
+  HTTP::ErrorHandler.new(RubberSoul::PROD),
   HTTP::CompressHandler.new
 )
 
-APP_NAME = "rubber-soul"
-VERSION  = "1.0.0"
+log_level = RubberSoul::PROD ? Log::Severity::Info : Log::Severity::Debug
+
+# Configure logging
+::Log.setup "*", log_level, RubberSoul::LOG_BACKEND

@@ -141,7 +141,7 @@ module RubberSoul
 
     # Backfills from a model to all relevant indices
     def backfill(model)
-      Log.info { {message: "backfilling", model: model} }
+      Log.info { {message: "backfilling", model: model.to_s} }
 
       index = index_name(model)
       parents = parents(model)
@@ -165,13 +165,13 @@ module RubberSoul
 
           begin
             Elastic.bulk_operation(actions.join('\n'))
-            Log.debug { {method: "backfill", model: model, subcount: actions.size} }
+            Log.debug { {method: "backfill", model: model.to_s, subcount: actions.size} }
           rescue e
-            Log.error(exception: e) { {method: "backfill", model: model, missed: actions.size} }
+            Log.error(exception: e) { {method: "backfill", model: model.to_s, missed: actions.size} }
           end
         }
       end.each &.get
-      Log.info { {method: "backfill", model: model, count: backfill_count} }
+      Log.info { {method: "backfill", model: model.to_s, count: backfill_count} }
     end
 
     # Reindex
@@ -185,7 +185,7 @@ module RubberSoul
 
     # Clear, update mapping an ES index and refill with rethinkdb documents
     def reindex(model : String | Class)
-      Log.info { {method: "reindex", model: model} }
+      Log.info { {method: "reindex", model: model.to_s} }
       name = TableManager.document_name(model)
 
       index = index_name(name)
@@ -194,7 +194,7 @@ module RubberSoul
       # Apply current mapping
       create_index(name)
     rescue e
-      Log.error(exception: e) { {method: "reindex", model: model} }
+      Log.error(exception: e) { {method: "reindex", model: model.to_s} }
     end
 
     # Watch
@@ -205,7 +205,7 @@ module RubberSoul
         spawn do
           watch_table(model)
         rescue e
-          Log.error(exception: e) { {method: "watch_table", model: model} }
+          Log.error(exception: e) { {method: "watch_table", model: model.to_s} }
           # Fatal error
           exit 1
         end
@@ -237,13 +237,13 @@ module RubberSoul
 
           return if coordination.closed?
           changefeed = changes(name)
-          Log.info { {method: "changes", model: model} }
+          Log.info { {method: "changes", model: model.to_s} }
           changefeed.not_nil!.each do |change|
             event = change[:event]
             document = change[:value]
             next if document.nil?
 
-            Log.debug { {method: "watch_table", event: event.to_s.downcase, model: model, document_id: document.id, parents: parents} }
+            Log.debug { {method: "watch_table", event: event.to_s.downcase, model: model.to_s, document_id: document.id, parents: parents} }
 
             # Asynchronously mutate Elasticsearch
             spawn do
@@ -286,11 +286,11 @@ module RubberSoul
 
     private def handle_retry(model, exception : Exception?)
       if exception
-        Log.warn(exception: exception) { {model: model, message: "backfilling after changefeed error"} }
+        Log.warn(exception: exception) { {model: model.to_s, message: "backfilling after changefeed error"} }
         backfill(model)
       end
     rescue e
-      Log.error(exception: e) { {model: model, message: "failed to backfill after changefeed dropped"} }
+      Log.error(exception: e) { {model: model.to_s, message: "failed to backfill after changefeed dropped"} }
     end
 
     # Elasticsearch mapping
@@ -320,7 +320,7 @@ module RubberSoul
       existing = Elastic.get_mapping?(index_name(model))
 
       equivalent = Elastic.equivalent_schema?(existing, proposed)
-      Log.warn { {model: model, proposed: proposed, existing: existing, message: "index mapping conflict"} } unless equivalent
+      Log.warn { {model: model.to_s, proposed: proposed, existing: existing, message: "index mapping conflict"} } unless equivalent
 
       !equivalent
     end

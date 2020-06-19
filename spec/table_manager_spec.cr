@@ -10,12 +10,16 @@ module RubberSoul
         count_before_create = es_document_count(index)
         prog = Programmer.create!(name: "Rob Pike")
 
-        sleep 1 # Wait for change to propagate to es
-        es_document_count(index).should eq (count_before_create + 1)
+        until_expected(count_before_create + 1) do
+          es_document_count(index)
+        end.should be_true
 
         tm.stop
         prog.destroy
-        es_document_count(index).should eq (count_before_create + 1)
+
+        until_expected(count_before_create + 1) do
+          es_document_count(index)
+        end.should be_true
       end
     end
 
@@ -147,13 +151,15 @@ module RubberSoul
 
       # Reindex
       tm.reindex_all
-      sleep 0.5
-      es_document_count(index).should eq 0
+      until_expected(0) do
+        es_document_count(index)
+      end.should be_true
 
       tm.backfill_all
-      sleep 0.5
       # Check number of documents in elastic search
-      es_document_count(index).should eq (num_created + count_before_create)
+      until_expected(num_created + count_before_create) do
+        es_document_count(index)
+      end.should be_true
 
       programmers.each &.destroy
     end
@@ -177,8 +183,9 @@ module RubberSoul
         # Backfill a single index
         tm.backfill(Programmer)
 
-        sleep 1 # Wait for es
-        es_document_count(index).should eq Programmer.count
+        until_expected(Programmer.count) do
+          es_document_count(index)
+        end.should be_true
 
         programmers.each &.destroy
       end

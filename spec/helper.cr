@@ -1,4 +1,6 @@
+require "json"
 require "promise"
+require "simple_retry"
 require "spec"
 
 # Application config
@@ -10,14 +12,36 @@ require "../src/api"
 # Helper methods for testing controllers (curl, with_server, context)
 require "../lib/action-controller/spec/curl_context"
 
-require "json"
-
 macro table_names
   [{% for klass in RubberSoul::MANAGED_TABLES %} {{ klass }}.table_name, {% end %}]
 end
 
 Spec.before_suite &->cleanup
 Spec.after_suite &->cleanup
+
+def until_expected(expected)
+  before = Time.utc
+  success = begin
+    SimpleRetry.try_to(base_interval: 500.milliseconds, max_elapsed_time: 5.seconds, retry_on: Exception) do
+      result = yield
+
+      if result != expected
+        Log.error { "expected #{expected}, got #{result}" }
+        raise Exception.new("retry")
+      else
+        true
+      end
+    end
+  rescue e
+    raise e unless e.message == "retry"
+    false
+  ensure
+    after = Time.utc
+    puts "\ntook #{(after - before).milliseconds}ms"
+  end
+
+  !!success
+end
 
 def cleanup
   # Empty rethinkdb test tables
