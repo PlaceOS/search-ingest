@@ -16,17 +16,26 @@ macro table_names
   [{% for klass in RubberSoul::MANAGED_TABLES %} {{ klass }}.table_name, {% end %}]
 end
 
+Spec.before_suite do
+  ::Log.setup "*", :debug, RubberSoul::LOG_BACKEND
+end
+
 Spec.before_suite &->cleanup
 Spec.after_suite &->cleanup
 
 def until_expected(expected)
   before = Time.utc
   success = begin
-    SimpleRetry.try_to(base_interval: 500.milliseconds, max_elapsed_time: 5.seconds, retry_on: Exception) do
+    SimpleRetry.try_to(
+      base_interval: 100.milliseconds,
+      max_interval: 500.milliseconds,
+      max_elapsed_time: 10.seconds,
+      retry_on: Exception
+    ) do
       result = yield
 
       if result != expected
-        Log.error { "expected #{expected}, got #{result}" }
+        Log.error { "retry: expected #{expected}, got #{result}" }
         raise Exception.new("retry")
       else
         true
@@ -37,7 +46,7 @@ def until_expected(expected)
     false
   ensure
     after = Time.utc
-    puts "\ntook #{(after - before).milliseconds}ms"
+    Log.info { "took #{(after - before).total_milliseconds}ms" }
   end
 
   !!success
