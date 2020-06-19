@@ -35,6 +35,8 @@ ActionController::Server.before(
   HTTP::CompressHandler.new
 )
 
+log_level = RubberSoul::PROD ? Log::Severity::Info : Log::Severity::Debug
+
 # Configure logging
 ::Log.setup "*", log_level, RubberSoul::LOG_BACKEND
 ::Log.builder.bind "action-controller.*", log_level, RubberSoul::LOG_BACKEND
