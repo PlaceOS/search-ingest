@@ -69,7 +69,6 @@ module RubberSoul
       it "deletes a document" do
         index = Broke.table_name
 
-        sleep 0.5 # Wait for es
         model = Broke.new(breaks: "Think")
         model.id = RethinkORM::IdGenerator.next(model)
 
@@ -114,9 +113,9 @@ module RubberSoul
           no_children: tm.children(model_name).empty?,
         )
 
-        sleep 0.5 # Wait for es
-        es_doc_exists?(index, model.id, routing: model.id).should be_true
-        es_doc_exists?(parent_index, model.id, routing: parent_model.id).should be_true
+        until_expected(true) do
+          es_doc_exists?(index, model.id, routing: model.id) && es_doc_exists?(parent_index, model.id, routing: parent_model.id)
+        end
 
         # Remove document from es
         Elastic.delete_document(
@@ -125,9 +124,9 @@ module RubberSoul
           parents: parents,
         )
 
-        sleep 0.5 # Wait for es
-        es_doc_exists?(index, model.id, routing: model.id).should be_false
-        es_doc_exists?(parent_index, model.id, routing: parent_model.id).should be_false
+        until_expected(false) do
+          es_doc_exists?(index, model.id, routing: model.id) || es_doc_exists?(parent_index, model.id, routing: parent_model.id)
+        end
       end
 
       it "saves a document" do

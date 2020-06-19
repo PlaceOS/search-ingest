@@ -22,21 +22,18 @@ RubberSoul::MANAGED_TABLES = [
 
 # Application code
 require "./api"
+require "./constants"
 
 # Server
 require "action-controller"
 require "action-controller/server"
 
-PROD = ENV["SG_ENV"]? == "production"
-
 # Add handlers that should run before your application
 ActionController::Server.before(
-  HTTP::ErrorHandler.new(PROD),
+  HTTP::ErrorHandler.new(RubberSoul::PROD),
   ActionController::LogHandler.new,
   HTTP::CompressHandler.new
 )
-
-log_level = PROD ? Log::Severity::Info : Log::Severity::Debug
 
 # Configure logging
 ::Log.setup "*", log_level, RubberSoul::LOG_BACKEND
