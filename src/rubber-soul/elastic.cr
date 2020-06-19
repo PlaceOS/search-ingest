@@ -7,6 +7,8 @@ require "./types"
 
 module RubberSoul
   class Elastic
+    Log = ::Log.for("rubber-soul.elastic")
+
     # Settings for elastic client
     Habitat.create do
       setting host : String = ENV["ES_HOST"]? || "localhost"
@@ -144,6 +146,7 @@ module RubberSoul
           .try(&.select("mappings"))
           .try(&.to_json)
       else
+        Log.error { {message: "failed to get mapping", index: index} }
         nil
       end
     end
@@ -201,6 +204,7 @@ module RubberSoul
         parent_id = attributes[parent[:routing_attr]].to_s
 
         next if parent_id.empty?
+
         self.bulk_request(
           action: action,
           document_any: doc_any,
