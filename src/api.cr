@@ -27,7 +27,7 @@ module RubberSoul
     # /reindex?[backfill=true]
     post "/reindex", :reindex do
       API.table_manager.reindex_all
-      API.table_manager.backfill_all if params["backfill"]? == true
+      API.table_manager.backfill_all if params["backfill"]? == "true"
     end
 
     # Backfill all tables
