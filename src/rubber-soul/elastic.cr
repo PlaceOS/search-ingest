@@ -11,6 +11,7 @@ module RubberSoul
 
     # Settings for elastic client
     Habitat.create do
+      setting uri : URI? = ENV["ES_URI"]?.try(&->URI.parse(String))
       setting host : String = ENV["ES_HOST"]? || "localhost"
       setting port : Int32 = ENV["ES_PORT"]?.try(&.to_i) || 9200
       setting tls : Bool = ENV["ES_TLS"]? == "true"
@@ -24,9 +25,14 @@ module RubberSoul
     def initialize(
       host : String = settings.host,
       port : Int32 = settings.port,
-      tls : Bool = settings.tls
+      tls : Bool = settings.tls,
+      uri : URI? = settings.uri
     )
-      @client = HTTP::Client.new(host: host, port: port, tls: tls)
+      if uri.nil?
+        @client = HTTP::Client.new(host: host, port: port, tls: tls)
+      else
+        @client = HTTP::Client.new(uri: uri, tls: tls)
+      end
     end
 
     @@pool : DB::Pool(Elastic)?
