@@ -385,6 +385,7 @@ module RubberSoul
     def self.headers
       headers = HTTP::Headers.new
       headers["Content-Type"] = "application/json"
+      headers["Accept"] = "application/json"
       headers
     end
 
