@@ -20,6 +20,7 @@ reindex = false
 # Elastic
 elastic_host = nil
 elastic_port = nil
+elastic_tls = false
 
 # Rethink
 rethink_host = nil
@@ -52,6 +53,9 @@ OptionParser.parse(ARGV.dup) do |parser|
   end
   parser.on("--elastic-port PORT", "Elasticsearch port") do |port|
     elastic_port = port.to_i
+  end
+  parser.on("--elastic-tls (true|false)", "Elasticsearch tls") do |tls|
+    elastic_tls = tls == "true"
   end
 
   # Spider-gazelle configuration
@@ -111,6 +115,7 @@ require "./rubber-soul"
 RubberSoul::Elastic.configure do |settings|
   elastic_host.try { |host| settings.host = host }
   elastic_port.try { |port| settings.port = port }
+  elastic_tls.try { |tls| settings.tls = tls }
 end
 
 # Ensure elastic is available
