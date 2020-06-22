@@ -13,6 +13,7 @@ module RubberSoul
     Habitat.create do
       setting host : String = ENV["ES_HOST"]? || "localhost"
       setting port : Int32 = ENV["ES_PORT"]?.try(&.to_i) || 9200
+      setting tls : Bool = ENV["ES_TLS"]? == "true"
       setting pool_size : Int32 = ENV["ES_CONN_POOL"]?.try(&.to_i) || RubberSoul::MANAGED_TABLES.size
       setting idle_pool_size : Int32 = ENV["ES_IDLE_POOL"]?.try(&.to_i) || (RubberSoul::MANAGED_TABLES.size // 4)
       setting pool_timeout : Float64 = ENV["ES_CONN_POOL_TIMEOUT"]?.try(&.to_f64) || 5.0
@@ -22,9 +23,10 @@ module RubberSoul
 
     def initialize(
       host : String = settings.host,
-      port : Int32 = settings.port
+      port : Int32 = settings.port,
+      tls : Bool = settings.tls
     )
-      @client = HTTP::Client.new(host: host, port: port)
+      @client = HTTP::Client.new(host: host, port: port, tls: tls)
     end
 
     @@pool : DB::Pool(Elastic)?
