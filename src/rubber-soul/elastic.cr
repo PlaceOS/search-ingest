@@ -31,8 +31,8 @@ module RubberSoul
       if uri.nil?
         @client = HTTP::Client.new(host: host, port: port, tls: tls)
       else
-        context = nil
-        if tls
+        # FIXME: use habitat settings, setting is not coming from env
+        if ENV["ES_TLS"]? == "true"
           context = OpenSSL::SSL::Context::Client.new
           context.verify_mode = OpenSSL::SSL::VerifyMode::NONE
         end
