@@ -31,7 +31,12 @@ module RubberSoul
       if uri.nil?
         @client = HTTP::Client.new(host: host, port: port, tls: tls)
       else
-        @client = HTTP::Client.new(uri: uri, tls: tls)
+        context = nil
+        if tls
+          context = OpenSSL::SSL::Context::Client.new
+          context.verify_mode = OpenSSL::SSL::VerifyMode::NONE
+        end
+        @client = HTTP::Client.new(uri: uri, tls: context)
       end
     end
 
