@@ -9,6 +9,9 @@ module RubberSoul
   class Elastic
     Log = ::Log.for("rubber-soul.elastic")
 
+    # Whether or not to use the bulk api
+    class_property? bulk : Bool = !(ENV["ES_DISABLE_BULK"]? == "true")
+
     # Settings for elastic client
     Habitat.create do
       setting uri : URI? = ENV["ES_URI"]?.try(&->URI.parse(String))
@@ -65,39 +68,68 @@ module RubberSoul
     # Create a new document in ES from a RethinkORM model
     #
     def self.create_document(index, document, parents = [] of Parent, no_children = true)
-      body = self.document_request(
-        action: Action::Create,
-        index: index,
-        document: document,
-        parents: parents,
-        no_children: no_children,
-      )
-      self.bulk_operation(body)
+      if self.bulk?
+        body = self.bulk_action(
+          action: Action::Create,
+          index: index,
+          document: document,
+          parents: parents,
+          no_children: no_children,
+        )
+        self.bulk_operation(body)
+      else
+        self.single_action(
+          action: Action::Create,
+          index: index,
+          document: document,
+          parents: parents,
+          no_children: no_children,
+        )
+      end
     end
 
     # Update a document in ES from a RethinkORM model
     #
     def self.update_document(index, document, parents = [] of Parent, no_children = true)
-      body = self.document_request(
-        action: Action::Update,
-        index: index,
-        document: document,
-        parents: parents,
-        no_children: no_children,
-      )
-      self.bulk_operation(body)
+      if self.bulk?
+        body = self.bulk_action(
+          action: Action::Update,
+          index: index,
+          document: document,
+          parents: parents,
+          no_children: no_children,
+        )
+        self.bulk_operation(body)
+      else
+        self.single_action(
+          action: Action::Update,
+          index: index,
+          document: document,
+          parents: parents,
+          no_children: no_children,
+        )
+      end
     end
 
     # Delete a document in ES from a RethinkORM model
     #
     def self.delete_document(index, document, parents = [] of Parent)
-      body = self.document_request(
-        action: Action::Delete,
-        index: index,
-        document: document,
-        parents: parents,
-      )
-      self.bulk_operation(body)
+      if self.bulk?
+        body = self.bulk_action(
+          action: Action::Delete,
+          index: index,
+          document: document,
+          parents: parents,
+        )
+        self.bulk_operation(body)
+      else
+        self.single_action(
+          action: Action::Delete,
+          index: index,
+          document: document,
+          parents: parents,
+        )
+      end
     end
 
     # Indices
@@ -184,11 +216,100 @@ module RubberSoul
       Delete
     end
 
+    def self.single_request(
+      action : Action,
+      index : String,
+      id : String,
+      document_type : String,
+      document_any : Hash(String, JSON::Any)? = nil,
+      parent_id : String? = nil,
+      no_children : Bool = true
+    )
+      case action
+      when Action::Update, Action::Create
+        body = self.document_body(
+          document: document_any.not_nil!,
+          document_type: document_type,
+          no_children: no_children,
+          parent_id: parent_id,
+        )
+
+        self.single_upsert(
+          index: index,
+          id: id,
+          document: body,
+          routing: parent_id,
+        )
+      when Action::Delete
+        self.single_delete(
+          index: index,
+          id: id,
+          routing: parent_id,
+        )
+      end
+    end
+
     # Generates the body of a Bulk request for a RethinkDB document in ES
     # - Creates document in table index
     # - Adds document to all parent table indices, routing by the parent id
-    def self.document_request(action, document, index, parents = [] of Parent, no_children = true)
-      id = document.id.not_nil!
+    def self.single_action(action : Action, document, index : String, parents : Array(Parent) = [] of Parent, no_children : Bool = true)
+      id = document.id.as(String)
+      doc_type = self.document_type(document)
+      attributes = document.attributes
+
+      # FIXME: Please, I am very slow
+      doc_any = case action
+                when Action::Create
+                  JSON.parse(document.to_json).as_h
+                when Action::Update
+                  JSON.parse(document.changed_json).as_h
+                else
+                  nil
+                end
+
+      self.single_request(
+        action: action,
+        document_any: doc_any,
+        document_type: doc_type,
+        index: index,
+        id: id,
+        no_children: no_children
+      )
+
+      # Actions to mutate all parent indices
+      parents.each do |parent|
+        # Get the parents id to route to correct es shard
+        parent_id = attributes[parent[:routing_attr]].to_s
+
+        next if parent_id.empty?
+
+        begin
+          self.single_request(
+            action: action,
+            document_any: doc_any,
+            document_type: doc_type,
+            index: parent[:index],
+            id: id,
+            parent_id: parent_id,
+            no_children: false,
+          )
+        rescue e
+          Log.error(exception: e) { {
+            action:    action.to_s,
+            index:     index,
+            id:        id,
+            parent_id: parent_id,
+            message:   "failed to write to document parent index",
+          } }
+        end
+      end
+    end
+
+    # Generates the body of a Bulk request for a RethinkDB document in ES
+    # - Creates document in table index
+    # - Adds document to all parent table indices, routing by the parent id
+    def self.bulk_action(action, document, index, parents = [] of Parent, no_children = true)
+      id = document.id.as(String)
       doc_type = self.document_type(document)
       attributes = document.attributes
 
@@ -250,12 +371,14 @@ module RubberSoul
           routing: parent_id
         )
 
+        raise "Missing document_any in bulk request" if document_any.nil?
+
         body = self.document_body(
-          document: document_any.not_nil!,
+          document: document_any,
           document_type: document_type,
           no_children: no_children,
           parent_id: parent_id,
-        )
+        ).to_json
 
         "#{header}\n#{self.update_body(body)}"
       when Action::Create
@@ -266,12 +389,14 @@ module RubberSoul
           routing: parent_id,
         )
 
+        raise "Missing document_any in bulk request" if document_any.nil?
+
         body = self.document_body(
-          document: document_any.not_nil!,
+          document: document_any,
           document_type: document_type,
           no_children: no_children,
           parent_id: parent_id
-        )
+        ).to_json
 
         "#{header}\n#{body}"
       when Action::Delete
@@ -310,7 +435,7 @@ module RubberSoul
     # _the bulk api sucks_
     #
     def self.update_body(document)
-      %({"doc": #{document}})
+      %({"doc": #{document}, "doc_as_upsert": true})
     end
 
     # Create a join field for a document body
@@ -320,16 +445,52 @@ module RubberSoul
       parent_id ? {name: document_type, parent: parent_id} : document_type
     end
 
+    # Single request upsert
+    def self.single_upsert(index : String, id : String, document, routing : String? = nil)
+      body = {
+        doc:           document,
+        doc_as_upsert: true,
+      }
+
+      params = HTTP::Params{"routing" => routing || id}
+      path = "/#{index}/_update/#{id}?#{params}"
+
+      result = client &.post(
+        path,
+        headers: self.headers,
+        body: body.to_json,
+      )
+
+      unless result.success?
+        raise Error.new("ES Single request: #{body} #{result.body}")
+      end
+    end
+
+    # Single request delete
+    def self.single_delete(index : String, id : String, routing : String? = nil)
+      params = HTTP::Params{"routing" => routing || id}
+      path = "/#{index}/_doc/#{id}?#{params}"
+
+      result = client &.delete(
+        path,
+        headers: self.headers,
+      )
+
+      unless result.success?
+        raise Error.new("ES single request:##{result.body}")
+      end
+    end
+
     # Sets the type and join field, and generates body json
     #
-    private def self.document_body(document : Hash(String, JSON::Any), document_type, parent_id = nil, no_children = true) : String
+    private def self.document_body(document : Hash(String, JSON::Any), document_type, parent_id = nil, no_children = true)
       attributes = {} of String => String | NamedTuple(name: String, parent: String)
       attributes["type"] = document_type
 
       # Don't set a join field if there are no children on the index
       attributes["join"] = self.document_join_field(document_type, parent_id) unless no_children
 
-      document.merge(attributes).to_json
+      document.merge(attributes)
     end
 
     # ES API Calls
@@ -340,7 +501,6 @@ module RubberSoul
     # Throws on failure
     def self.bulk_operation(body)
       # Bulk requests must be newline terminated
-      body += "\n"
       result = client &.post(
         "_bulk",
         headers: self.headers,
