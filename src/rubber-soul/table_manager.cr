@@ -103,6 +103,8 @@ module RubberSoul
       backfill : Bool = false,
       watch : Bool = false
     )
+      Log.debug { {bulk_api: Elastic.bulk?, backfill: backfill, watch: watch, message: "starting TableManager"} }
+
       @models = klasses.map { |klass| TableManager.document_name(klass) }
 
       # Collate model properties
@@ -139,22 +141,18 @@ module RubberSoul
       Fiber.yield
     end
 
-    # Backfills from a model to all relevant indices
-    def backfill(model)
-      Log.info { {message: "backfilling", model: model.to_s} }
-
+    protected def bulk_backfill(model)
       index = index_name(model)
       parents = parents(model)
       no_children = children(model).empty?
 
       backfill_count = 0
-
       all(model).in_groups_of(100).to_a.map do |docs|
         future {
           actions = docs.compact_map do |d|
             next unless d
             backfill_count += 1
-            Elastic.document_request(
+            Elastic.bulk_action(
               action: Elastic::Action::Create,
               document: d,
               index: index,
@@ -171,7 +169,43 @@ module RubberSoul
           end
         }
       end.each &.get
-      Log.info { {method: "backfill", model: model.to_s, count: backfill_count} }
+    end
+
+    protected def single_requests_backfill(model)
+      index = index_name(model)
+      parents = parents(model)
+      no_children = children(model).empty?
+
+      count = 0
+      waiting = [] of Promise::DeferredPromise(Nil)
+      all(model).in_groups_of(100).each do |docs|
+        docs.each do |doc|
+          waiting << Promise.defer(same_thread: true) do
+            d = doc
+            unless d.nil?
+              count += 1
+              Elastic.single_action(
+                action: Elastic::Action::Create,
+                document: d,
+                index: index,
+                parents: parents,
+                no_children: no_children,
+              )
+            end
+          end
+        end
+        Promise.all(waiting).get
+        waiting.clear
+      end
+
+      count
+    end
+
+    # Backfills from a model to all relevant indices
+    def backfill(model)
+      Log.info { {message: "backfilling", model: model.to_s} }
+      count = Elastic.bulk? ? bulk_backfill(model) : single_requests_backfill(model)
+      Log.info { {method: "backfill", model: model.to_s, count: count} }
     end
 
     # Reindex
@@ -241,34 +275,35 @@ module RubberSoul
           changefeed.not_nil!.each do |change|
             event = change[:event]
             document = change[:value]
-            next if document.nil?
-
-            Log.debug { {method: "watch_table", event: event.to_s.downcase, model: model.to_s, document_id: document.id, parents: parents} }
-
             # Asynchronously mutate Elasticsearch
             spawn do
-              case event
-              when RethinkORM::Changefeed::Event::Deleted
-                Elastic.delete_document(
-                  index: index,
-                  document: document.not_nil!,
-                  parents: parents,
-                )
-              when RethinkORM::Changefeed::Event::Created
-                Elastic.create_document(
-                  index: index,
-                  document: document.not_nil!,
-                  parents: parents,
-                  no_children: no_children,
-                )
-              when RethinkORM::Changefeed::Event::Updated
-                Elastic.update_document(
-                  index: index,
-                  document: document.not_nil!,
-                  parents: parents,
-                  no_children: no_children,
-                )
-              else raise Error.new
+              unless document.nil?
+                Log.debug { {method: "watch_table", event: event.to_s.downcase, model: model.to_s, document_id: document.id, parents: parents} }
+
+                case event
+                when RethinkORM::Changefeed::Event::Deleted
+                  Elastic.delete_document(
+                    index: index,
+                    document: document,
+                    parents: parents,
+                  )
+                when RethinkORM::Changefeed::Event::Created
+                  Elastic.create_document(
+                    index: index,
+                    document: document,
+                    parents: parents,
+                    no_children: no_children,
+                  )
+                when RethinkORM::Changefeed::Event::Updated
+                  Elastic.update_document(
+                    index: index,
+                    document: document,
+                    parents: parents,
+                    no_children: no_children,
+                  )
+                else raise Error.new
+                end
+                Fiber.yield
               end
             rescue e
               Log.warn(exception: e) { {message: "error while watching table", event: event.to_s.downcase} }

@@ -96,6 +96,8 @@ def es_document_count(index)
   response_body["count"].as_i
 end
 
-def es_doc_exists?(index, id, routing)
-  RubberSoul::Elastic.client &.get("/#{index}/_doc/#{id}").success?
+def es_doc_exists?(index, id, routing = nil)
+  params = HTTP::Params.new
+  params["routing"] = routing unless routing.nil?
+  RubberSoul::Elastic.client &.get("/#{index}/_doc/#{id}?#{params}").success?
 end
