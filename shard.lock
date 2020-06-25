@@ -58,7 +58,7 @@ shards:
 
   neuroplastic:
     git: https://github.com/spider-gazelle/neuroplastic.git
-    version: 1.5.0
+    version: 1.6.0
 
   openssl_ext:
     git: https://github.com/stakach/openssl_ext.git
@@ -66,19 +66,27 @@ shards:
 
   placeos-models:
     git: https://github.com/placeos/models.git
-    version: 2.1.1
+    version: 2.1.2
 
   promise:
     git: https://github.com/spider-gazelle/promise.git
     version: 2.2.0
 
   rethinkdb:
-    git: https://github.com/place-labs/crystal-rethinkdb.git
-    version: 1.0.0
+    git: https://github.com/kingsleyh/crystal-rethinkdb.git
+    version: 0.2.0
 
   rethinkdb-orm:
     git: https://github.com/spider-gazelle/rethinkdb-orm.git
-    version: 2.9.1
+    version: 2.9.2
+
+  retriable:
+    git: https://github.com/sija/retriable.cr.git
+    version: 0.2.2
+
+  secrets-env:
+    git: https://github.com/place-labs/secrets-env.git
+    version: 1.0.0
 
   simple_retry:
     git: https://github.com/spider-gazelle/simple_retry.git

@@ -1,5 +1,5 @@
 name: rubber-soul
-version: 1.11.0
+version: 1.11.1
 license: MIT
 
 authors:
@@ -42,6 +42,9 @@ dependencies:
   simple_retry:
     github: spider-gazelle/simple_retry
     version: ~> 1
+
+  secrets-env:
+    github: place-labs/secrets-env
 
 development_dependencies:
   ameba:

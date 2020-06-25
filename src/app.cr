@@ -5,8 +5,8 @@ require "rethinkdb-orm"
 require "./constants"
 
 # Server defaults
-server_host = ENV["RUBBER_SOUL_HOST"]? || "127.0.0.1"
-server_port = ENV["RUBBER_SOUL_PORT"]?.try(&.to_i) || 3000
+server_host = RubberSoul::HOST
+server_port = RubberSoul::PORT
 
 cluster = false
 process_count = 1
