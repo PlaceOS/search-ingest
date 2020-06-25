@@ -10,17 +10,17 @@ module RubberSoul
     Log = ::Log.for("rubber-soul.elastic")
 
     # Whether or not to use the bulk api
-    class_property? bulk : Bool = !(ENV["ES_DISABLE_BULK"]? == "true")
+    class_property? bulk : Bool = ES_DISABLE_BULK
 
     # Settings for elastic client
     Habitat.create do
-      setting uri : URI? = ENV["ES_URI"]?.try(&->URI.parse(String))
-      setting host : String = ENV["ES_HOST"]? || "localhost"
-      setting port : Int32 = ENV["ES_PORT"]?.try(&.to_i) || 9200
-      setting tls : Bool = ENV["ES_TLS"]? == "true"
-      setting pool_size : Int32 = ENV["ES_CONN_POOL"]?.try(&.to_i) || RubberSoul::MANAGED_TABLES.size
-      setting idle_pool_size : Int32 = ENV["ES_IDLE_POOL"]?.try(&.to_i) || (RubberSoul::MANAGED_TABLES.size // 4)
-      setting pool_timeout : Float64 = ENV["ES_CONN_POOL_TIMEOUT"]?.try(&.to_f64) || 5.0
+      setting uri : URI? = ES_URI
+      setting host : String = ES_HOST
+      setting port : Int32 = ES_PORT
+      setting tls : Bool = ES_TLS
+      setting pool_size : Int32 = ES_CONN_POOL || RubberSoul::MANAGED_TABLES.size
+      setting idle_pool_size : Int32 = ES_IDLE_POOL || (RubberSoul::MANAGED_TABLES.size // 4)
+      setting pool_timeout : Float64 = ES_CONN_POOL_TIMEOUT
     end
 
     forward_missing_to @client
@@ -34,8 +34,7 @@ module RubberSoul
       if uri.nil?
         @client = HTTP::Client.new(host: host, port: port, tls: tls)
       else
-        # FIXME: use habitat settings, setting is not coming from env
-        if ENV["ES_TLS"]? == "true"
+        if ES_TLS
           context = OpenSSL::SSL::Context::Client.new
           context.verify_mode = OpenSSL::SSL::VerifyMode::NONE
         end
