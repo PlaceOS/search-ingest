@@ -37,7 +37,7 @@ dependencies:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    version: ~> 2.9
+    version: ~> 2.9, >= 2.9.2
 
   simple_retry:
     github: spider-gazelle/simple_retry
