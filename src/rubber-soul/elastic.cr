@@ -2,6 +2,7 @@ require "db"
 require "habitat"
 require "http"
 
+require "../constants"
 require "./error"
 require "./types"
 
