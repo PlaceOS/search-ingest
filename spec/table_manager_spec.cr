@@ -126,10 +126,10 @@ module RubberSoul
       describe "watch" do
         it "creates ES documents from changefeed" do
           Elastic.bulk = bulk
-          tm = TableManager.new(backfill: false, watch: true)
+          tm = TableManager.new(backfill: true, watch: true)
           index = Programmer.table_name
 
-          count_before_create = es_document_count(index)
+          count_before_create = Programmer.count
           prog = Programmer.create!(name: "Rob Pike")
 
           until_expected(count_before_create + 1) do
@@ -148,10 +148,10 @@ module RubberSoul
       it "reindexes indices" do
         Elastic.bulk = bulk
         # Start non-watching table_manager
-        tm = TableManager.new
+        tm = TableManager.new(backfill: true, watch: false)
 
         index = Programmer.table_name
-        count_before_create = es_document_count(index)
+        count_before_create = Programmer.count
 
         # Place some data in rethinkdb
         num_created = 3
