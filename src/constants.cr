@@ -10,7 +10,7 @@ module RubberSoul
 
   # calculate version at compile time
   VERSION = {{ `shards version "#{__DIR__}"`.chomp.stringify.downcase }}
-  PROD    = ENV["ENV"]? == "production"
+  PROD    = (ENV["ENV"]? || ENV["SG_ENV"]?) == "production"
 
   # server defaults in `./app.cr`
   HOST = ENV["RUBBER_SOUL_HOST"]? || "127.0.0.1"
