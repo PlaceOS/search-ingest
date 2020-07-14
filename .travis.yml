@@ -19,5 +19,6 @@ before_script:
 
 script:
   - crystal spec -v --error-trace
+  - crystal spec -Dpreview_mt -v --error-trace
   - bin/ameba
   - crystal tool format --check
