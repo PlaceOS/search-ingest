@@ -1,5 +1,7 @@
 # rubber-soul
 
+[![Build Status](https://travis-ci.com/placeos/rubber-soul.svg?branch=master)](https://travis-ci.com/placeos/rubber-soul)
+
 A small (one might even say 'micro') service that hooks into [rethinkdb-orm](https://github.com/spider-gazelle/rethinkdb-orm) models and generates elasticsearch indicies.  
 `rubber-soul` exposes a REST API to reindex/backfill specific models.
 

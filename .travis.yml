@@ -18,6 +18,6 @@ before_script:
   - sleep 10
 
 script:
-  - crystal spec
+  - crystal spec -v --error-trace
   - bin/ameba
   - crystal tool format --check
