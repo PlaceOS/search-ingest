@@ -34,6 +34,16 @@ Healthcheck.
 
 `RubberSoul::TableManager` hooks into the changefeed of a table, resolves associations of the model and creates/updates documents in the appropriate ES indices.
 
+## Configuration
+
+- `ENV`: a value of `production` lowers log verbosity
+- `ES_HOST`: elasticsearch host
+- `ES_PORT`: elasticsearch port
+- `ES_TLS`: use elasticsearch https, default is `false`
+- `ES_URI`: elasticsearch uri, detects whether to use TLS off schema
+- `RUBBER_SOUL_HOST`: host to bind server to
+- `RUBBER_SOUL_PORT`: port for server to listen on
+
 ## Development
 
 Tested against...
