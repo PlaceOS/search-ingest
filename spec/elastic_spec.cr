@@ -38,8 +38,6 @@ module RubberSoul
         parent_index_path = Elastic.document_path(index: parent_index, id: child.id)
         parent_index_doc = JSON.parse(Elastic.client &.get(parent_index_path).body)
 
-        pp! parent_index_doc
-
         # Ensure child is routed via parent in parent table
         parent_index_doc["_routing"].to_s.should eq child.programmer_id
         parent_index_doc["_source"]["type"].should eq child_name

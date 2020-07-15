@@ -129,8 +129,13 @@ module RubberSoul
           tm = TableManager.new(backfill: true, watch: true)
           index = Programmer.table_name
 
+          sleep 0.5
+
           count_before_create = Programmer.count
+
           prog = Programmer.create!(name: "Rob Pike")
+
+          Fiber.yield
 
           until_expected(count_before_create + 1) do
             es_document_count(index)
