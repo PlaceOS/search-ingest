@@ -13,7 +13,7 @@ module RubberSoul
   class TableManager
     Log = ::Log.for("rubber-soul").for("table_manager")
 
-    alias Property = Tuple(Symbol, NamedTuple(type: String))
+    alias Property = Tuple(Symbol, NamedTuple(type: String) | NamedTuple(type: String, fields: Hash(String, NamedTuple(type: String))))
 
     # Map class name to model properties
     getter properties : Hash(String, Array(Property)) = {} of String => Array(Property)
@@ -408,25 +408,57 @@ module RubberSoul
     # Property Generation
     #############################################################################################
 
+    def parse_attribute_type(klass, tag : String?)
+      if tag.nil?
+        # Map the klass of field to es_type
+        es_type = klass_to_es_type(klass)
+        # Could the klass be mapped?
+        es_type ? {type: es_type} : nil
+      else
+        if !valid_es_type?(tag)
+          nil
+        else
+          {type: tag}
+        end
+      end
+    end
+
+    def parse_subfield(subfield : String)
+      if valid_es_type?(subfield)
+        {fields: {subfield => {type: subfield}}}
+      end
+    end
+
     # Now that we are generating joins on the parent_id, we need to specify if we are generating
     # a child or a single document
     # Maps from crystal types to Elasticsearch field datatypes
     def generate_index_properties(model, child = false) : Array(Property)
       document_name = TableManager.document_name(model)
+
       properties = MODEL_METADATA[document_name][:attributes].compact_map do |field, options|
         type_tag = options.dig?(:tags, :es_type)
-        if type_tag
-          if !type_tag.is_a?(String) || !valid_es_type?(type_tag)
-            raise Error.new("Invalid ES type '#{type_tag}' for #{field} of #{model}")
-          end
-          {field, {type: type_tag}}
+        subfield = options.dig?(:tags, :es_subfield)
+
+        type_mapping = parse_attribute_type(options[:klass], type_tag)
+
+        if type_mapping.nil?
+          Log.error { "Invalid ES type '#{type_tag}' for #{field} of #{model}" }
+          nil
         else
-          # Map the klass of field to es_type
-          es_type = klass_to_es_type(options[:klass])
-          # Could the klass be mapped?
-          es_type ? {field, {"type": es_type}} : nil
+          if subfield
+            subfield_mapping = parse_subfield(subfield)
+            if subfield_mapping.nil?
+              Log.error { "Invalid ES subfield type '#{subfield}' for #{subfield} of #{model}" }
+            else
+              # Merge the subfield mapping
+              type_mapping = type_mapping.merge(subfield_mapping)
+            end
+          end
+
+          {field, type_mapping}
         end
       end
+
       properties << TYPE_PROPERTY
     end
 
