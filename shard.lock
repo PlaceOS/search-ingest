@@ -6,19 +6,19 @@ shards:
 
   action-controller:
     git: https://github.com/spider-gazelle/action-controller.git
-    version: 3.3.0
+    version: 3.4.0
 
   active-model:
     git: https://github.com/spider-gazelle/active-model.git
-    version: 1.8.4
+    version: 2.0.0
 
   ameba:
     git: https://github.com/crystal-ameba/ameba.git
-    version: 0.13.0
+    version: 0.13.1
 
   bindata:
     git: https://github.com/spider-gazelle/bindata.git
-    version: 1.5.5
+    version: 1.5.6
 
   cron_parser:
     git: https://github.com/kostya/cron_parser.git
@@ -35,6 +35,10 @@ shards:
   habitat:
     git: https://github.com/luckyframework/habitat.git
     version: 0.4.4
+
+  http-params-serializable:
+    git: https://github.com/vladfaust/http-params-serializable.git
+    version: 0.4.0
 
   json_mapping:
     git: https://github.com/crystal-lang/json_mapping.cr.git
@@ -54,7 +58,7 @@ shards:
 
   neuroplastic:
     git: https://github.com/spider-gazelle/neuroplastic.git
-    version: 1.6.1
+    version: 1.6.3
 
   openssl_ext:
     git: https://github.com/stakach/openssl_ext.git
@@ -62,7 +66,7 @@ shards:
 
   placeos-models:
     git: https://github.com/placeos/models.git
-    version: 3.1.1
+    version: 4.0.0
 
   promise:
     git: https://github.com/spider-gazelle/promise.git
@@ -74,7 +78,7 @@ shards:
 
   rethinkdb-orm:
     git: https://github.com/spider-gazelle/rethinkdb-orm.git
-    version: 2.10.1
+    version: 3.0.0
 
   retriable:
     git: https://github.com/sija/retriable.cr.git
