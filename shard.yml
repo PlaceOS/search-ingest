@@ -1,5 +1,5 @@
 name: rubber-soul
-version: 1.12.3
+version: 1.13.0
 license: MIT
 
 authors:
@@ -29,7 +29,7 @@ dependencies:
 
   placeos-models:
     github: placeos/models
-    version: ~> 3.0
+    version: ~> 4.0
 
   promise:
     github: spider-gazelle/promise
@@ -37,7 +37,6 @@ dependencies:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    version: ~> 2.10
 
   simple_retry:
     github: spider-gazelle/simple_retry
