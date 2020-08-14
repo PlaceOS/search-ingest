@@ -50,6 +50,7 @@ module RubberSoul
               attributes: {
               {% for attr, options in fields %}
                 {% options[:klass] = options[:klass].resolve if options[:klass].is_a?(Path) %}
+                {% options[:klass] = options[:klass].union_types.reject { |t| t.nilable? }.first if !options[:klass].is_a?(StringLiteral) && options[:klass].union? %}
                 {% options[:klass] = options[:klass].stringify unless options[:klass].is_a?(StringLiteral) %}
                 {{ attr.symbolize }} => {{ options }},
               {% end %}
