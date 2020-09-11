@@ -170,6 +170,8 @@ module RubberSoul
           end
         }
       end.each &.get
+
+      backfill_count
     end
 
     protected def single_requests_backfill(model)
