@@ -485,7 +485,7 @@ module RubberSoul
     #
     private def self.document_body(document : Hash(String, JSON::Any), document_type, parent_id = nil, no_children = true)
       attributes = {} of String => String | NamedTuple(name: String, parent: String)
-      attributes["type"] = document_type
+      attributes["_document_type"] = document_type
 
       # Don't set a join field if there are no children on the index
       attributes["join"] = self.document_join_field(document_type, parent_id) unless no_children
