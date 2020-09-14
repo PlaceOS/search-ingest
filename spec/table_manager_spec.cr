@@ -51,7 +51,7 @@ module RubberSoul
 
         # Check that the path to a field mapping exists
         json = JSON.parse(schema)
-        json.dig?("mappings", "properties", "breaks", "type").should_not be_nil
+        json.dig?("mappings", "properties", "_document_type").should_not be_nil
       end
 
       describe "elasticsearch properties" do
@@ -72,13 +72,13 @@ module RubberSoul
           tm = TableManager.new([RayGun])
           mappings = tm.properties["RayGun"].sort_by { |p| p[0] }
           mappings.should eq ([
+            TableManager::TYPE_PROPERTY,
             {:barrel_length, {type: "float"}},
             {:id, {type: "keyword"}},
             {:ip, {type: "ip"}},
             {:laser_colour, {type: "text"}},
             {:last_shot, {type: "date"}},
             {:rounds, {type: "integer"}},
-            TableManager::TYPE_PROPERTY,
           ])
         end
 
@@ -87,13 +87,13 @@ module RubberSoul
           children = tm.children(Programmer)
           mappings = tm.collect_index_properties(Programmer, children)
           mappings.should eq ({
-            :created_at    => {type: "date"},
-            :duration      => {type: "date"},
-            :id            => {type: "keyword"},
-            :name          => {type: "text"},
-            :programmer_id => {type: "keyword"},
-            :temperature   => {type: "integer"},
-            :type          => {type: "keyword"},
+            :_document_type => {type: "keyword"},
+            :created_at     => {type: "date"},
+            :duration       => {type: "date"},
+            :id             => {type: "keyword"},
+            :name           => {type: "text"},
+            :programmer_id  => {type: "keyword"},
+            :temperature    => {type: "integer"},
           })
         end
       end
@@ -126,25 +126,26 @@ module RubberSoul
       describe "watch" do
         it "creates ES documents from changefeed" do
           Elastic.bulk = bulk
+          Programmer.clear
+          sleep 0.1
+
           tm = TableManager.new(backfill: true, watch: true)
           index = Programmer.table_name
 
           sleep 0.5
 
-          count_before_create = Programmer.count
-
           prog = Programmer.create!(name: "Rob Pike")
 
           Fiber.yield
 
-          until_expected(count_before_create + 1) do
+          until_expected(1) do
             es_document_count(index)
           end.should be_true
 
           tm.stop
           prog.destroy
 
-          until_expected(count_before_create + 1) do
+          until_expected(1) do
             es_document_count(index)
           end.should be_true
         end

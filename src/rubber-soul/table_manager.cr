@@ -497,7 +497,7 @@ module RubberSoul
     end
 
     # Allows several document types beneath a single index
-    TYPE_PROPERTY = {:type, {type: "keyword"}}
+    TYPE_PROPERTY = {:_document_type, {type: "keyword"}}
 
     # Valid elasticsearch field datatypes
     private ES_TYPES = {

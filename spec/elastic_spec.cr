@@ -40,10 +40,10 @@ module RubberSoul
 
         # Ensure child is routed via parent in parent table
         parent_index_doc["_routing"].to_s.should eq child.programmer_id
-        parent_index_doc["_source"]["type"].should eq child_name
+        parent_index_doc["_source"]["_document_type"].should eq child_name
 
-        # Pick off "type" and "join" fields, convert to any for easy comparison
-        es_document = JSON.parse(parent_index_doc["_source"].as_h.reject("type", "join").to_json)
+        # Pick off "_document_type" and "join" fields, convert to any for easy comparison
+        es_document = JSON.parse(parent_index_doc["_source"].as_h.reject("_document_type", "join").to_json)
         local_document = JSON.parse(child.to_json)
 
         # Ensure document is the same across indices
@@ -146,10 +146,10 @@ module RubberSoul
 
           # Ensure child is routed via parent in parent table
           doc["_routing"].to_s.should eq model.id
-          doc["_source"]["type"].should eq model_name
+          doc["_source"]["_document_type"].should eq model_name
 
-          # Pick off "type" and "join" fields, convert to any for easy comparison
-          es_document = JSON.parse(doc["_source"].as_h.reject("type", "join").to_json)
+          # Pick off "_document_type" and "join" fields, convert to any for easy comparison
+          es_document = JSON.parse(doc["_source"].as_h.reject("_document_type", "join").to_json)
           local_document = JSON.parse(model.attributes.to_json)
 
           # Ensure local document is replicated in elasticsearch
@@ -212,10 +212,10 @@ module RubberSoul
 
         # Ensure child is routed via parent in parent table
         parent_index_doc["_routing"].to_s.should eq child.programmer_id
-        parent_index_doc["_source"]["type"].should eq child_name
+        parent_index_doc["_source"]["_document_type"].should eq child_name
 
-        # Pick off "type" and "join" fields, convert to any for easy comparison
-        es_document = JSON.parse(parent_index_doc["_source"].as_h.reject("type", "join").to_json)
+        # Pick off "_document_type" and "join" fields, convert to any for easy comparison
+        es_document = JSON.parse(parent_index_doc["_source"].as_h.reject("_document_type", "join").to_json)
         local_document = JSON.parse(child.to_json)
 
         # Ensure document is the same across indices
@@ -320,10 +320,10 @@ module RubberSoul
 
           # Ensure child is routed via parent in parent table
           doc["_routing"].to_s.should eq model.id
-          doc["_source"]["type"].should eq model_name
+          doc["_source"]["_document_type"].should eq model_name
 
-          # Pick off "type" and "join" fields, convert to any for easy comparison
-          es_document = JSON.parse(doc["_source"].as_h.reject("type", "join").to_json)
+          # Pick off "_document_type" and "join" fields, convert to any for easy comparison
+          es_document = JSON.parse(doc["_source"].as_h.reject("_document_type", "join").to_json)
           local_document = JSON.parse(model.attributes.to_json)
 
           # Ensure local document is replicated in elasticsearch
