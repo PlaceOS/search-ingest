@@ -409,7 +409,7 @@ module RubberSoul
       end.not_nil! # Crystal should check for enum exhaustion in case statements.
     end
 
-    # Generates the header for an es action, preceeds an optional document
+    # Generates the header for an es action, precedes an optional document
     #
     def self.bulk_action_header(action : Action, index : String, id : String, routing : String? = nil)
       routing = id unless routing
@@ -518,7 +518,7 @@ module RubberSoul
       client &.delete("/_all").success?
     end
 
-    # Checks availablity of RethinkDB and Elasticsearch
+    # Checks availability of RethinkDB and Elasticsearch
     #
     def self.ensure_elastic!
       response = client &.get("/")
@@ -560,7 +560,7 @@ module RubberSoul
       headers
     end
 
-    # Constucts the ES path of a document
+    # Constructs the ES path of a document
     #
     def self.document_path(index, id, routing = nil)
       # When routing not specified, route by document id

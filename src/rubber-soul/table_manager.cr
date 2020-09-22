@@ -204,7 +204,7 @@ module RubberSoul
       count
     end
 
-    # Backfills from a model to all relevant indices
+    # Backfills from a model to all relevent indices
     def backfill(model)
       Log.info { {message: "backfilling", model: model.to_s} }
       count = Elastic.bulk? ? bulk_backfill(model) : single_requests_backfill(model)
