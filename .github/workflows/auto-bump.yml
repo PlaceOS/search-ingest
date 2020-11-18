@@ -1,0 +1,20 @@
+name: Bump shards
+on:
+  workflow_dispatch:
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout master
+      - uses: actions/checkout@v2
+        with:
+          ref: master
+      # Install crystal and shards update
+      - uses: oprypin/install-crystal@v1
+      - run: shards update
+      # Commit changes
+      - name: push
+        uses: github-actions-x/commit@v2.7
+        push-branch: 'build/shards-bump'
+        commit-message: 'build: bump shards'
+        files: shard.lock
