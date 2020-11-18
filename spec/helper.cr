@@ -1,7 +1,6 @@
 require "json"
 require "promise"
 require "simple_retry"
-require "spec"
 
 # Application config
 require "./spec_config"
@@ -11,6 +10,8 @@ require "../src/api"
 
 # Helper methods for testing controllers (curl, with_server, context)
 require "../lib/action-controller/spec/curl_context"
+
+require "spec"
 
 macro table_names
   [{% for klass in RubberSoul::MANAGED_TABLES %} {{ klass }}.table_name, {% end %}]

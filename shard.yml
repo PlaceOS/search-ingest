@@ -35,6 +35,10 @@ dependencies:
     github: spider-gazelle/promise
     version: ~> 2.1
 
+  rethinkdb:
+    github: kingsleyh/crystal-rethinkdb
+    version: ~> 0.2
+
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
 
