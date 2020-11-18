@@ -15,6 +15,7 @@ jobs:
       # Commit changes
       - name: push
         uses: github-actions-x/commit@v2.7
-        push-branch: 'build/shards-bump'
-        commit-message: 'build: bump shards'
-        files: shard.lock
+        with:
+          push-branch: 'build/shards-bump'
+          commit-message: 'build: bump shards'
+          files: shard.lock
