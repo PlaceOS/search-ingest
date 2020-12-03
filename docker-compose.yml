@@ -1,0 +1,47 @@
+version: "3.7"
+
+# YAML Anchors
+
+x-deployment-env: &deployment-env
+  ENV: ${ENV:-development}
+  SG_ENV: ${SG_ENV:-development}
+  TZ: $TZ
+
+x-elastic-client-env: &elastic-client-env
+  ES_HOST: ${ELASTIC_HOST:-elastic}
+  ES_PORT: ${ELASTIC_PORT:-9200}
+
+x-rethinkdb-client-env: &rethinkdb-client-env
+  RETHINKDB_HOST: ${RETHINKDB_HOST:-rethink}
+  RETHINKDB_PORT: ${RETHINKDB_PORT:-28015}
+  RETHINKDB_DB: ${RETHINKDB_DB:-place_development}
+
+x-rubber-soul-client-env: &rubber-soul-client-env
+  RUBBER_SOUL_URI: ${RUBBER_SOUL_URI:-http://rubber-soul:3000}
+
+services:
+  elastic:
+    image: blacktop/elasticsearch:${ELASTIC_VERSION:-7.6}
+    restart: always
+    environment:
+      discovery.type: single-node
+
+  rethink:
+    image: rethinkdb:${RETHINKDB_VERSION:-2.4}
+    restart: always
+    hostname: rethink
+
+  rubber-soul:
+    build:
+      context: ./
+      dockerfile: Dockerfile.test
+    hostname: rubber-soul
+    depends_on:
+      - elastic
+      - rethink
+    environment:
+      # Service Hosts
+      <<: *rethinkdb-client-env
+      <<: *elastic-client-env
+      # Environment
+      <<: *deployment-env

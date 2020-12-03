@@ -66,7 +66,7 @@ shards:
 
   placeos-models:
     git: https://github.com/placeos/models.git
-    version: 4.5.3
+    version: 4.7.0
 
   promise:
     git: https://github.com/spider-gazelle/promise.git
@@ -78,7 +78,7 @@ shards:
 
   rethinkdb-orm:
     git: https://github.com/spider-gazelle/rethinkdb-orm.git
-    version: 3.1.1
+    version: 3.1.2
 
   retriable:
     git: https://github.com/Sija/retriable.cr.git
