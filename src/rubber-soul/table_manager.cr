@@ -583,7 +583,7 @@ module RubberSoul
           options = attr_data[:tags]
           !!(options && options[:parent]?.try { |p| p == document_name })
         end
-        name if is_child
+        name if is_child && MODEL_METADATA.has_key?(name)
       end
     end
 

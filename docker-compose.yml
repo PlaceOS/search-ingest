@@ -35,6 +35,9 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile.test
+    volumes:
+      - ./spec:/app/spec
+      - ./src:/app/src
     hostname: rubber-soul
     depends_on:
       - elastic

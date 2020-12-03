@@ -8,7 +8,6 @@ crystal tool format --check
 echo '### `ameba`'
 crystal lib/ameba/bin/ameba.cr
 
-
 watch="false"
 multithreaded="false"
 while [[ $# -gt 0 ]]
