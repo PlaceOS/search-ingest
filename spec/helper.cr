@@ -25,6 +25,7 @@ Spec.before_suite &->cleanup
 Spec.after_suite &->cleanup
 
 def until_expected(expected)
+  RubberSoul::Elastic.client &.post("/_refresh")
   before = Time.utc
   success = begin
     SimpleRetry.try_to(
