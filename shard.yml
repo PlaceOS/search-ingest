@@ -1,5 +1,5 @@
 name: rubber-soul
-version: 1.15.2
+version: 1.15.3
 license: MIT
 
 authors:
@@ -12,7 +12,7 @@ targets:
 dependencies:
   action-controller:
     github: spider-gazelle/action-controller
-    version: ~> 3.0
+    version: ~> 3.5
 
   db:
     github: crystal-lang/crystal-db
