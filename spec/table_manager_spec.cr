@@ -127,12 +127,12 @@ module RubberSoul
         it "creates ES documents from changefeed" do
           Elastic.bulk = bulk
           Programmer.clear
-          sleep 0.1
+          refresh
 
           tm = TableManager.new(backfill: true, watch: true)
           index = Programmer.table_name
 
-          sleep 0.5
+          refresh
 
           prog = Programmer.create!(name: "Rob Pike")
 

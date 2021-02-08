@@ -267,14 +267,17 @@ module RubberSoul
                   nil
                 end
 
-      self.single_request(
-        action: action,
-        document_any: doc_any,
-        document_type: doc_type,
-        index: index,
-        id: id,
-        no_children: no_children
-      )
+      # Skip replication to own index if the document type is self-associated
+      unless parents.any? { |p| p[:index] == index }
+        self.single_request(
+          action: action,
+          document_any: doc_any,
+          document_type: doc_type,
+          index: index,
+          id: id,
+          no_children: no_children
+        )
+      end
 
       # Actions to mutate all parent indices
       parents.each do |parent|

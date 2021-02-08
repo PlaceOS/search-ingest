@@ -4,7 +4,6 @@ require "./spec_models"
 
 # stdlib
 require "http"
-require "logger"
 
 # Application code
 require "../src/api"

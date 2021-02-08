@@ -55,7 +55,7 @@ shards:
 
   lucky_router:
     git: https://github.com/luckyframework/lucky_router.git
-    version: 0.4.0
+    version: 0.4.1
 
   neuroplastic:
     git: https://github.com/spider-gazelle/neuroplastic.git
