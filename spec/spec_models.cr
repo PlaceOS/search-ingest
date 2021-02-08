@@ -36,4 +36,18 @@ class Migraine < AbstractBase
   belongs_to Programmer
 end
 
-RubberSoul::MANAGED_TABLES = [RayGun, Programmer, Broke, Beverage::Coffee, Migraine]
+class SelfReferential < AbstractBase
+  table :selfref
+  attribute name : String
+
+  belongs_to SelfReferential, foreign_key: "parent_id", association_name: "parent"
+
+  has_many(
+    child_class: SelfReferential,
+    collection_name: "children",
+    foreign_key: "parent_id",
+    dependent: :destroy
+  )
+end
+
+RubberSoul::MANAGED_TABLES = [RayGun, Programmer, Broke, Beverage::Coffee, Migraine, SelfReferential]

@@ -226,7 +226,7 @@ module RubberSoul
       no_children : Bool = true
     )
       case action
-      when Action::Update, Action::Create
+      in .update?, .create?
         body = self.document_body(
           document: document_any.not_nil!,
           document_type: document_type,
@@ -240,12 +240,20 @@ module RubberSoul
           document: body,
           routing: parent_id,
         )
-      when Action::Delete
+      in .delete?
         self.single_delete(
           index: index,
           id: id,
           routing: parent_id,
         )
+      end
+    end
+
+    # Skip replication to own index if the document type is self-associated and has a parent
+    #
+    def self.skip_replication?(attributes, index : String, parents : Array(Parent))
+      parents.any? do |parent|
+        parent[:index] == index && !attributes[parent[:routing_attr]].to_s.empty?
       end
     end
 
@@ -259,16 +267,12 @@ module RubberSoul
 
       # FIXME: Please, I am very slow
       doc_any = case action
-                when Action::Create
-                  JSON.parse(document.to_json).as_h
-                when Action::Update
-                  JSON.parse(document.changed_json).as_h
-                else
-                  nil
+                in .create? then JSON.parse(document.to_json).as_h
+                in .update? then JSON.parse(document.changed_json).as_h
+                in .delete? then nil
                 end
 
-      # Skip replication to own index if the document type is self-associated
-      unless parents.any? { |p| p[:index] == index }
+      unless skip_replication?(attributes, index, parents)
         self.single_request(
           action: action,
           document_any: doc_any,
@@ -318,31 +322,35 @@ module RubberSoul
 
       # FIXME: Please, I am very slow
       doc_any = case action
-                when Action::Create
+                in .create?
                   JSON.parse(document.to_json).as_h
-                when Action::Update
+                in .update?
                   JSON.parse(document.changed_json).as_h
-                else
+                in .delete?
                   nil
                 end
 
-      document_action = self.bulk_request(
-        action: action,
-        document_any: doc_any,
-        document_type: doc_type,
-        index: index,
-        id: id,
-        no_children: no_children
-      )
+      actions = [] of String
+
+      unless skip_replication?(attributes, index, parents)
+        actions << self.bulk_request(
+          action: action,
+          document_any: doc_any,
+          document_type: doc_type,
+          index: index,
+          id: id,
+          no_children: no_children
+        )
+      end
 
       # Create actions to mutate all parent indices
-      parent_actions = parents.compact_map do |parent|
+      parents.each do |parent|
         # Get the parents id to route to correct es shard
         parent_id = attributes[parent[:routing_attr]].to_s
 
         next if parent_id.empty?
 
-        self.bulk_request(
+        actions << self.bulk_request(
           action: action,
           document_any: doc_any,
           document_type: doc_type,
@@ -353,7 +361,7 @@ module RubberSoul
         )
       end
 
-      {document_action, parent_actions.join('\n')}.join('\n')
+      actions.join('\n')
     end
 
     # Constructs the bulk request for a single ES document
@@ -367,7 +375,7 @@ module RubberSoul
       no_children : Bool = true
     )
       case action
-      when Action::Update
+      in .update?
         header = self.bulk_action_header(action: action,
           index: index,
           id: id,
@@ -384,7 +392,7 @@ module RubberSoul
         ).to_json
 
         "#{header}\n#{self.update_body(body)}"
-      when Action::Create
+      in .create?
         header = self.bulk_action_header(
           action: action,
           index: index,
@@ -402,7 +410,7 @@ module RubberSoul
         ).to_json
 
         "#{header}\n#{body}"
-      when Action::Delete
+      in .delete?
         self.bulk_action_header(
           action: action,
           index: index,

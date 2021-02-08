@@ -284,27 +284,26 @@ module RubberSoul
                 Log.debug { {method: "watch_table", event: event.to_s.downcase, model: model.to_s, document_id: document.id, parents: parents} }
 
                 case event
-                when RethinkORM::Changefeed::Event::Deleted
+                in .deleted?
                   Elastic.delete_document(
                     index: index,
                     document: document,
                     parents: parents,
                   )
-                when RethinkORM::Changefeed::Event::Created
+                in .created?
                   Elastic.create_document(
                     index: index,
                     document: document,
                     parents: parents,
                     no_children: no_children,
                   )
-                when RethinkORM::Changefeed::Event::Updated
+                in .updated?
                   Elastic.update_document(
                     index: index,
                     document: document,
                     parents: parents,
                     no_children: no_children,
                   )
-                else raise Error.new
                 end
                 Fiber.yield
               end
