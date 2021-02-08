@@ -7,47 +7,92 @@ module RubberSoul
     end
 
     describe "single" do
-      it "routes to correct parent documents" do
-        Elastic.bulk = false
-        tm = TableManager.new(backfill: false, watch: false)
+      describe "assocations" do
+        it "does not requests on self-associated index" do
+          Elastic.bulk = false
+          tm = TableManager.new(backfill: false, watch: false)
 
-        child_index = Beverage::Coffee.table_name
-        child_name = TableManager.document_name(Beverage::Coffee)
-        parent_index = Programmer.table_name
+          index = SelfReferential.table_name
+          child_name = TableManager.document_name(SelfReferential)
 
-        parent = Programmer.new(name: "Knuth")
-        parent.id = RethinkORM::IdGenerator.next(parent)
+          parent = SelfReferential.new(name: "GNU")
+          parent.id = RethinkORM::IdGenerator.next(parent)
 
-        child = Beverage::Coffee.new
-        child.programmer = parent
-        child.id = RethinkORM::IdGenerator.next(child)
+          child = SelfReferential.new(name: "GNU's Not Unix")
+          child.parent = parent
+          child.id = RethinkORM::IdGenerator.next(child)
 
-        # Save a child document in child and parent indices
-        Elastic.single_action(
-          action: Elastic::Action::Create,
-          document: child,
-          index: child_index,
-          parents: tm.parents(child_name),
-          no_children: tm.children(child_name).empty?,
-        )
+          # Save a child document in child and parent indices
+          Elastic.single_action(
+            action: Elastic::Action::Create,
+            document: child,
+            index: index,
+            parents: tm.parents(child_name),
+            no_children: tm.children(child_name).empty?,
+          )
 
-        until_expected(true) do
-          es_doc_exists?(parent_index, child.id)
+          until_expected(true) do
+            es_doc_exists?(index, child.id)
+          end.should be_true
+
+          parent_index_path = Elastic.document_path(index: index, id: child.id)
+          parent_index_doc = JSON.parse(Elastic.client &.get(parent_index_path).body)
+
+          # Ensure child is routed via parent in parent table
+          parent_index_doc["_routing"].to_s.should eq child.parent_id
+          parent_index_doc["_source"]["_document_type"].should eq child_name
+
+          # Pick off "_document_type" and "join" fields, convert to any for easy comparison
+          es_document = JSON.parse(parent_index_doc["_source"].as_h.reject("_document_type", "join").to_json)
+          local_document = JSON.parse(child.to_json)
+
+          # Ensure document is the same across indices
+          es_document.should eq local_document
+          es_document_count(index).should eq 1
         end
 
-        parent_index_path = Elastic.document_path(index: parent_index, id: child.id)
-        parent_index_doc = JSON.parse(Elastic.client &.get(parent_index_path).body)
+        it "routes to correct parent documents" do
+          Elastic.bulk = false
+          tm = TableManager.new(backfill: false, watch: false)
 
-        # Ensure child is routed via parent in parent table
-        parent_index_doc["_routing"].to_s.should eq child.programmer_id
-        parent_index_doc["_source"]["_document_type"].should eq child_name
+          child_index = Beverage::Coffee.table_name
+          child_name = TableManager.document_name(Beverage::Coffee)
+          parent_index = Programmer.table_name
 
-        # Pick off "_document_type" and "join" fields, convert to any for easy comparison
-        es_document = JSON.parse(parent_index_doc["_source"].as_h.reject("_document_type", "join").to_json)
-        local_document = JSON.parse(child.to_json)
+          parent = Programmer.new(name: "Knuth")
+          parent.id = RethinkORM::IdGenerator.next(parent)
 
-        # Ensure document is the same across indices
-        es_document.should eq local_document
+          child = Beverage::Coffee.new
+          child.programmer = parent
+          child.id = RethinkORM::IdGenerator.next(child)
+
+          # Save a child document in child and parent indices
+          Elastic.single_action(
+            action: Elastic::Action::Create,
+            document: child,
+            index: child_index,
+            parents: tm.parents(child_name),
+            no_children: tm.children(child_name).empty?,
+          )
+
+          until_expected(true) do
+            es_doc_exists?(parent_index, child.id)
+          end
+
+          parent_index_path = Elastic.document_path(index: parent_index, id: child.id)
+          parent_index_doc = JSON.parse(Elastic.client &.get(parent_index_path).body)
+
+          # Ensure child is routed via parent in parent table
+          parent_index_doc["_routing"].to_s.should eq child.programmer_id
+          parent_index_doc["_source"]["_document_type"].should eq child_name
+
+          # Pick off "_document_type" and "join" fields, convert to any for easy comparison
+          es_document = JSON.parse(parent_index_doc["_source"].as_h.reject("_document_type", "join").to_json)
+          local_document = JSON.parse(child.to_json)
+
+          # Ensure document is the same across indices
+          es_document.should eq local_document
+        end
       end
 
       describe "crud operation" do
@@ -162,64 +207,122 @@ module RubberSoul
     end
 
     describe "bulk" do
-      it "routes to correct parent documents" do
-        Elastic.bulk = true
-        tm = TableManager.new(backfill: false, watch: false)
+      describe "associations" do
+        it "does not requests on self-associated index" do
+          Elastic.bulk = true
+          tm = TableManager.new(backfill: false, watch: false)
 
-        child_index = Beverage::Coffee.table_name
-        child_name = TableManager.document_name(Beverage::Coffee)
-        parent_index = Programmer.table_name
+          index = SelfReferential.table_name
+          child_name = TableManager.document_name(SelfReferential)
 
-        parent = Programmer.new(name: "Knuth")
-        parent.id = RethinkORM::IdGenerator.next(parent)
+          parent = SelfReferential.new(name: "GNU")
+          parent.id = RethinkORM::IdGenerator.next(parent)
 
-        child = Beverage::Coffee.new
-        child.programmer = parent
-        child.id = RethinkORM::IdGenerator.next(child)
+          child = SelfReferential.new(name: "GNU's Not Unix")
+          child.parent = parent
+          child.id = RethinkORM::IdGenerator.next(child)
 
-        # Save a child document in child and parent indices
-        bulk_request = Elastic.bulk_action(
-          action: Elastic::Action::Create,
-          document: child,
-          index: child_index,
-          parents: tm.parents(child_name),
-          no_children: tm.children(child_name).empty?,
-        )
+          # Save a child document in child and parent indices
+          bulk_request = Elastic.bulk_action(
+            action: Elastic::Action::Create,
+            document: child,
+            index: index,
+            parents: tm.parents(child_name),
+            no_children: tm.children(child_name).empty?,
+          )
 
-        Elastic.bulk_operation(bulk_request)
+          Elastic.bulk_operation(bulk_request)
 
-        headers, sources = bulk_request.split('\n').in_groups_of(2).transpose
-        child_header, parent_header = headers.compact.map { |h| JSON.parse(h)["create"] }
+          header, source = bulk_request.split('\n')
+          header = JSON.parse(header)["create"]
 
-        child_index_routing, parent_index_routing = sources.compact.map { |h| JSON.parse(h)["join"]? }
+          index_routing = JSON.parse(source)["join"]
 
-        child_index_routing.should be_nil
+          name_field = index_routing.not_nil!["name"]
+          parent_field = index_routing.not_nil!["parent"]
 
-        name_field = parent_index_routing.not_nil!["name"]
-        parent_field = parent_index_routing.not_nil!["parent"]
+          # Ensure correct join field
 
-        # Ensure correct join field
+          name_field.should eq TableManager.document_name(child.class)
+          parent_field.should eq parent.id
 
-        name_field.should eq TableManager.document_name(child.class)
-        parent_field.should eq parent.id
+          # Ensure child is routed via parent in parent table
+          header["routing"].to_s.should eq child.parent_id
 
-        # Ensure child is routed via parent in parent table
-        parent_header["routing"].to_s.should eq child.programmer_id
-        child_header["routing"].to_s.should eq child.id
+          index_path = Elastic.document_path(index: index, id: child.id)
+          index_doc = JSON.parse(Elastic.client &.get(index_path).body)
 
-        parent_index_path = Elastic.document_path(index: parent_index, id: child.id)
-        parent_index_doc = JSON.parse(Elastic.client &.get(parent_index_path).body)
+          # Ensure child is routed via parent in parent table
+          index_doc["_routing"].to_s.should eq child.parent_id
+          index_doc["_source"]["_document_type"].should eq child_name
 
-        # Ensure child is routed via parent in parent table
-        parent_index_doc["_routing"].to_s.should eq child.programmer_id
-        parent_index_doc["_source"]["_document_type"].should eq child_name
+          # Pick off "_document_type" and "join" fields, convert to any for easy comparison
+          es_document = JSON.parse(index_doc["_source"].as_h.reject("_document_type", "join").to_json)
+          local_document = JSON.parse(child.to_json)
 
-        # Pick off "_document_type" and "join" fields, convert to any for easy comparison
-        es_document = JSON.parse(parent_index_doc["_source"].as_h.reject("_document_type", "join").to_json)
-        local_document = JSON.parse(child.to_json)
+          # Ensure document is the same across indices
+          es_document.should eq local_document
+        end
 
-        # Ensure document is the same across indices
-        es_document.should eq local_document
+        it "routes to correct parent documents" do
+          Elastic.bulk = true
+          tm = TableManager.new(backfill: false, watch: false)
+
+          child_index = Beverage::Coffee.table_name
+          child_name = TableManager.document_name(Beverage::Coffee)
+          parent_index = Programmer.table_name
+
+          parent = Programmer.new(name: "Knuth")
+          parent.id = RethinkORM::IdGenerator.next(parent)
+
+          child = Beverage::Coffee.new
+          child.programmer = parent
+          child.id = RethinkORM::IdGenerator.next(child)
+
+          # Save a child document in child and parent indices
+          bulk_request = Elastic.bulk_action(
+            action: Elastic::Action::Create,
+            document: child,
+            index: child_index,
+            parents: tm.parents(child_name),
+            no_children: tm.children(child_name).empty?,
+          )
+
+          Elastic.bulk_operation(bulk_request)
+
+          headers, sources = bulk_request.split('\n').in_groups_of(2).transpose
+          child_header, parent_header = headers.compact.map { |h| JSON.parse(h)["create"] }
+
+          child_index_routing, parent_index_routing = sources.compact.map { |h| JSON.parse(h)["join"]? }
+
+          child_index_routing.should be_nil
+
+          name_field = parent_index_routing.not_nil!["name"]
+          parent_field = parent_index_routing.not_nil!["parent"]
+
+          # Ensure correct join field
+
+          name_field.should eq TableManager.document_name(child.class)
+          parent_field.should eq parent.id
+
+          # Ensure child is routed via parent in parent table
+          parent_header["routing"].to_s.should eq child.programmer_id
+          child_header["routing"].to_s.should eq child.id
+
+          parent_index_path = Elastic.document_path(index: parent_index, id: child.id)
+          parent_index_doc = JSON.parse(Elastic.client &.get(parent_index_path).body)
+
+          # Ensure child is routed via parent in parent table
+          parent_index_doc["_routing"].to_s.should eq child.programmer_id
+          parent_index_doc["_source"]["_document_type"].should eq child_name
+
+          # Pick off "_document_type" and "join" fields, convert to any for easy comparison
+          es_document = JSON.parse(parent_index_doc["_source"].as_h.reject("_document_type", "join").to_json)
+          local_document = JSON.parse(child.to_json)
+
+          # Ensure document is the same across indices
+          es_document.should eq local_document
+        end
       end
 
       describe "crud operation" do
