@@ -6,6 +6,16 @@ module RubberSoul
       Elastic.empty_indices
     end
 
+    describe "skip_replication?" do
+      it "does not skip a document on the same index without a parent" do
+        Elastic.skip_replication?({parent_id: nil, index: "same"}, "same", [{name: "mum", index: "same", routing_attr: :parent_id}]).should be_false
+      end
+
+      it "skips a documents on the same index with a parent" do
+        Elastic.skip_replication?({parent_id: "123", index: "same"}, "same", [{name: "mum", index: "same", routing_attr: :parent_id}]).should be_true
+      end
+    end
+
     describe "single" do
       describe "assocations" do
         it "does not requests on self-associated index" do
