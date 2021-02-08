@@ -24,8 +24,12 @@ end
 Spec.before_suite &->cleanup
 Spec.after_suite &->cleanup
 
-def until_expected(expected)
+def refresh
   RubberSoul::Elastic.client &.post("/_refresh")
+end
+
+def until_expected(expected)
+  refresh
   before = Time.utc
   success = begin
     SimpleRetry.try_to(
@@ -60,6 +64,7 @@ def cleanup
   # Remove any of the test indices
   clear_test_indices
   delete_test_indices
+  refresh
 end
 
 def drop_tables
