@@ -3,8 +3,9 @@ FROM crystallang/crystal:0.36.1-alpine
 WORKDIR /app
 
 # Install shards for caching
-COPY shard.yml shard.yml
-COPY shard.lock shard.lock
+COPY shard.yml .
+COPY shard.override.yml .
+COPY shard.lock .
 
 RUN shards install --production
 
