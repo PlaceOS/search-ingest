@@ -21,11 +21,11 @@ module RubberSoul
       # debug at the broadcast backend level, however this will be filtered
       # by the bindings
       backend = ::Log::BroadcastBackend.new
-      backend.append(LOG_STDOUT, :debug)
+      backend.append(LOG_STDOUT, :trace)
       backend.append(ActionController.default_backend(
         io: logstash,
         formatter: ActionController.json_formatter
-      ), :debug)
+      ), :trace)
       backend
     else
       LOG_STDOUT
