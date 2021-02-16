@@ -12,7 +12,7 @@ module RubberSoul
 
   def self.log_backend
     if !(logstash_host = LOGSTASH_HOST.presence).nil?
-      logstash_port = LOGSTAH_PORT.try(&.to_i?) || abort("LOGSTASH_PORT is either malformed or not present in environment")
+      logstash_port = LOGSTASH_PORT.try(&.to_i?) || abort("LOGSTASH_PORT is either malformed or not present in environment")
 
       # Logstash UDP Input
       logstash = UDPSocket.new
