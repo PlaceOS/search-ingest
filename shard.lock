@@ -7,7 +7,7 @@ shards:
 
   action-controller:
     git: https://github.com/spider-gazelle/action-controller.git
-    version: 3.5.2
+    version: 4.1.0
 
   active-model:
     git: https://github.com/spider-gazelle/active-model.git
@@ -35,7 +35,7 @@ shards:
 
   habitat:
     git: https://github.com/luckyframework/habitat.git
-    version: 0.4.4
+    version: 0.4.5
 
   http-params-serializable:
     git: https://github.com/caspiano/http-params-serializable.git
@@ -67,7 +67,7 @@ shards:
 
   placeos-models:
     git: https://github.com/placeos/models.git
-    version: 4.10.2
+    version: 4.12.1
 
   promise:
     git: https://github.com/spider-gazelle/promise.git
@@ -79,7 +79,7 @@ shards:
 
   rethinkdb-orm:
     git: https://github.com/spider-gazelle/rethinkdb-orm.git
-    version: 3.2.1
+    version: 3.2.2
 
   retriable: # Overridden
     git: https://github.com/Sija/retriable.cr.git

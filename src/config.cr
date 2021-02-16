@@ -32,13 +32,14 @@ require "action-controller/server"
 # Add handlers that should run before your application
 ActionController::Server.before(
   HTTP::ErrorHandler.new(RubberSoul::PROD),
-  ActionController::LogHandler.new,
+  ActionController::LogHandler.new(ms: true),
   HTTP::CompressHandler.new
 )
 
 log_level = RubberSoul::PROD ? Log::Severity::Info : Log::Severity::Debug
+log_backend = RubberSoul.log_backend
 
 # Configure logging
-::Log.setup "*", log_level, RubberSoul::LOG_BACKEND
-::Log.builder.bind "action-controller.*", log_level, RubberSoul::LOG_BACKEND
-::Log.builder.bind "#{RubberSoul::APP_NAME}.*", log_level, RubberSoul::LOG_BACKEND
+::Log.setup "*", :warn, log_backend
+::Log.builder.bind "action-controller.*", log_level, log_backend
+::Log.builder.bind "#{RubberSoul::APP_NAME}.*", log_level, log_backend
