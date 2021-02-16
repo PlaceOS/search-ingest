@@ -18,7 +18,7 @@ macro table_names
 end
 
 Spec.before_suite do
-  ::Log.setup "*", :debug, RubberSoul::LOG_BACKEND
+  ::Log.setup "*", :debug, RubberSoul::LOG_STDOUT
 end
 
 Spec.before_suite &->cleanup
