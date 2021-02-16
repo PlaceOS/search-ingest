@@ -43,6 +43,8 @@ Healthcheck.
 - `ES_URI`: elasticsearch uri, detects whether to use TLS off schema
 - `RUBBER_SOUL_HOST`: host to bind server to
 - `RUBBER_SOUL_PORT`: port for server to listen on
+- `LOGSTASH_HOST`: Logstash host for sending JSON formatted logs to
+- `LOGSTASH_PORT`: Logstash port that UDP input service is listening on
 
 ## Development
 
