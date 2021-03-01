@@ -50,7 +50,7 @@ module RubberSoul
               attributes: {
               {% for attr, options in fields %}
                 {% options[:klass] = options[:klass].resolve if options[:klass].is_a?(Path) %}
-                {% options[:klass] = options[:klass].union_types.reject { |t| t.nilable? }.first if !options[:klass].is_a?(StringLiteral) && options[:klass].union? %}
+                {% options[:klass] = options[:klass].union_types.reject(&.nilable?).first if !options[:klass].is_a?(StringLiteral) && options[:klass].union? %}
                 {% options[:klass] = options[:klass].stringify unless options[:klass].is_a?(StringLiteral) %}
                 {{ attr.symbolize }} => {{ options }},
               {% end %}
@@ -469,7 +469,7 @@ module RubberSoul
       name = TableManager.document_name(model)
       index_models = children.dup << name
       # Get the properties of all relevent tables, create flat index properties
-      properties.select(index_models).values.flatten.uniq.to_h
+      properties.select(index_models).values.flatten.uniq!.to_h
     end
 
     # Construct properties for given models
@@ -580,7 +580,7 @@ module RubberSoul
         # Do any of the attributes define a parent relationship with current model?
         is_child = metadata[:attributes].any? do |_, attr_data|
           options = attr_data[:tags]
-          !!(options && options[:parent]?.try { |p| p == document_name })
+          !!(options && options[:parent]?.try &.==(document_name))
         end
         name if is_child
       end

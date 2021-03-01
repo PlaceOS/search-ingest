@@ -70,7 +70,7 @@ module RubberSoul
         it "allows specification of field type" do
           # RayGun ip attribute has an 'es_type' tag
           tm = TableManager.new([RayGun])
-          mappings = tm.properties["RayGun"].sort_by { |p| p[0] }
+          mappings = tm.properties["RayGun"].sort_by &.first
           mappings.should eq ([
             TableManager::TYPE_PROPERTY,
             {:barrel_length, {type: "float"}},
