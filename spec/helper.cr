@@ -1,6 +1,7 @@
 require "json"
 require "promise"
 require "simple_retry"
+require "placeos-log-backend"
 
 # Application config
 require "./spec_config"
@@ -18,7 +19,7 @@ macro table_names
 end
 
 Spec.before_suite do
-  ::Log.setup "*", :debug, RubberSoul::LOG_STDOUT
+  ::Log.setup "*", :debug, PlaceOS::LogBackend.log_backend
 end
 
 Spec.before_suite &->cleanup

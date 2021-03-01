@@ -1,5 +1,6 @@
 # Application dependencies
 require "action-controller"
+require "placeos-log-backend"
 require "./spec_models"
 
 # stdlib
@@ -23,6 +24,6 @@ ActionController::Server.before(
 log_level = RubberSoul::PROD ? Log::Severity::Info : Log::Severity::Debug
 
 # Configure logging
-::Log.setup "*", log_level, RubberSoul::LOG_STDOUT
-::Log.builder.bind "action-controller.*", log_level, RubberSoul::LOG_STDOUT
-::Log.builder.bind "#{RubberSoul::APP_NAME}.*", log_level, RubberSoul::LOG_STDOUT
+::Log.setup "*", log_level, PlaceOS::LogBackend.log_backend
+::Log.builder.bind "action-controller.*", log_level, PlaceOS::LogBackend.log_backend
+::Log.builder.bind "#{RubberSoul::APP_NAME}.*", log_level, PlaceOS::LogBackend.log_backend
