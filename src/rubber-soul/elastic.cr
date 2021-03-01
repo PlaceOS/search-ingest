@@ -161,12 +161,12 @@ module RubberSoul
       left = JSON.parse(left_schema)["mappings"]["properties"].as_h
       right = JSON.parse(right_schema)["mappings"]["properties"].as_h
 
-      (left.keys.sort == right.keys.sort) && left.all? do |prop, mapping|
+      (left.keys.sort! == right.keys.sort!) && left.all? do |prop, mapping|
         if prop == "join"
           left_relations = mapping["relations"].as_h
           right_relations = right[prop]["relations"].as_h
 
-          (left_relations.keys.sort == right_relations.keys.sort) && left_relations.all? do |k, v|
+          (left_relations.keys.sort! == right_relations.keys.sort!) && left_relations.all? do |k, v|
             # Relations can be an array of join names, or a single join name
             l = v.as_a?.try(&.map(&.as_s)) || v
             r = right_relations[k]?.try &.as_a?.try(&.map(&.as_s)) || right_relations[k]?

@@ -161,7 +161,7 @@ else
     puts "Launching #{RubberSoul::APP_NAME} v#{RubberSoul::VERSION}"
     puts "With RethinkDB \"#{rethink_db}\" on #{RethinkORM::Connection.settings.host}:#{RethinkORM::Connection.settings.port}"
     puts "With Elasticsearch on #{RubberSoul::Elastic.settings.host}:#{RubberSoul::Elastic.settings.port}"
-    puts "Mirroring #{RubberSoul::MANAGED_TABLES.map(&.name).sort.join(", ")}"
+    puts "Mirroring #{RubberSoul::MANAGED_TABLES.map(&.name).sort!.join(", ")}"
     puts "Listening on #{server.print_addresses}"
   end
 end
