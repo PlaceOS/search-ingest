@@ -1,5 +1,6 @@
 name: rubber-soul
-version: 1.16.0
+version: 1.17.0
+crystal: ~> 1.0
 license: MIT
 
 authors:
@@ -20,19 +21,22 @@ dependencies:
 
   future:
     github: crystal-community/future.cr
+    version: ~> 0.1
 
   habitat:
     github: luckyframework/habitat
+    version: ~> 0.4
 
   log_helper:
     github: spider-gazelle/log_helper
+    version: ~> 1.0
 
   placeos-log-backend:
     github: place-labs/log-backend
 
   placeos-models:
     github: placeos/models
-    version: ~> 4.0
+    version: ~> 4
 
   promise:
     github: spider-gazelle/promise
@@ -44,6 +48,7 @@ dependencies:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
+    version: ">= 4"
 
   simple_retry:
     github: spider-gazelle/simple_retry
@@ -51,7 +56,9 @@ dependencies:
 
   secrets-env:
     github: place-labs/secrets-env
+    version: ~> 1.3
 
 development_dependencies:
   ameba:
     github: crystal-ameba/ameba
+    version: ">= 0.14"
