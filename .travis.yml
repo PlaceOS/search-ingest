@@ -1,24 +1,21 @@
 language: crystal
-os: linux
-
-services:
-  - docker
+services: docker
 
 before_install:
-  # Add elasticsearch 7.6
-  - docker run --net="host" -p "9300:9300" -p "9200:9200" -e discovery.type=single-node -d blacktop/elasticsearch:7
-  # Add rethinkdb 2.3.6
-  - docker run --net="host" -p "29015:29015" -p "28015:28015" -d rethinkdb:2.4
+  # Add elasticsearch 7.
+  - docker run -p 9300:9300 -p 9200:9200 -e discovery.type=single-node -d blacktop/elasticsearch:7
+  # Add rethinkdb 2.4
+  - docker run -p 29015:29015 -p 28015:28015 -d rethinkdb:2.4
 
 install:
-  - shards install
+  - shards install --ignore-crystal-version
 
 before_script:
   # Wait for elasticsearch
   - sleep 10
 
 script:
-  - crystal spec -v --error-trace
-  - crystal spec -Dpreview_mt -v --error-trace
   - bin/ameba
   - crystal tool format --check
+  - crystal spec -v --error-trace
+  - crystal spec -Dpreview_mt -v --error-trace
