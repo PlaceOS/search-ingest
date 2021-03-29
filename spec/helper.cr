@@ -32,31 +32,29 @@ end
 def until_expected(expected)
   refresh
   before = Time.utc
-  success = begin
+  result = nil
+  begin
     SimpleRetry.try_to(
       base_interval: 100.milliseconds,
       max_interval: 500.milliseconds,
       max_elapsed_time: 10.seconds,
       retry_on: Exception
     ) do
-      result = yield
-
-      if result != expected
-        Log.error { "retry: expected #{expected}, got #{result}" }
-        raise Exception.new("retry")
-      else
-        true
+      (result = yield).tap do
+        if result != expected
+          Log.error { "retry: expected #{expected}, got #{result}" }
+          raise Exception.new("retry")
+        end
       end
     end
   rescue e
     raise e unless e.message == "retry"
-    false
   ensure
     after = Time.utc
     Log.info { "took #{(after - before).total_milliseconds}ms" }
   end
 
-  !!success
+  result
 end
 
 def cleanup
