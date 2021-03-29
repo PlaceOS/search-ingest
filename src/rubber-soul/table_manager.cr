@@ -270,19 +270,21 @@ module RubberSoul
       # NOTE: in the event of losing connection, the table is backfilled.
       SimpleRetry.try_to(base_interval: 50.milliseconds, max_elapsed_time: 15.seconds) do |_, exception, _|
         begin
-          handle_retry(model, exception)
+          return if stopped?(model)
 
-          return if coordination.closed?
+          handle_retry(model, exception)
           changefeed = changes(name)
           Log.info { {method: "changes", model: model.to_s} }
           changefeed.not_nil!.each do |change|
+            return if stopped?(model)
+
             event = change[:event]
             document = change[:value]
-            # Asynchronously mutate Elasticsearch
-            spawn do
-              unless document.nil?
-                Log.debug { {method: "watch_table", event: event.to_s.downcase, model: model.to_s, document_id: document.id, parents: parents} }
+            next if document.nil?
 
+            Log.debug { {method: "watch_table", event: event.to_s.downcase, model: model.to_s, document_id: document.id, parents: parents} }
+            spawn do
+              begin
                 case event
                 in .deleted?
                   Elastic.delete_document(
@@ -306,9 +308,9 @@ module RubberSoul
                   )
                 end
                 Fiber.yield
+              rescue e
+                Log.warn(exception: e) { {message: "when replicating to elasticsearch", event: event.to_s.downcase} }
               end
-            rescue e
-              Log.warn(exception: e) { {message: "error while watching table", event: event.to_s.downcase} }
             end
           rescue e
             Log.error(exception: e) { "in watch_table" }
@@ -318,6 +320,12 @@ module RubberSoul
         end
 
         Fiber.yield
+      end
+    end
+
+    private def stopped?(model)
+      coordination.closed?.tap do |closed|
+        Log.debug { {message: "unwatching table", table: model.to_s} } if closed
       end
     end
 
