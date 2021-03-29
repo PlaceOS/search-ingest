@@ -140,14 +140,14 @@ module RubberSoul
 
           until_expected(1) do
             es_document_count(index)
-          end.should be_true
+          end.should eq 1
 
           tm.stop
           prog.destroy
 
           until_expected(1) do
             es_document_count(index)
-          end.should be_true
+          end.should eq 1
         end
       end
 
@@ -167,15 +167,19 @@ module RubberSoul
 
         # Reindex
         tm.reindex_all
+        refresh
+
         until_expected(0) do
           es_document_count(index)
-        end.should be_true
+        end.should eq 0
 
         tm.backfill_all
+
+        expected = num_created + count_before_create
         # Check number of documents in elastic search
-        until_expected(num_created + count_before_create) do
+        until_expected(expected) do
           es_document_count(index)
-        end.should be_true
+        end.should eq expected
 
         programmers.each &.destroy
       end
@@ -200,9 +204,11 @@ module RubberSoul
           # Backfill a single index
           tm.backfill(Programmer)
 
-          until_expected(Programmer.count) do
+          count = Programmer.count
+
+          until_expected(count) do
             es_document_count(index)
-          end.should be_true
+          end.should eq count
 
           programmers.each &.destroy
         end
