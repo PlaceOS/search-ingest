@@ -136,18 +136,18 @@ module RubberSoul
 
           prog = Programmer.create!(name: "Rob Pike")
 
-          Fiber.yield
+          until_expected(true) do
+            Programmer.exists?(prog.id.as(String))
+          end
+
+          sleep 10.milliseconds
+          refresh
 
           until_expected(1) do
             es_document_count(index)
           end.should eq 1
 
           tm.stop
-          prog.destroy
-
-          until_expected(1) do
-            es_document_count(index)
-          end.should eq 1
         end
       end
 
