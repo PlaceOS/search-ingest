@@ -11,7 +11,7 @@ require "./types"
 # Class to manage rethinkdb models sync with elasticsearch
 module RubberSoul
   class TableManager
-    Log = ::Log.for("rubber-soul").for("table_manager")
+    Log = ::Log.for(self)
 
     alias Property = Tuple(Symbol, NamedTuple(type: String) | NamedTuple(type: String, fields: Hash(String, NamedTuple(type: String))))
 
