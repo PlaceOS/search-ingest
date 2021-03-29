@@ -5,7 +5,7 @@ module RubberSoul
   RETHINK_DATABASE = ENV["RETHINKDB_DB"]? || "test"
   APP_NAME         = "rubber-soul"
 
-  Log           = ::Log.for(APP_NAME)
+  Log           = ::Log.for(self)
   LOG_STDOUT    = ActionController.default_backend
   LOGSTASH_HOST = ENV["LOGSTASH_HOST"]?
   LOGSTASH_PORT = ENV["LOGSTASH_PORT"]?

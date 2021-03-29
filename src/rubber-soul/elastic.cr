@@ -8,7 +8,7 @@ require "./types"
 
 module RubberSoul
   class Elastic
-    Log = ::Log.for("rubber-soul.elastic")
+    Log = ::Log.for(self)
 
     # Whether or not to use the bulk api
     class_property? bulk : Bool = ES_DISABLE_BULK
