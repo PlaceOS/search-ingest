@@ -1,12 +1,12 @@
 require "./helper"
 
-describe RubberSoul::API do
+describe RubberSoul::Api do
   # ==============
   # Test Responses
   # ==============
   with_server do
     it "health checks" do
-      result = curl("GET", RubberSoul::API::NAMESPACE[0])
+      result = curl("GET", RubberSoul::Api::NAMESPACE[0])
       result.success?.should be_true
     end
   end

@@ -119,7 +119,7 @@ RubberSoul::Elastic.configure do |settings|
 end
 
 # Ensure elastic is available
-RubberSoul::Elastic.ensure_elastic!
+abort "failed to connect to ES" unless RubberSoul::Elastic.healthy?
 
 # DB and table presence ensured by rethinkdb-orm, within models
 if backfill || reindex
@@ -154,17 +154,17 @@ else
   Signal::TERM.trap &terminate
 
   # Start API's TableManager instance
-  RubberSoul::API.table_manager
+  RubberSoul::Api.table_manager
 
   # Start the server
   server.run do
-    puts "Launching #{RubberSoul::APP_NAME} v#{RubberSoul::VERSION}"
-    puts "With RethinkDB \"#{rethink_db}\" on #{RethinkORM::Connection.settings.host}:#{RethinkORM::Connection.settings.port}"
-    puts "With Elasticsearch on #{RubberSoul::Elastic.settings.host}:#{RubberSoul::Elastic.settings.port}"
-    puts "Mirroring #{RubberSoul::MANAGED_TABLES.map(&.name).sort!.join(", ")}"
-    puts "Listening on #{server.print_addresses}"
+    Log.info { "Launching #{RubberSoul::APP_NAME} v#{RubberSoul::VERSION}" }
+    Log.info { "With RethinkDB \"#{rethink_db}\" on #{RethinkORM::Connection.settings.host}:#{RethinkORM::Connection.settings.port}" }
+    Log.info { "With Elasticsearch on #{RubberSoul::Elastic.settings.host}:#{RubberSoul::Elastic.settings.port}" }
+    Log.info { "Mirroring #{RubberSoul::MANAGED_TABLES.map(&.name).sort!.join(", ")}" }
+    Log.info { "Listening on #{server.print_addresses}" }
   end
 end
 
 # Shutdown message
-puts "#{RubberSoul::APP_NAME} signing off :}\n"
+Log.info { "#{RubberSoul::APP_NAME} signing off" }
