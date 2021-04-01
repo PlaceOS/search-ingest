@@ -35,11 +35,12 @@ module RubberSoul
 
   # calculate version at compile time
   VERSION = {{ `shards version "#{__DIR__}"`.chomp.stringify.downcase }}
-  PROD    = (ENV["ENV"]? || ENV["SG_ENV"]?) == "production"
+
+  class_getter? production : Bool = (ENV["ENV"]? || ENV["SG_ENV"]?).try(&.downcase) == "production"
 
   # server defaults in `./app.cr`
-  HOST = ENV["RUBBER_SOUL_HOST"]? || "127.0.0.1"
-  PORT = ENV["RUBBER_SOUL_PORT"]?.try(&.to_i) || 3000
+  HOST = ENV["RUBBER_SOUL_HOST"]?.presence || "127.0.0.1"
+  PORT = ENV["RUBBER_SOUL_PORT"]?.presence.try(&.to_i) || 3000
 
   # ES config used in `./rubber-soul/elastic.cr`
   ES_DISABLE_BULK      = !(ENV["ES_DISABLE_BULK"]? == "true")
