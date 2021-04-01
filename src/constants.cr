@@ -3,12 +3,12 @@ require "secrets-env"
 
 module RubberSoul
   RETHINK_DATABASE = ENV["RETHINKDB_DB"]? || "test"
-  APP_NAME         = "rubber-soul"
+  APP_NAME         = "rubber_soul"
 
   Log           = ::Log.for(self)
   LOG_STDOUT    = ActionController.default_backend
-  LOGSTASH_HOST = ENV["LOGSTASH_HOST"]?
-  LOGSTASH_PORT = ENV["LOGSTASH_PORT"]?
+  LOGSTASH_HOST = ENV["LOGSTASH_HOST"]?.presence
+  LOGSTASH_PORT = ENV["LOGSTASH_PORT"]?.presence
 
   def self.log_backend
     if !(logstash_host = LOGSTASH_HOST.presence).nil?

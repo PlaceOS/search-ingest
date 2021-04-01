@@ -17,11 +17,11 @@ require "action-controller/server"
 # Add handlers that should run before your application
 ActionController::Server.before(
   HTTP::LogHandler.new,
-  HTTP::ErrorHandler.new(RubberSoul::PROD),
+  HTTP::ErrorHandler.new(RubberSoul.production?),
   HTTP::CompressHandler.new
 )
 
-log_level = RubberSoul::PROD ? Log::Severity::Info : Log::Severity::Debug
+log_level = RubberSoul.production? ? Log::Severity::Info : Log::Severity::Debug
 
 # Configure logging
 ::Log.setup "*", log_level, PlaceOS::LogBackend.log_backend

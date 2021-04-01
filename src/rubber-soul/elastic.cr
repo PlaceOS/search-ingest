@@ -529,11 +529,10 @@ module RubberSoul
       client &.delete("/_all").success?
     end
 
-    # Checks availability of RethinkDB and Elasticsearch
+    # Checks availability of Elasticsearch
     #
-    def self.ensure_elastic!
-      response = client &.get("/")
-      raise Error.new("Failed to connect to ES") unless response.success?
+    def self.healthy?
+      client &.get("/_cat/health").success?
     end
 
     # Remove documents from indices
