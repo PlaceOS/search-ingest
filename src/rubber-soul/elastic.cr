@@ -533,6 +533,8 @@ module RubberSoul
     #
     def self.healthy?
       client &.get("/_cat/health").success?
+    rescue
+      false
     end
 
     # Remove documents from indices
