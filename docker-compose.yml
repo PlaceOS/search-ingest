@@ -31,10 +31,12 @@ services:
     restart: always
     hostname: rethink
 
-  rubber-soul:
+  test:
     build:
       context: ./
       dockerfile: Dockerfile.test
+      args:
+        crystal_version: ${CRYSTAL_VERSION:-1.0.0}
     volumes:
       - ./spec:/app/spec
       - ./src:/app/src
@@ -47,4 +49,5 @@ services:
       <<: *rethinkdb-client-env
       <<: *elastic-client-env
       # Environment
+      GITHUB_ACTION: ${GITHUB_ACTION:-}
       <<: *deployment-env
