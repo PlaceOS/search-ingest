@@ -3,7 +3,7 @@ require "secrets-env"
 
 module RubberSoul
   RETHINK_DATABASE = ENV["RETHINKDB_DB"]? || "test"
-  APP_NAME         = "rubber_soul"
+  APP_NAME         = "rubber-soul"
 
   Log           = ::Log.for(self)
   LOG_STDOUT    = ActionController.default_backend

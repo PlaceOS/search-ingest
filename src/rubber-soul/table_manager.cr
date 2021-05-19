@@ -418,7 +418,7 @@ module RubberSoul
     # Property Generation
     #############################################################################################
 
-    def parse_attribute_type(klass, tag : String?)
+    def parse_attribute_type(klass, tag) : {type: String}?
       if tag.nil?
         # Map the klass of field to es_type
         es_type = klass_to_es_type(klass)
@@ -449,13 +449,13 @@ module RubberSoul
         type_tag = options.dig?(:tags, :es_type)
         subfield = options.dig?(:tags, :es_subfield)
 
-        type_mapping = parse_attribute_type(options[:klass], type_tag)
+        type_mapping = parse_attribute_type(options[:klass], type_tag) if type_tag.is_a? String
 
         if type_mapping.nil?
           Log.error { "Invalid ES type '#{type_tag}' for #{field} of #{model}" }
           nil
         else
-          if subfield
+          if subfield.is_a? String
             subfield_mapping = parse_subfield(subfield)
             if subfield_mapping.nil?
               Log.error { "Invalid ES subfield type '#{subfield}' for #{subfield} of #{model}" }
@@ -522,6 +522,7 @@ module RubberSoul
 
     # Determine if type tag is a valid Elasticsearch field datatype
     private def valid_es_type?(es_type)
+      return false unless es_type.is_a?(String)
       ES_TYPES.includes?(es_type)
     end
 
