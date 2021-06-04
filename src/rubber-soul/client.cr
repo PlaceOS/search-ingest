@@ -3,6 +3,8 @@ require "json"
 require "mutex"
 require "uri"
 
+require "placeos-models/version"
+
 module RubberSoul
   class Client
     BASE_PATH   = "/api/rubber-soul"
@@ -38,8 +40,8 @@ module RubberSoul
       get("/").success?
     end
 
-    def version
-      NamedTuple(version: String).from_json(get("/version").body)
+    def version : PlaceOS::Model::Version
+      Model::Version.from_json(get("/version").body)
     end
 
     # Reindexes Elasticsearch

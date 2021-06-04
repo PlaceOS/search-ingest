@@ -2,13 +2,19 @@ require "action-controller/logger"
 require "secrets-env"
 
 module RubberSoul
-  RETHINK_DATABASE = ENV["RETHINKDB_DB"]? || "test"
-  APP_NAME         = "rubber-soul"
+  APP_NAME = "rubber-soul"
+  # calculate version at compile time
+  VERSION = {{ `shards version "#{__DIR__}"`.chomp.stringify.downcase }}
+
+  BUILD_TIME   = {{ system("date -u").stringify }}
+  BUILD_COMMIT = {{ env("PLACE_COMMIT") || "DEV" }}
 
   Log           = ::Log.for(self)
   LOG_STDOUT    = ActionController.default_backend
   LOGSTASH_HOST = ENV["LOGSTASH_HOST"]?.presence
   LOGSTASH_PORT = ENV["LOGSTASH_PORT"]?.presence
+
+  RETHINK_DATABASE = ENV["RETHINKDB_DB"]? || "test"
 
   def self.log_backend
     if !(logstash_host = LOGSTASH_HOST.presence).nil?
@@ -32,9 +38,6 @@ module RubberSoul
       LOG_STDOUT
     end
   end
-
-  # calculate version at compile time
-  VERSION = {{ `shards version "#{__DIR__}"`.chomp.stringify.downcase }}
 
   class_getter? production : Bool = (ENV["ENV"]? || ENV["SG_ENV"]?).try(&.downcase) == "production"
 
