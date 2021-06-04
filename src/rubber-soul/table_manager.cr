@@ -418,25 +418,13 @@ module RubberSoul
     # Property Generation
     #############################################################################################
 
-    def parse_attribute_type(klass, tag) : {type: String}?
-      if tag.nil?
-        # Map the klass of field to es_type
-        es_type = klass_to_es_type(klass)
-        # Could the klass be mapped?
-        es_type ? {type: es_type} : nil
-      else
-        if !valid_es_type?(tag)
-          nil
-        else
-          {type: tag}
-        end
-      end
+    def parse_attribute_type(klass, tag : String?) : {type: String}?
+      type = tag || klass_to_es_type(klass)
+      {type: type} if type && valid_es_type?(type)
     end
 
     def parse_subfield(subfield : String)
-      if valid_es_type?(subfield)
-        {fields: {subfield => {type: subfield}}}
-      end
+      {fields: {subfield => {type: subfield}}} if valid_es_type?(subfield)
     end
 
     # Now that we are generating joins on the parent_id, we need to specify if we are generating
@@ -449,8 +437,7 @@ module RubberSoul
         type_tag = options.dig?(:tags, :es_type)
         subfield = options.dig?(:tags, :es_subfield)
 
-        type_mapping = parse_attribute_type(options[:klass], type_tag) if type_tag.is_a? String
-
+        type_mapping = parse_attribute_type(options[:klass], type_tag)
         if type_mapping.nil?
           Log.error { "Invalid ES type '#{type_tag}' for #{field} of #{model}" }
           nil
@@ -547,12 +534,8 @@ module RubberSoul
       elsif klass_name == "JSON::Any" || klass_name.starts_with?("Hash") || klass_name.starts_with?("NamedTuple")
         "object"
       else
-        es_type = ES_MAPPINGS[klass_name]?
-        if es_type.nil?
-          Log.warn { "no ES mapping for #{klass_name}" }
-          nil
-        else
-          es_type
+        ES_MAPPINGS[klass_name]?.tap do |es_type|
+          Log.warn { "no ES mapping for #{klass_name}" } if es_type.nil?
         end
       end
     end
