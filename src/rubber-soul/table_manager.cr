@@ -418,7 +418,8 @@ module RubberSoul
     # Property Generation
     #############################################################################################
 
-    def parse_attribute_type(klass, tag : String?) : {type: String}?
+    def parse_attribute_type(klass, tag) : {type: String}?
+      return unless tag.is_a? String?
       type = tag || klass_to_es_type(klass)
       {type: type} if type && valid_es_type?(type)
     end
