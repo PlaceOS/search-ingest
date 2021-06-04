@@ -7,7 +7,7 @@ shards:
 
   action-controller:
     git: https://github.com/spider-gazelle/action-controller.git
-    version: 4.4.1
+    version: 4.5.0
 
   active-model:
     git: https://github.com/spider-gazelle/active-model.git
@@ -71,7 +71,7 @@ shards:
 
   placeos-models:
     git: https://github.com/placeos/models.git
-    version: 5.0.0
+    version: 5.2.0
 
   promise:
     git: https://github.com/spider-gazelle/promise.git
@@ -99,7 +99,7 @@ shards:
 
   tasker:
     git: https://github.com/spider-gazelle/tasker.git
-    version: 2.0.3
+    version: 2.0.5
 
   yaml_mapping:
     git: https://github.com/crystal-lang/yaml_mapping.cr.git
