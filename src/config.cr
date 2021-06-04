@@ -11,6 +11,7 @@ RubberSoul::MANAGED_TABLES = [
   PlaceOS::Model::DoorkeeperApplication,
   PlaceOS::Model::Driver,
   PlaceOS::Model::Edge,
+  PlaceOS::Model::JsonSchema,
   PlaceOS::Model::LdapAuthentication,
   PlaceOS::Model::Module,
   PlaceOS::Model::OAuthAuthentication,
