@@ -1,0 +1,54 @@
+name: CI
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        experimental: [false]
+        os: [ubuntu-latest]
+        crystal:
+          - latest
+          - 1.0.0
+        include:
+          - experimental: true
+            os: ubuntu-latest
+            crystal: nightly
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
+    container: crystallang/crystal:${{ matrix.crystal }}-alpine
+
+    # Service containers to run with `container-job`
+    services:
+      # Label used to access the service container
+      rethink:
+        # Docker Hub image
+        image: rethinkdb
+        options: >-
+          -p 29015:29015
+          -p 28015:28015
+
+      elastic:
+        image: blacktop/elasticsearch
+        options: >-
+          -p 9300:9300
+          -p 9200:9200
+          -e discovery.type=single-node
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: shards install --ignore-crystal-version
+    - name: Lint
+      run: ./bin/ameba
+    - name: Format
+      run: crystal tool format --check
+    - name: Run tests
+      run: crystal spec -v --error-trace
+      env:
+        ES_HOST: elastic
+        RETHINKDB_HOST: rethink
