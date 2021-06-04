@@ -1,8 +1,9 @@
 # rubber-soul
 
-[![Build Status](https://travis-ci.com/placeos/rubber-soul.svg?branch=master)](https://travis-ci.com/placeos/rubber-soul)
+[![CI](https://github.com/PlaceOS/rubber-soul/actions/workflows/ci.yml/badge.svg)](https://github.com/PlaceOS/rubber-soul/actions/workflows/ci.yml)
+[![Build Dev Image](https://github.com/PlaceOS/rubber-soul/actions/workflows/build-dev-image.yml/badge.svg)](https://github.com/PlaceOS/rubber-soul/actions/workflows/build-dev-image.yml)
 
-A small (one might even say 'micro') service that hooks into [rethinkdb-orm](https://github.com/spider-gazelle/rethinkdb-orm) models and generates elasticsearch indicies.  
+A small (one might even say 'micro') service that hooks into [rethinkdb-orm](https://github.com/spider-gazelle/rethinkdb-orm) models and generates elasticsearch indices.
 `rubber-soul` exposes a REST API to reindex/backfill specific models.
 
 ## Usage
@@ -28,7 +29,7 @@ Healthcheck.
 
 - Each RethinkDB table receives an ES index, with a mapping generated from the attributes of a [RethinkORM model](https://github.com/spider-gazelle/rethinkdb-orm).
 - RethinkORM attributes can accept a tag `es_type` to specify the correct field datatype for the index schema.
-- `belongs_to` associations are modelled with ES `join` datatypes, associated documents are replicated in their parent's index. This is necessary for `has_parent` and `has_child` queries.
+- `belongs_to` associations are modeled with ES `join` datatypes, associated documents are replicated in their parent's index. This is necessary for `has_parent` and `has_child` queries.
 
 ### RethinkDB Mirroring
 
