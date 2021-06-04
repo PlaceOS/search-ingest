@@ -1,4 +1,5 @@
 require "action-controller"
+require "placeos-models/version"
 
 require "./constants"
 require "./rubber-soul/*"
@@ -71,9 +72,12 @@ module RubberSoul
     ###############################################################################################
 
     get "/version", :version do
-      render :ok, json: {
+      render :ok, json: PlaceOS::Model::Version.new(
         version: VERSION,
-      }
+        build_time: BUILD_TIME,
+        commit: BUILD_COMMIT,
+        service: APP_NAME
+      )
     end
   end
 end
