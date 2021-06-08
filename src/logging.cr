@@ -8,7 +8,7 @@ module RubberSoul::Logging
   # Logging configuration
   log_level = RubberSoul.production? ? ::Log::Severity::Info : ::Log::Severity::Debug
   log_backend = PlaceOS::LogBackend.log_backend
-  namespaces = ["action-controller.*", "place_os.*"]
+  namespaces = ["action-controller.*", "place_os.*", "rubber_soul.*"]
 
   ::Log.setup do |config|
     namespaces.each do |namespace|
