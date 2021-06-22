@@ -41,7 +41,7 @@ module RubberSoul
     end
 
     def version : PlaceOS::Model::Version
-      Model::Version.from_json(get("/version").body)
+      PlaceOS::Model::Version.from_json(get("/version").body)
     end
 
     # Reindexes Elasticsearch
