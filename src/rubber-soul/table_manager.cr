@@ -13,7 +13,7 @@ module RubberSoul
   class TableManager
     Log = ::Log.for(self)
 
-    alias Property = Tuple(Symbol, NamedTuple(type: String))
+    alias Property = Tuple(Symbol, NamedTuple(type: String) | NamedTuple(type: String, fields: Hash(String, NamedTuple(type: String))))
 
     # Map class name to model properties
     getter properties : Hash(String, Array(Property)) = {} of String => Array(Property)
@@ -424,6 +424,10 @@ module RubberSoul
       {type: type} if type && valid_es_type?(type)
     end
 
+    def parse_subfield(subfield : String)
+      {fields: {subfield => {type: subfield}}} if valid_es_type?(subfield)
+    end
+
     # Now that we are generating joins on the parent_id, we need to specify if we are generating
     # a child or a single document
     # Maps from crystal types to Elasticsearch field datatypes
@@ -431,15 +435,24 @@ module RubberSoul
       document_name = TableManager.document_name(model)
 
       properties = MODEL_METADATA[document_name][:attributes].compact_map do |field, options|
-        if tags = options[:tags]
-          type_tag = tags[:es_type]?
-        end
+        type_tag = options.dig?(:tags, :es_type)
+        subfield = options.dig?(:tags, :es_subfield)
 
         type_mapping = parse_attribute_type(options[:klass], type_tag)
         if type_mapping.nil?
           Log.error { "Invalid ES type '#{type_tag}' for #{field} of #{model}" }
           nil
         else
+          if subfield.is_a? String
+            subfield_mapping = parse_subfield(subfield)
+            if subfield_mapping.nil?
+              Log.error { "Invalid ES subfield type '#{subfield}' for #{subfield} of #{model}" }
+            else
+              # Merge the subfield mapping
+              type_mapping = type_mapping.merge(subfield_mapping)
+            end
+          end
+
           {field, type_mapping}
         end
       end
@@ -540,9 +553,7 @@ module RubberSoul
     def parents(model : Class | String) : Array(Parent)
       document_name = TableManager.document_name(model)
       MODEL_METADATA[document_name][:attributes].compact_map do |field, attr|
-        tags = attr[:tags]
-        parent_name = tags[:parent]? if tags
-
+        parent_name = attr.dig? :tags, :parent
         if !parent_name.nil? && parent_name.is_a?(String)
           {
             name:         parent_name,
