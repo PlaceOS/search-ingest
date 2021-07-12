@@ -17,7 +17,7 @@ class Programmer < AbstractBase
 end
 
 class Broke < AbstractBase
-  attribute breaks : String, es_subfield: "keyword"
+  attribute breaks : String
   attribute status : Bool
   attribute hasho : Hash(String, String)
 end
