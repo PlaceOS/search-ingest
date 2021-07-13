@@ -55,7 +55,7 @@ shards:
 
   neuroplastic:
     git: https://github.com/spider-gazelle/neuroplastic.git
-    version: 1.7.1
+    version: 1.8.0
 
   openssl_ext:
     git: https://github.com/spider-gazelle/openssl_ext.git

@@ -34,6 +34,29 @@ module RubberSoul
       __generate_methods([:changes, :all])
     end
 
+    private record(Metadata,
+      table_name : String,
+      attributes : Hash(Symbol, Options),
+    ) do
+      record(Options,
+        klass : String,
+        tags : Hash(Symbol, String),
+      ) do
+        def self.from_active_model(options)
+          # Keep string tags.
+          if tags = options[:tags]
+            tags = tags.to_h
+              .transform_values { |v| v.is_a?(Symbol) ? v.to_s : v }
+              .select { |_, v| v.is_a? String }
+          else
+            tags = {} of Symbol => String
+          end
+
+          new(options[:klass], tags)
+        end
+      end
+    end
+
     macro __create_model_metadata
       {% for model, fields in RethinkORM::Base::FIELD_MAPPINGS %}
         {% unless model.abstract? || fields.empty? %}
@@ -46,17 +69,17 @@ module RubberSoul
       # Extracted metadata from ORM classes
       MODEL_METADATA = {
         {% for klass, fields in MODELS %}
-          {{ klass.stringify.split("::").last }} => {
+          {{ klass.stringify.split("::").last }} => Metadata.new(
               attributes: {
               {% for attr, options in fields %}
                 {% options[:klass] = options[:klass].resolve if options[:klass].is_a?(Path) %}
                 {% options[:klass] = options[:klass].union_types.reject(&.nilable?).first if !options[:klass].is_a?(StringLiteral) && options[:klass].union? %}
                 {% options[:klass] = options[:klass].stringify unless options[:klass].is_a?(StringLiteral) %}
-                {{ attr.symbolize }} => {{ options }},
+                {{ attr.symbolize }} => Metadata::Options.from_active_model({{ options }}),
               {% end %}
               },
-              table_name: {{ klass.id }}.table_name
-            },
+              table_name: {{ klass.id }}.table_name,
+            ),
         {% end %}
       } {% if MODELS.empty? %} of Nil => Nil {% end %}
     end
@@ -93,7 +116,7 @@ module RubberSoul
 
     # Look up index name by class
     def index_name(model) : String
-      MODEL_METADATA[TableManager.document_name(model)][:table_name]
+      MODEL_METADATA[TableManager.document_name(model)].table_name
     end
 
     # Initialisation
@@ -434,11 +457,11 @@ module RubberSoul
     def generate_index_properties(model, child = false) : Array(Property)
       document_name = TableManager.document_name(model)
 
-      properties = MODEL_METADATA[document_name][:attributes].compact_map do |field, options|
-        type_tag = options.dig?(:tags, :es_type)
-        subfield = options.dig?(:tags, :es_subfield)
+      properties = MODEL_METADATA[document_name].attributes.compact_map do |field, options|
+        type_tag = options.tags[:es_type]?
+        subfield = options.tags[:es_subfield]?
 
-        type_mapping = parse_attribute_type(options[:klass], type_tag)
+        type_mapping = parse_attribute_type(options.klass, type_tag)
         if type_mapping.nil?
           Log.error { "Invalid ES type '#{type_tag}' for #{field} of #{model}" }
           nil
@@ -552,9 +575,9 @@ module RubberSoul
     # Find name and ES routing of document's parents
     def parents(model : Class | String) : Array(Parent)
       document_name = TableManager.document_name(model)
-      MODEL_METADATA[document_name][:attributes].compact_map do |field, attr|
-        parent_name = attr.dig? :tags, :parent
-        if !parent_name.nil? && parent_name.is_a?(String)
+      MODEL_METADATA[document_name].attributes.compact_map do |field, options|
+        parent_name = options.tags[:parent]?
+        unless parent_name.nil?
           {
             name:         parent_name,
             index:        index_name(parent_name),
@@ -571,9 +594,8 @@ module RubberSoul
         # Ignore self
         next if name == document_name
         # Do any of the attributes define a parent relationship with current model?
-        is_child = metadata[:attributes].any? do |_, attr_data|
-          options = attr_data[:tags]
-          !!(options && options[:parent]?.try &.==(document_name))
+        is_child = metadata.attributes.any? do |_, metadata|
+          !!metadata.tags[:parent]?.try(&.==(document_name))
         end
         name if is_child
       end
