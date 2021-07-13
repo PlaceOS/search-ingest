@@ -42,16 +42,19 @@ module RubberSoul
         klass : String,
         tags : Hash(Symbol, String),
       ) do
+        # Extract required options from active-model attribute options
         def self.from_active_model(options)
-          # Keep string tags.
-          if tags = options[:tags]
-            tags = tags.to_h
-              .transform_values { |v| v.is_a?(Symbol) ? v.to_s : v }
-              .select { |_, v| v.is_a? String }
-          else
+          case tags = options[:tags]?.try &.to_h
+          when Hash(NoReturn, NoReturn), Nil
             tags = {} of Symbol => String
+          else
+            tags = tags.each_with_object({} of Symbol => String) do |(k, v), object|
+              case v
+              when String then object[k] = v
+              when Symbol then object[k] = v.to_s
+              end
+            end
           end
-
           new(options[:klass], tags)
         end
       end
