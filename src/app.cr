@@ -118,8 +118,19 @@ RubberSoul::Elastic.configure do |settings|
   elastic_tls.try { |tls| settings.tls = tls }
 end
 
-# Ensure elastic is available
-abort "failed to connect to ES" unless RubberSoul::Elastic.healthy?
+begin
+  Retriable.retry(
+    max_elapsed_time: 1.minutes,
+    on_retry: ->(_e : Exception, n : Int32, _t : Time::Span, _i : Time::Span) {
+      Log.warn { "attempt #{n} connecting to #{RubberSoul::Elastic.settings.host}:#{RubberSoul::Elastic.settings.port}" }
+    }
+  ) do
+    # Ensure elastic is available
+    raise "retry" unless RubberSoul::Elastic.healthy?
+  end
+rescue
+  abort("Failed to connect to Elasticsearch on #{RubberSoul::Elastic.settings.host}:#{RubberSoul::Elastic.settings.port}")
+end
 
 # DB and table presence ensured by rethinkdb-orm, within models
 if backfill || reindex
