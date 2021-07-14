@@ -11,6 +11,7 @@ module RubberSoul::Logging
   namespaces = ["action-controller.*", "place_os.*", "rubber_soul.*"]
 
   ::Log.setup do |config|
+    config.bind "*", :warn, log_backend
     namespaces.each do |namespace|
       config.bind namespace, log_level, log_backend
     end
