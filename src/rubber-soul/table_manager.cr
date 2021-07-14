@@ -266,11 +266,13 @@ module RubberSoul
     def watch_tables(models)
       models.each do |model|
         spawn do
-          watch_table(model)
-        rescue e
-          Log.error(exception: e) { {method: "watch_table", model: model.to_s} }
-          # Fatal error
-          exit 1
+          begin
+            watch_table(model)
+          rescue e
+            Log.error(exception: e) { {method: "watch_table", model: model.to_s} }
+            # Fatal error
+            abort("Failure while watching #{model}'s table")
+          end
         end
       end
     end

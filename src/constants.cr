@@ -46,7 +46,7 @@ module RubberSoul
   PORT = ENV["RUBBER_SOUL_PORT"]?.presence.try(&.to_i) || 3000
 
   # ES config used in `./rubber-soul/elastic.cr`
-  ES_DISABLE_BULK      = !(ENV["ES_DISABLE_BULK"]? == "true")
+  ES_DISABLE_BULK      = ENV.has_key?("ES_DISABLE_BULK") ? ENV["ES_DISABLE_BULK"] == "true" : true
   ES_URI               = ENV["ES_URI"]?.try(&->URI.parse(String))
   ES_HOST              = ENV["ES_HOST"]? || "localhost"
   ES_PORT              = ENV["ES_PORT"]?.try(&.to_i) || 9200
