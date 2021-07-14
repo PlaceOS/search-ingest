@@ -3,7 +3,7 @@ require "habitat"
 require "log"
 require "promise"
 require "rethinkdb-orm"
-require "simple_retry"
+require "retriable"
 
 require "./elastic"
 require "./types"
@@ -294,11 +294,13 @@ module RubberSoul
       end
 
       # NOTE: in the event of losing connection, the table is backfilled.
-      SimpleRetry.try_to(base_interval: 50.milliseconds, max_elapsed_time: 15.seconds) do |_, exception, _|
+      Retriable.retry(
+        base_interval: 50.milliseconds,
+        max_elapsed_time: 2.minutes,
+        on_retry: ->(e : Exception, _n : Int32, _t : Time::Span, _i : Time::Span) { handle_retry(model, e) },
+      ) do
         begin
           return if stopped?(model)
-
-          handle_retry(model, exception)
           changefeed = changes(name)
           Log.info { {method: "changes", model: model.to_s} }
           changefeed.not_nil!.each do |change|

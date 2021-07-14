@@ -1,7 +1,7 @@
 require "json"
-require "promise"
-require "simple_retry"
 require "placeos-log-backend"
+require "promise"
+require "retriable"
 
 # Application config
 require "./spec_config"
@@ -34,7 +34,7 @@ def until_expected(expected)
   before = Time.utc
   result = nil
   begin
-    SimpleRetry.try_to(
+    Retriable.retry(
       base_interval: 100.milliseconds,
       max_interval: 500.milliseconds,
       max_elapsed_time: 10.seconds,
