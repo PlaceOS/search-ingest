@@ -68,67 +68,31 @@ module RubberSoul
     # Create a new document in ES from a RethinkORM model
     #
     def self.create_document(index, document, parents = [] of Parent, no_children = true)
-      if self.bulk?
-        body = self.bulk_action(
-          action: Action::Create,
-          index: index,
-          document: document,
-          parents: parents,
-          no_children: no_children,
-        )
-        self.bulk_operation(body)
-      else
-        self.single_action(
-          action: Action::Create,
-          index: index,
-          document: document,
-          parents: parents,
-          no_children: no_children,
-        )
-      end
+      run_action(action: Action::Create, index: index, document: document, parents: parents, no_children: no_children)
     end
 
     # Update a document in ES from a RethinkORM model
     #
     def self.update_document(index, document, parents = [] of Parent, no_children = true)
-      if self.bulk?
-        body = self.bulk_action(
-          action: Action::Update,
-          index: index,
-          document: document,
-          parents: parents,
-          no_children: no_children,
-        )
-        self.bulk_operation(body)
-      else
-        self.single_action(
-          action: Action::Update,
-          index: index,
-          document: document,
-          parents: parents,
-          no_children: no_children,
-        )
-      end
+      run_action(action: Action::Update, index: index, document: document, parents: parents, no_children: no_children)
     end
 
     # Delete a document in ES from a RethinkORM model
     #
     def self.delete_document(index, document, parents = [] of Parent)
+      run_action(action: Action::Delete, index: index, document: document, parents: parents)
+    end
+
+    private def self.run_action(action, index, document, parents, **args)
       if self.bulk?
-        body = self.bulk_action(
-          action: Action::Delete,
-          index: index,
-          document: document,
-          parents: parents,
-        )
-        self.bulk_operation(body)
+        body = self.bulk_action(action, document, index, parents, **args)
+        begin
+          self.bulk_operation(body)
+        rescue e
+          Log.error(exception: e) { {message: "failed to mutate document", action: action.to_s.downcase, id: document.id, index: index} }
+        end
       else
-        self.single_action(
-          action: Action::Delete,
-          index: index,
-          document: document,
-          parents: parents,
-        )
+        self.single_action(action, document, index, parents, **args)
       end
     end
 
@@ -272,15 +236,27 @@ module RubberSoul
                 in .delete? then nil
                 end
 
+      args = {
+        action:        action,
+        document_any:  doc_any,
+        document_type: doc_type,
+        index:         index,
+        id:            id,
+        no_children:   no_children,
+      }
+
       unless skip_replication?(attributes, index, parents)
-        self.single_request(
-          action: action,
-          document_any: doc_any,
-          document_type: doc_type,
-          index: index,
-          id: id,
-          no_children: no_children
-        )
+        begin
+          self.single_request(**args)
+        rescue e
+          Log.error(exception: e) { {
+            message: "failed to mutate document's index",
+            action:  action.to_s,
+            index:   index,
+            id:      id,
+          } }
+          return
+        end
       end
 
       # Actions to mutate all parent indices
@@ -292,21 +268,20 @@ module RubberSoul
 
         begin
           self.single_request(
-            action: action,
-            document_any: doc_any,
-            document_type: doc_type,
-            index: parent[:index],
-            id: id,
-            parent_id: parent_id,
-            no_children: false,
+            **args.merge({
+              index:       parent[:index],
+              parent_id:   parent_id,
+              no_children: false,
+            })
           )
         rescue e
           Log.error(exception: e) { {
-            action:    action.to_s,
-            index:     index,
-            id:        id,
-            parent_id: parent_id,
-            message:   "failed to write to document parent index",
+            message:      "failed to mutate document's parent index",
+            action:       action.to_s,
+            index:        index,
+            parent_index: parent[:index],
+            id:           id,
+            parent_id:    parent_id,
           } }
         end
       end
