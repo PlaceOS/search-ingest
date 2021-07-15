@@ -174,28 +174,31 @@ module RubberSoul
       no_children = children(model).empty?
 
       backfill_count = 0
-      all(model).in_groups_of(100).to_a.map do |docs|
-        future {
-          actions = docs.compact_map do |d|
-            next unless d
-            backfill_count += 1
-            Elastic.bulk_action(
-              action: Elastic::Action::Create,
-              document: d,
-              index: index,
-              parents: parents,
-              no_children: no_children,
-            )
-          end
+      futures = [] of Future::Compute(Nil)
+      all(model).in_groups_of(100, reuse: true) do |docs|
+        actions = docs.compact_map do |d|
+          next unless d
+          backfill_count += 1
+          Elastic.bulk_action(
+            action: Elastic::Action::Create,
+            document: d,
+            index: index,
+            parents: parents,
+            no_children: no_children,
+          )
+        end
 
+        futures << future {
           begin
             Elastic.bulk_operation(actions.join('\n'))
             Log.debug { {method: "backfill", model: model.to_s, subcount: actions.size} }
           rescue e
             Log.error(exception: e) { {method: "backfill", model: model.to_s, missed: actions.size} }
           end
+          nil
         }
-      end.each &.get
+      end
+      futures.each &.get
 
       backfill_count
     end
@@ -207,7 +210,7 @@ module RubberSoul
 
       count = 0
       waiting = [] of Promise::DeferredPromise(Nil)
-      all(model).in_groups_of(100).each do |docs|
+      all(model).in_groups_of(100, reuse: true) do |docs|
         docs.each do |doc|
           waiting << Promise.defer(same_thread: true) do
             d = doc
@@ -308,10 +311,7 @@ module RubberSoul
           changefeed.not_nil!.each do |change|
             return if stopped?(model)
 
-            event = change[:event]
-            document = change[:value]
-            next if document.nil?
-
+            event, document = change.event, change.value
             Log.debug { {method: "watch_table", event: event.to_s.downcase, model: model.to_s, document_id: document.id, parents: parents} }
             spawn do
               begin
