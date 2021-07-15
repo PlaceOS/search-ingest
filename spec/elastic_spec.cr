@@ -17,6 +17,8 @@ module RubberSoul
     end
 
     describe "single" do
+      test_crud(bulk: false)
+
       describe "assocations" do
         it "does not requests on self-associated index" do
           Elastic.bulk = false
@@ -104,119 +106,11 @@ module RubberSoul
           es_document.should eq local_document
         end
       end
-
-      describe "crud operation" do
-        it "deletes a document" do
-          Elastic.bulk = false
-          index = Broke.table_name
-
-          model = Broke.new(breaks: "Think")
-          model.id = RethinkORM::IdGenerator.next(model)
-
-          # Add a document to es
-          Elastic.create_document(
-            document: model,
-            index: index,
-          )
-
-          until_expected(true) do
-            es_doc_exists?(index, model.id, routing: model.id)
-          end
-
-          # Delete a document from es
-          Elastic.delete_document(
-            document: model,
-            index: index,
-          )
-
-          es_doc_exists?(index, model.id, routing: model.id).should be_false
-        end
-
-        it "deletes documents from associated indices" do
-          Elastic.bulk = false
-          index = Beverage::Coffee.table_name
-          model_name = TableManager.document_name(Beverage::Coffee)
-
-          tm = TableManager.new(backfill: false, watch: false)
-
-          parents = tm.parents(model_name)
-          parent_index = parents[0][:index]
-
-          parent_model = Programmer.new(name: "Isaacs")
-          parent_model.id = RethinkORM::IdGenerator.next(parent_model)
-
-          model = Beverage::Coffee.new(temperature: 50)
-          model.id = RethinkORM::IdGenerator.next(model)
-          model.programmer = parent_model
-
-          # Add document to es
-          Elastic.create_document(
-            document: model,
-            index: index,
-            parents: parents,
-            no_children: tm.children(model_name).empty?,
-          )
-
-          until_expected(true) do
-            es_doc_exists?(index, model.id, routing: model.id) && es_doc_exists?(parent_index, model.id, routing: parent_model.id)
-          end
-
-          # Remove document from es
-          Elastic.delete_document(
-            document: model,
-            index: index,
-            parents: parents,
-          )
-
-          until_expected(false) do
-            es_doc_exists?(index, model.id, routing: model.id) || es_doc_exists?(parent_index, model.id, routing: parent_model.id)
-          end
-        end
-
-        it "saves a document" do
-          Elastic.bulk = false
-          tm = TableManager.new(backfill: false, watch: false)
-          index = Programmer.table_name
-          model_name = TableManager.document_name(Programmer)
-
-          model = Programmer.new(name: "tenderlove")
-          model.id = RethinkORM::IdGenerator.next(model)
-
-          parents = tm.parents(model_name)
-          no_children = tm.children(model_name).empty?
-
-          Elastic.create_document(
-            document: model,
-            index: index,
-            parents: parents,
-            no_children: no_children,
-          )
-
-          until_expected(true) do
-            es_doc_exists?(index, model.id, routing: model.id)
-          end
-
-          es_doc_url = Elastic.document_path(index: index, id: model.id)
-          doc = JSON.parse(Elastic.client &.get(es_doc_url).body)
-
-          # Ensure child is routed via parent in parent table
-          doc["_routing"].to_s.should eq model.id
-          doc["_source"]["_document_type"].should eq model_name
-
-          # Pick off "_document_type" and "join" fields, convert to any for easy comparison
-          es_document = JSON.parse(doc["_source"].as_h.reject("_document_type", "join").to_json)
-          local_document = JSON.parse(model.attributes.to_json)
-
-          # Ensure local document is replicated in elasticsearch
-          es_document.should eq local_document
-
-          # Remove document
-          Elastic.delete_document(index: index, document: model, parents: parents)
-        end
-      end
     end
 
     describe "bulk" do
+      test_crud(bulk: true)
+
       describe "associations" do
         it "does not requests on self-associated index" do
           Elastic.bulk = true
@@ -334,79 +228,81 @@ module RubberSoul
           es_document.should eq local_document
         end
       end
+    end
+  end
 
-      describe "crud operation" do
-        it "deletes a document" do
-          Elastic.bulk = true
-          index = Broke.table_name
+  def self.test_crud(bulk : Bool)
+    describe "CRUD" do
+      it "deletes a document" do
+        Elastic.bulk = bulk
+        index = Broke.table_name
 
-          model = Broke.new(breaks: "Think")
-          model.id = RethinkORM::IdGenerator.next(model)
+        model = Broke.new(breaks: "Think")
+        model.id = RethinkORM::IdGenerator.next(model)
 
-          # Add a document to es
-          Elastic.create_document(
-            document: model,
-            index: index,
-          )
+        # Add a document to es
+        Elastic.create_document(
+          document: model,
+          index: index,
+        )
 
-          until_expected(true) do
-            es_doc_exists?(index, model.id, routing: model.id)
-          end
-
-          es_doc_exists?(index, model.id, routing: model.id).should be_true
-
-          # Delete a document from es
-          Elastic.delete_document(
-            document: model,
-            index: index,
-          )
-
-          es_doc_exists?(index, model.id, routing: model.id).should be_false
+        until_expected(true) do
+          es_doc_exists?(index, model.id, routing: model.id)
         end
 
-        it "deletes documents from associated indices" do
-          Elastic.bulk = true
-          index = Beverage::Coffee.table_name
-          model_name = TableManager.document_name(Beverage::Coffee)
+        # Delete a document from es
+        Elastic.delete_document(
+          document: model,
+          index: index,
+        )
 
-          tm = TableManager.new(backfill: false, watch: false)
+        es_doc_exists?(index, model.id, routing: model.id).should be_false
+      end
 
-          parents = tm.parents(model_name)
-          parent_index = parents[0][:index]
+      it "deletes documents from associated indices" do
+        Elastic.bulk = bulk
+        index = Beverage::Coffee.table_name
+        model_name = TableManager.document_name(Beverage::Coffee)
 
-          parent_model = Programmer.new(name: "Isaacs")
-          parent_model.id = RethinkORM::IdGenerator.next(parent_model)
+        tm = TableManager.new(backfill: false, watch: false)
 
-          model = Beverage::Coffee.new(temperature: 50)
-          model.id = RethinkORM::IdGenerator.next(model)
-          model.programmer = parent_model
+        parents = tm.parents(model_name)
+        parent_index = parents[0][:index]
 
-          # Add document to es
-          Elastic.create_document(
-            document: model,
-            index: index,
-            parents: parents,
-            no_children: tm.children(model_name).empty?,
-          )
+        parent_model = Programmer.new(name: "Isaacs")
+        parent_model.id = RethinkORM::IdGenerator.next(parent_model)
 
-          until_expected(true) do
-            es_doc_exists?(index, model.id, routing: model.id) && es_doc_exists?(parent_index, model.id, routing: parent_model.id)
-          end
+        model = Beverage::Coffee.new(temperature: 50)
+        model.id = RethinkORM::IdGenerator.next(model)
+        model.programmer = parent_model
 
-          # Remove document from es
-          Elastic.delete_document(
-            document: model,
-            index: index,
-            parents: parents,
-          )
+        # Add document to es
+        Elastic.create_document(
+          document: model,
+          index: index,
+          parents: parents,
+          no_children: tm.children(model_name).empty?,
+        )
 
-          until_expected(false) do
-            es_doc_exists?(index, model.id, routing: model.id) || es_doc_exists?(parent_index, model.id, routing: parent_model.id)
-          end
+        until_expected(true) do
+          es_doc_exists?(index, model.id, routing: model.id) && es_doc_exists?(parent_index, model.id, routing: parent_model.id)
         end
 
+        # Remove document from es
+        Elastic.delete_document(
+          document: model,
+          index: index,
+          parents: parents,
+        )
+
+        until_expected(false) do
+          es_doc_exists?(index, model.id, routing: model.id) || es_doc_exists?(parent_index, model.id, routing: parent_model.id)
+        end
+      end
+
+      describe ".create_document" do
         it "saves a document" do
-          Elastic.bulk = true
+          Elastic.bulk = bulk
           tm = TableManager.new(backfill: false, watch: false)
           index = Programmer.table_name
           model_name = TableManager.document_name(Programmer)
@@ -441,9 +337,6 @@ module RubberSoul
 
           # Ensure local document is replicated in elasticsearch
           es_document.should eq local_document
-
-          # Remove document
-          Elastic.delete_document(index: index, document: model, parents: parents)
         end
       end
     end

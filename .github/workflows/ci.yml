@@ -19,9 +19,9 @@ jobs:
     name: "Test - crystal: ${{ matrix.crystal }}, stable: ${{ matrix.stable }}"
     strategy:
       matrix:
-        stable: [true]
         crystal:
           - 1.0.0
+        stable: [true]
         include:
           - crystal: nightly
             stable: false

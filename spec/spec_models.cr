@@ -13,7 +13,7 @@ class RayGun < AbstractBase
 end
 
 class Programmer < AbstractBase
-  attribute name : String
+  attribute name : String | Int32, es_type: "text"
 end
 
 class Broke < AbstractBase
