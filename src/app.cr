@@ -164,15 +164,16 @@ else
   # Docker containers use the term signal
   Signal::TERM.trap &terminate
 
+  Log.info { "Launching #{RubberSoul::APP_NAME} v#{RubberSoul::VERSION}" }
+  Log.info { "With RethinkDB \"#{rethink_db}\" on #{RethinkORM::Connection.settings.host}:#{RethinkORM::Connection.settings.port}" }
+  Log.info { "With Elasticsearch on #{RubberSoul::Elastic.settings.host}:#{RubberSoul::Elastic.settings.port}" }
+  Log.info { "Mirroring #{RubberSoul::MANAGED_TABLES.map(&.name).sort!.join(", ")}" }
+
   # Start API's TableManager instance
   RubberSoul::Api.table_manager
 
   # Start the server
   server.run do
-    Log.info { "Launching #{RubberSoul::APP_NAME} v#{RubberSoul::VERSION}" }
-    Log.info { "With RethinkDB \"#{rethink_db}\" on #{RethinkORM::Connection.settings.host}:#{RethinkORM::Connection.settings.port}" }
-    Log.info { "With Elasticsearch on #{RubberSoul::Elastic.settings.host}:#{RubberSoul::Elastic.settings.port}" }
-    Log.info { "Mirroring #{RubberSoul::MANAGED_TABLES.map(&.name).sort!.join(", ")}" }
     Log.info { "Listening on #{server.print_addresses}" }
   end
 end

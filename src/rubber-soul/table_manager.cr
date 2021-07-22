@@ -1,3 +1,4 @@
+require "atomic"
 require "future"
 require "habitat"
 require "log"
@@ -173,15 +174,15 @@ module RubberSoul
       parents = parents(model)
       no_children = children(model).empty?
 
-      backfill_count = 0
+      count = Atomic(Int32).new(0)
       futures = [] of Future::Compute(Nil)
       all(model).in_groups_of(100, reuse: true) do |docs|
-        actions = docs.compact_map do |d|
-          next unless d
-          backfill_count += 1
+        actions = docs.compact_map do |doc|
+          next if doc.nil?
+          count.add(1)
           Elastic.bulk_action(
             action: Elastic::Action::Create,
-            document: d,
+            document: doc,
             index: index,
             parents: parents,
             no_children: no_children,
@@ -200,7 +201,7 @@ module RubberSoul
       end
       futures.each &.get
 
-      backfill_count
+      count.get
     end
 
     protected def single_requests_backfill(model)
@@ -208,29 +209,28 @@ module RubberSoul
       parents = parents(model)
       no_children = children(model).empty?
 
-      count = 0
-      waiting = [] of Promise::DeferredPromise(Nil)
+      count = Atomic(Int32).new(0)
+
+      futures = [] of Future::Compute(Nil)
       all(model).in_groups_of(100, reuse: true) do |docs|
         docs.each do |doc|
-          waiting << Promise.defer(same_thread: true) do
-            d = doc
-            unless d.nil?
-              count += 1
-              Elastic.single_action(
-                action: Elastic::Action::Create,
-                document: d,
-                index: index,
-                parents: parents,
-                no_children: no_children,
-              )
-            end
-          end
+          next if doc.nil?
+          futures << future {
+            count.add(1)
+            Elastic.single_action(
+              action: Elastic::Action::Create,
+              document: doc,
+              index: index,
+              parents: parents,
+              no_children: no_children,
+            )
+            nil
+          }
         end
-        Promise.all(waiting).get
-        waiting.clear
       end
+      futures.each &.get
 
-      count
+      count.get
     end
 
     # Backfills from a model to all relevent indices
