@@ -51,7 +51,7 @@ shards:
 
   lucky_router:
     git: https://github.com/luckyframework/lucky_router.git
-    version: 0.4.2
+    version: 0.5.0
 
   neuroplastic:
     git: https://github.com/spider-gazelle/neuroplastic.git
@@ -67,7 +67,7 @@ shards:
 
   placeos-models:
     git: https://github.com/placeos/models.git
-    version: 5.7.4
+    version: 5.7.5
 
   promise:
     git: https://github.com/spider-gazelle/promise.git
