@@ -1,4 +1,3 @@
-require "atomic"
 require "future"
 require "habitat"
 require "log"
@@ -174,12 +173,10 @@ module RubberSoul
       parents = parents(model)
       no_children = children(model).empty?
 
-      count = Atomic(Int32).new(0)
-      futures = [] of Future::Compute(Nil)
+      futures = [] of Future::Compute(Int32)
       all(model).in_groups_of(100, reuse: true) do |docs|
         actions = docs.compact_map do |doc|
           next if doc.nil?
-          count.add(1)
           Elastic.bulk_action(
             action: Elastic::Action::Create,
             document: doc,
@@ -193,15 +190,15 @@ module RubberSoul
           begin
             Elastic.bulk_operation(actions.join('\n'))
             Log.debug { {method: "backfill", model: model.to_s, subcount: actions.size} }
+            actions.size
           rescue e
             Log.error(exception: e) { {method: "backfill", model: model.to_s, missed: actions.size} }
+            0
           end
-          nil
         }
       end
-      futures.each &.get
 
-      count.get
+      futures.sum(0, &.get)
     end
 
     protected def single_requests_backfill(model)
@@ -209,28 +206,28 @@ module RubberSoul
       parents = parents(model)
       no_children = children(model).empty?
 
-      count = Atomic(Int32).new(0)
-
-      futures = [] of Future::Compute(Nil)
+      futures = [] of Future::Compute(Int32)
       all(model).in_groups_of(100, reuse: true) do |docs|
         docs.each do |doc|
           next if doc.nil?
           futures << future {
-            count.add(1)
-            Elastic.single_action(
-              action: Elastic::Action::Create,
-              document: doc,
-              index: index,
-              parents: parents,
-              no_children: no_children,
-            )
-            nil
+            begin
+              Elastic.single_action(
+                action: Elastic::Action::Create,
+                document: doc,
+                index: index,
+                parents: parents,
+                no_children: no_children,
+              )
+              1
+            rescue e
+              Log.error(exception: e) { {method: "backfill", model: model.to_s} }
+              0
+            end
           }
         end
       end
-      futures.each &.get
-
-      count.get
+      futures.sum(0, &.get)
     end
 
     # Backfills from a model to all relevent indices
