@@ -1,4 +1,4 @@
-ARG crystal_version=1.0.0
+ARG crystal_version=1.1.0
 FROM crystallang/crystal:${crystal_version}-alpine
 
 # Setup commit via a build arg
