@@ -6,6 +6,7 @@ require "placeos-models"
 # Tables watched by TableManager
 # FIXME: This is not ideal. A constant array is required for macro methods
 RubberSoul::MANAGED_TABLES = [
+  PlaceOS::Model::ApiKey,
   PlaceOS::Model::Authority,
   PlaceOS::Model::ControlSystem,
   PlaceOS::Model::DoorkeeperApplication,
