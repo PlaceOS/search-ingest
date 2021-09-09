@@ -282,12 +282,6 @@ module RubberSoul
     end
 
     def watch_table(model : String | Class)
-      name = TableManager.document_name(model)
-
-      index = index_name(name)
-      parents = parents(name)
-      no_children = children(name).empty?
-
       changefeed = nil
       spawn do
         coordination.receive?
@@ -303,50 +297,58 @@ module RubberSoul
       ) do
         begin
           return if stopped?(model)
-          changefeed = changes(name)
+          changefeed = changes(TableManager.document_name(model))
           Log.info { {method: "changes", model: model.to_s} }
           changefeed.not_nil!.each do |change|
             return if stopped?(model)
-
-            event, document = change.event, change.value
-            Log.debug { {method: "watch_table", event: event.to_s.downcase, model: model.to_s, document_id: document.id, parents: parents} }
             spawn do
-              begin
-                case event
-                in .deleted?
-                  Elastic.delete_document(
-                    index: index,
-                    document: document,
-                    parents: parents,
-                  )
-                in .created?
-                  Elastic.create_document(
-                    index: index,
-                    document: document,
-                    parents: parents,
-                    no_children: no_children,
-                  )
-                in .updated?
-                  Elastic.update_document(
-                    index: index,
-                    document: document,
-                    parents: parents,
-                    no_children: no_children,
-                  )
-                end
-                Fiber.yield
-              rescue e
-                Log.warn(exception: e) { {message: "when replicating to elasticsearch", event: event.to_s.downcase} }
-              end
+              process_event(model, change)
             end
-          rescue e
-            Log.error(exception: e) { "in watch_table" }
-            changefeed.try &.stop
-            raise e
           end
+          raise "Premature changefeed closure" unless stopped?(model)
+        rescue e
+          Log.error(exception: e) { "in watch_table" }
+          changefeed.try &.stop
+          raise e
         end
+      end
+    end
 
+    private def process_event(model, change)
+      name = TableManager.document_name(model)
+      index = index_name(name)
+      parents = parents(name)
+      no_children = children(name).empty?
+
+      event, document = change.event, change.value
+      Log.debug { {method: "process_event", event: event.to_s.downcase, model: model.to_s, document_id: document.id, parents: parents} }
+
+      begin
+        case event
+        in .deleted?
+          Elastic.delete_document(
+            index: index,
+            document: document,
+            parents: parents,
+          )
+        in .created?
+          Elastic.create_document(
+            index: index,
+            document: document,
+            parents: parents,
+            no_children: no_children,
+          )
+        in .updated?
+          Elastic.update_document(
+            index: index,
+            document: document,
+            parents: parents,
+            no_children: no_children,
+          )
+        end
         Fiber.yield
+      rescue e
+        Log.warn(exception: e) { {message: "when replicating to elasticsearch", event: event.to_s.downcase} }
       end
     end
 
