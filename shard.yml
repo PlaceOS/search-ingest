@@ -1,5 +1,5 @@
 name: rubber-soul
-version: 1.19.7
+version: 1.19.8
 crystal: ">= 1.0.0"
 license: MIT
 authors:
@@ -47,7 +47,7 @@ dependencies:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    version: ">= 4"
+    version: ~> 5.0
 
   retriable:
     github: Sija/retriable.cr
