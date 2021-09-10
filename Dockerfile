@@ -38,13 +38,13 @@ WORKDIR /
 COPY --from=build /app/deps /
 COPY --from=build /app/rubber-soul /rubber-soul
 
-# These are buildequired for communicating with external services
+# These are required for communicating with external services
 COPY --from=build /etc/hosts /etc/hosts
 
-# These provbuildde certificate chain validation where communicating with external services over TLS
+# These provide certificate chain validation where communicating with external services over TLS
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-# This is rebuilduired for Timezone support
+# This is required for Timezone support
 COPY --from=build /usr/share/zoneinfo/ /usr/share/zoneinfo/
 
 ENV PATH=$PATH:/
