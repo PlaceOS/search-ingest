@@ -1,5 +1,5 @@
-ARG crystal_version=1.1.0
-FROM crystallang/crystal:${crystal_version}-alpine
+ARG crystal_version=1.1.1
+FROM crystallang/crystal:${crystal_version}-alpine as build
 
 # Setup commit via a build arg
 ARG PLACE_COMMIT="DEV"
@@ -8,11 +8,10 @@ WORKDIR /app
 
 # Add trusted CAs for communicating with external services
 RUN apk update && \
-    apk upgrade && \
     apk add --no-cache \
-      ca-certificates
-
-RUN update-ca-certificates
+      ca-certificates \
+    && \
+    update-ca-certificates
 
 # Install shards for caching
 COPY shard.yml .
@@ -22,7 +21,7 @@ COPY shard.lock .
 RUN shards install --production --ignore-crystal-version
 
 # Add src
-ADD ./src /app/src
+COPY ./src /app/src
 
 # Compile
 RUN PLACE_COMMIT=$PLACE_COMMIT \
@@ -36,17 +35,17 @@ RUN ldd /app/rubber-soul | tr -s '[:blank:]' '\n' | grep '^/' | \
 FROM scratch
 WORKDIR /
 
-COPY --from=0 /app/deps /
-COPY --from=0 /app/rubber-soul /rubber-soul
+COPY --from=build /app/deps /
+COPY --from=build /app/rubber-soul /rubber-soul
 
-# These are required for communicating with external services
-COPY --from=0 /etc/hosts /etc/hosts
+# These are buildequired for communicating with external services
+COPY --from=build /etc/hosts /etc/hosts
 
-# These provide certificate chain validation where communicating with external services over TLS
-COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+# These provbuildde certificate chain validation where communicating with external services over TLS
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-# This is required for Timezone support
-COPY --from=0 /usr/share/zoneinfo/ /usr/share/zoneinfo/
+# This is rebuilduired for Timezone support
+COPY --from=build /usr/share/zoneinfo/ /usr/share/zoneinfo/
 
 ENV PATH=$PATH:/
 ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
