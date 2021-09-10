@@ -25,7 +25,7 @@ COPY ./src /app/src
 
 # Compile
 RUN PLACE_COMMIT=$PLACE_COMMIT \
-    crystal build --release --no-debug --error-trace /app/src/app.cr -o /app/rubber-soul
+    crystal build --release --error-trace /app/src/app.cr -o /app/rubber-soul
 
 # Extract dependencies
 RUN ldd /app/rubber-soul | tr -s '[:blank:]' '\n' | grep '^/' | \
