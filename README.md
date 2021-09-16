@@ -37,30 +37,34 @@ Healthcheck.
 
 ## Configuration
 
-- `ENV`: a value of `production` lowers log verbosity
-- `ES_HOST`: elasticsearch host
-- `ES_PORT`: elasticsearch port
-- `ES_TLS`: use elasticsearch https, default is `false`
-- `ES_URI`: elasticsearch uri, detects whether to use TLS off schema
-- `RUBBER_SOUL_HOST`: host to bind server to
-- `RUBBER_SOUL_PORT`: port for server to listen on
-- `LOGSTASH_HOST`: Logstash host for sending JSON formatted logs to
-- `LOGSTASH_PORT`: Logstash port that UDP input service is listening on
+- `ENV`: A value of `production` lowers log verbosity
+- `ES_HOST`: Elasticsearch host
+- `ES_PORT`: Elasticsearch port
+- `ES_TLS`: Use Elasticsearch https, default is `false`
+- `ES_URI`: Elasticsearch uri, detects whether to use TLS off schema
+- `ES_DISABLE_BULK`: Use single requests to Elasticsearch instead of the bulk API. Defaults to `false`
+- `ES_CONN_POOL_TIMEOUT`: Timeout when checking a connection out of the Elasticsearch connection pool
+- `ES_CONN_POOL`: Size of the Elasticsearch connection pool
+- `ES_IDLE_POOL`: Maximum number of idle connections in the Elasticsearch connection pool
+- `UDP_LOG_HOST`: Host for sending JSON formatted logs to
+- `UDP_LOG_PORT`: Port that UDP input service is listening on
+- `RETHINKDB_DB`: DB to mirror to Elasticsearch, defaults to `"test"`
+- `RETHINKDB_HOST`: Host of RethinkDB, defaults to `localhost`
+- `RETHINKDB_PORT`: Port of RethinkDB, defaults to `28015`
+- `RUBBER_SOUL_HOST`: Host to bind server to
+- `RUBBER_SOUL_PORT`: Port for server to listen on
 
 ## Development
 
 Tested against...
 
-- rethinkdb 2.3.6
-- elasticsearch 7.0.0
+- RethinkDB 2.4.0
+- Elasticsearch 7.6.2
 
-## Contributing
+### Environment
 
-1. [Fork it](https://github.com/aca-labs/rubber-soul/fork)
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create a new Pull Request
+- `$ ./test` (run tests and tear down the test environment on exit)
+- `$ ./test --watch` (run test suite on change)
 
 ## Contributors
 
