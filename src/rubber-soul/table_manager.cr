@@ -21,7 +21,7 @@ module RubberSoul
         if (field_mappings = fields)
           {
             "type"   => type,
-            "fields" => field_mappings.map { |type| {type, {type: type}} }.to_h,
+            "fields" => field_mappings.map { |subtype| {subtype, {type: subtype}} }.to_h,
           }
         else
           {"type" => type}
