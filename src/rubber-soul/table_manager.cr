@@ -428,7 +428,7 @@ module RubberSoul
       analysis: {
         analyzer: {
           default: {
-            tokenizer: "whitespace",
+            tokenizer: "standard",
             filter:    ["lowercase", "preserved_ascii_folding"],
           },
         },
