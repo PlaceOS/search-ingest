@@ -34,11 +34,11 @@ module SearchIngest
         Elastic.client &.put("/#{index}", Elastic.headers, body: wrong_schema)
         get_schema.call["mappings"].should eq wrong_schema["mappings"]
 
-        tm = TableManager.new([Broke])
+        schemas = Schemas.new([Broke])
 
-        document_name = TableManager.document_name(Broke)
+        document_name = Schemas.document_name(Broke)
 
-        schema = JSON.parse(tm.index_schema(document_name))
+        schema = JSON.parse(schemas.index_schema(document_name))
         updated_schema = JSON.parse(get_schema.call)
 
         # Check if updated schema applied
@@ -46,81 +46,6 @@ module SearchIngest
 
         updated_schema["mappings"].should eq schema["mappings"]
         updated_schema.dig("settings", "index", "analysis").as_h.rehash.should eq schema.dig("settings", "analysis").as_h.rehash
-      end
-
-      it "generates a schema for a model" do
-        tm = TableManager.new([Broke])
-        schema = tm.index_schema(Broke)
-        schema.should be_a(String)
-
-        # Check that the path to a field mapping exists
-        json = JSON.parse(schema)
-        json.dig?("mappings", "properties", "_document_type").should_not be_nil
-      end
-
-      describe "elasticsearch properties" do
-        it "creates a mapping of table attributes to es types" do
-          tm = TableManager.new([Broke])
-          mappings = tm.properties(Broke).sort_by &.name
-          mappings.should eq ([
-            TableManager::TYPE_FIELD,
-            TableManager::Field.new("breaks", "text", ["keyword"]),
-            TableManager::Field.new("hasho", "object"),
-            TableManager::Field.new("id", "keyword"),
-            TableManager::Field.new("status", "boolean"),
-          ])
-        end
-
-        it "allows specification of field type" do
-          # RayGun ip attribute has an 'es_type' tag
-          tm = TableManager.new([RayGun])
-          mappings = tm.properties["RayGun"].sort_by &.name
-          mappings.should eq ([
-            TableManager::TYPE_FIELD,
-            TableManager::Field.new("barrel_length", "float"),
-            TableManager::Field.new("id", "keyword"),
-            TableManager::Field.new("ip", "ip"),
-            TableManager::Field.new("laser_colour", "text"),
-            TableManager::Field.new("last_shot", "date"),
-            TableManager::Field.new("rounds", "integer"),
-          ])
-        end
-
-        it "collects properties for a model with associations" do
-          tm = TableManager.new
-          children = tm.children(Programmer)
-          mappings = tm.collect_index_properties(Programmer, children).sort_by &.name
-          mappings.should eq [
-            TableManager::TYPE_FIELD,
-            TableManager::Field.new("created_at", "date"),
-            TableManager::Field.new("duration", "date"),
-            TableManager::Field.new("id", "keyword"),
-            TableManager::Field.new("name", "text"),
-            TableManager::Field.new("programmer_id", "keyword"),
-            TableManager::Field.new("temperature", "integer"),
-          ]
-        end
-      end
-
-      describe "relations" do
-        it "finds parent relations of a model" do
-          tm = TableManager.new
-          parents = tm.parents(Migraine)
-          parents.should eq [{
-            name:         TableManager.document_name(Programmer),
-            index:        Programmer.table_name,
-            routing_attr: :programmer_id,
-          }]
-        end
-
-        it "finds the child relations of a model" do
-          tm = TableManager.new
-          children = tm.children(Programmer)
-          children.should eq [
-            TableManager.document_name(Beverage::Coffee),
-            TableManager.document_name(Migraine),
-          ]
-        end
       end
     end
   end

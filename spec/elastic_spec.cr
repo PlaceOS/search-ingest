@@ -1,6 +1,9 @@
 require "./helper"
 
 module SearchIngest
+  @@schemas = Schemas.new
+  class_getter schemas
+
   describe Elastic do
     before_each do
       Elastic.empty_indices
@@ -29,10 +32,9 @@ module SearchIngest
       describe "assocations" do
         it "does not requests on self-associated index" do
           Elastic.bulk = false
-          tm = TableManager.new(backfill: false, watch: false)
 
           index = SelfReferential.table_name
-          child_name = TableManager.document_name(SelfReferential)
+          child_name = Schemas.document_name(SelfReferential)
 
           parent = SelfReferential.new(name: "GNU")
           parent.id = RethinkORM::IdGenerator.next(parent)
@@ -46,8 +48,8 @@ module SearchIngest
             action: Elastic::Action::Create,
             document: child,
             index: index,
-            parents: tm.parents(child_name),
-            no_children: tm.children(child_name).empty?,
+            parents: schemas.parents(child_name),
+            no_children: schemas.children(child_name).empty?,
           )
 
           until_expected(true) do
@@ -72,10 +74,9 @@ module SearchIngest
 
         it "routes to correct parent documents" do
           Elastic.bulk = false
-          tm = TableManager.new(backfill: false, watch: false)
 
           child_index = Beverage::Coffee.table_name
-          child_name = TableManager.document_name(Beverage::Coffee)
+          child_name = Schemas.document_name(Beverage::Coffee)
           parent_index = Programmer.table_name
 
           parent = Programmer.new(name: "Knuth")
@@ -90,8 +91,8 @@ module SearchIngest
             action: Elastic::Action::Create,
             document: child,
             index: child_index,
-            parents: tm.parents(child_name),
-            no_children: tm.children(child_name).empty?,
+            parents: schemas.parents(child_name),
+            no_children: schemas.children(child_name).empty?,
           )
 
           until_expected(true) do
@@ -121,10 +122,9 @@ module SearchIngest
       describe "associations" do
         it "does not requests on self-associated index" do
           Elastic.bulk = true
-          tm = TableManager.new(backfill: false, watch: false)
 
           index = SelfReferential.table_name
-          child_name = TableManager.document_name(SelfReferential)
+          child_name = Schemas.document_name(SelfReferential)
 
           parent = SelfReferential.new(name: "GNU")
           parent.id = RethinkORM::IdGenerator.next(parent)
@@ -138,8 +138,8 @@ module SearchIngest
             action: Elastic::Action::Create,
             document: child,
             index: index,
-            parents: tm.parents(child_name),
-            no_children: tm.children(child_name).empty?,
+            parents: schemas.parents(child_name),
+            no_children: schemas.children(child_name).empty?,
           )
 
           Elastic.bulk_operation(bulk_request)
@@ -154,7 +154,7 @@ module SearchIngest
 
           # Ensure correct join field
 
-          name_field.should eq TableManager.document_name(child.class)
+          name_field.should eq Schemas.document_name(child.class)
           parent_field.should eq parent.id
 
           # Ensure child is routed via parent in parent table
@@ -177,10 +177,9 @@ module SearchIngest
 
         it "routes to correct parent documents" do
           Elastic.bulk = true
-          tm = TableManager.new(backfill: false, watch: false)
 
           child_index = Beverage::Coffee.table_name
-          child_name = TableManager.document_name(Beverage::Coffee)
+          child_name = Schemas.document_name(Beverage::Coffee)
           parent_index = Programmer.table_name
 
           parent = Programmer.new(name: "Knuth")
@@ -195,8 +194,8 @@ module SearchIngest
             action: Elastic::Action::Create,
             document: child,
             index: child_index,
-            parents: tm.parents(child_name),
-            no_children: tm.children(child_name).empty?,
+            parents: schemas.parents(child_name),
+            no_children: schemas.children(child_name).empty?,
           )
 
           Elastic.bulk_operation(bulk_request)
@@ -213,7 +212,7 @@ module SearchIngest
 
           # Ensure correct join field
 
-          name_field.should eq TableManager.document_name(child.class)
+          name_field.should eq Schemas.document_name(child.class)
           parent_field.should eq parent.id
 
           # Ensure child is routed via parent in parent table
@@ -269,11 +268,9 @@ module SearchIngest
       it "deletes documents from associated indices" do
         Elastic.bulk = bulk
         index = Beverage::Coffee.table_name
-        model_name = TableManager.document_name(Beverage::Coffee)
+        model_name = Schemas.document_name(Beverage::Coffee)
 
-        tm = TableManager.new(backfill: false, watch: false)
-
-        parents = tm.parents(model_name)
+        parents = schemas.parents(model_name)
         parent_index = parents[0][:index]
 
         parent_model = Programmer.new(name: "Isaacs")
@@ -288,7 +285,7 @@ module SearchIngest
           document: model,
           index: index,
           parents: parents,
-          no_children: tm.children(model_name).empty?,
+          no_children: schemas.children(model_name).empty?,
         )
 
         until_expected(true) do
@@ -310,15 +307,14 @@ module SearchIngest
       describe ".create_document" do
         it "saves a document" do
           Elastic.bulk = bulk
-          tm = TableManager.new(backfill: false, watch: false)
           index = Programmer.table_name
-          model_name = TableManager.document_name(Programmer)
+          model_name = Schemas.document_name(Programmer)
 
           model = Programmer.new(name: "tenderlove")
           model.id = RethinkORM::IdGenerator.next(model)
 
-          parents = tm.parents(model_name)
-          no_children = tm.children(model_name).empty?
+          parents = schemas.parents(model_name)
+          no_children = schemas.children(model_name).empty?
 
           Elastic.create_document(
             document: model,
