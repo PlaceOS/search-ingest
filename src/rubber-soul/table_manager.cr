@@ -18,14 +18,14 @@ module RubberSoul
 
       # Represents the mapping of this field in an Elasticsearch schema
       def field_mapping
-        mapping = {"type" => type}
-
         if (field_mappings = fields)
-          field_mappings = {"fields" => field_mappings.map { |type| {type, {type: type}} }.to_h}
-          mapping.merge field_mappings
+          {
+            "type"   => type,
+            "fields" => field_mappings.map { |type| {type, {type: type}} }.to_h,
+          }
+        else
+          {"type" => type}
         end
-
-        mapping
       end
     end
 
