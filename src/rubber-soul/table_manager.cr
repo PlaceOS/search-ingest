@@ -13,10 +13,24 @@ module RubberSoul
   class TableManager
     Log = ::Log.for(self)
 
-    alias Property = Tuple(Symbol, NamedTuple(type: String) | NamedTuple(type: String, fields: Hash(String, NamedTuple(type: String))))
+    record Field, name : String, type : String, fields : Array(String)? = nil do
+      def_equals name, type, fields
+
+      # Represents the mapping of this field in an Elasticsearch schema
+      def field_mapping
+        mapping = {"type" => type}
+
+        if (field_mappings = fields)
+          field_mappings = {"fields" => field_mappings.map { |type| {type, {type: type}} }.to_h}
+          mapping.merge field_mappings
+        end
+
+        mapping
+      end
+    end
 
     # Map class name to model properties
-    getter properties : Hash(String, Array(Property)) = {} of String => Array(Property)
+    getter properties : Hash(String, Array(Field)) = {} of String => Array(Field)
 
     # Map from class name to schema
     getter index_schemas : Hash(String, String) = {} of String => String
@@ -263,6 +277,8 @@ module RubberSoul
     # Watch
     #############################################################################################
 
+    delegate close, to: coordination
+
     def watch_tables(models)
       models.each do |model|
         spawn do
@@ -275,10 +291,6 @@ module RubberSoul
           end
         end
       end
-    end
-
-    def stop
-      coordination.close
     end
 
     def watch_table(model : String | Class)
@@ -434,12 +446,17 @@ module RubberSoul
       name = TableManager.document_name(model)
       children = children(name)
       properties = collect_index_properties(name, children)
+
+      # Generate property mapping
+      property_mapping = properties.map { |field| {field.name, field.field_mapping} }.to_h
+
       # Only include join if model has children
-      properties = properties.merge(join_field(name, children)) unless children.empty?
+      property_mapping = property_mapping.merge(join_field(name, children)) unless children.empty?
+
       {
         settings: INDEX_SETTINGS,
         mappings: {
-          properties: properties,
+          properties: property_mapping,
         },
       }.to_json
     end
@@ -447,62 +464,58 @@ module RubberSoul
     # Property Generation
     #############################################################################################
 
-    def parse_attribute_type(klass, tag) : {type: String}?
-      return unless tag.is_a? String?
-      type = tag || klass_to_es_type(klass)
-      {type: type} if type && valid_es_type?(type)
-    end
-
-    def parse_subfield(subfield : String)
-      {fields: {subfield => {type: subfield}}} if valid_es_type?(subfield)
+    def validate_tag(tag)
+      return unless tag.is_a? String
+      if valid_es_type?(tag)
+        tag
+      else
+        Log.warn { "invalid tag `#{tag}` encountered" }
+        nil
+      end
     end
 
     # Now that we are generating joins on the parent_id, we need to specify if we are generating
     # a child or a single document
     # Maps from crystal types to Elasticsearch field datatypes
-    def generate_index_properties(model, child = false) : Array(Property)
+    def generate_index_properties(model, child = false) : Array(Field)
       document_name = TableManager.document_name(model)
 
       properties = MODEL_METADATA[document_name].attributes.compact_map do |field, options|
-        type_tag = options.tags[:es_type]?
-        subfield = options.tags[:es_subfield]?
+        ::Log.with_context do
+          Log.context.set(model: model, field: field)
 
-        type_mapping = parse_attribute_type(options.klass, type_tag)
-        if type_mapping.nil?
-          Log.error { "Invalid ES type '#{type_tag}' for #{field} of #{model}" }
-          nil
-        else
-          if subfield.is_a? String
-            subfield_mapping = parse_subfield(subfield)
-            if subfield_mapping.nil?
-              Log.error { "Invalid ES subfield type '#{subfield}' for #{subfield} of #{model}" }
-            else
-              # Merge the subfield mapping
-              type_mapping = type_mapping.merge(subfield_mapping)
-            end
-          end
+          type_tag = validate_tag(options.tags[:es_type]?)
+          subfield = validate_tag(options.tags[:es_subfield]?).try { |v| [v] }
 
-          {field, type_mapping}
+          field_type = type_tag || klass_to_es_type(options.klass)
+
+          Field.new(field.to_s, field_type, subfield) unless field_type.nil?
         end
       end
 
-      properties << TYPE_PROPERTY
+      properties << TYPE_FIELD
     end
 
     # Collects all properties relevant to an index and collapse them into a schema
-    def collect_index_properties(model : String | Class, children : Array(String)? = [] of String)
+    def collect_index_properties(
+      model : String | Class,
+      children : Array(String)? = nil
+    ) : Array(Field)
       name = TableManager.document_name(model)
-      index_models = children.dup << name
-      # Get the properties of all relevent tables, create flat index properties
-      properties.select(index_models).values.flatten.uniq!.to_h
+      if !children || children.empty?
+        properties[model]
+      else
+        index_models = children.dup << name
+        # Get the properties of all relevent tables
+        properties.select(index_models).values.flatten.uniq!
+      end
     end
 
     # Construct properties for given models
     def generate_properties(models)
-      models.reduce({} of String => Array(Property)) do |props, model|
+      models.each_with_object({} of String => Array(Field)) do |model, props|
         name = TableManager.document_name(model)
         props[name] = generate_index_properties(name)
-        props
       end
     end
 
@@ -521,7 +534,7 @@ module RubberSoul
     end
 
     # Allows several document types beneath a single index
-    TYPE_PROPERTY = {:_document_type, {type: "keyword"}}
+    TYPE_FIELD = Field.new("_document_type", "keyword")
 
     # Valid elasticsearch field datatypes
     private ES_TYPES = {
@@ -538,9 +551,8 @@ module RubberSoul
     }
 
     # Determine if type tag is a valid Elasticsearch field datatype
-    private def valid_es_type?(es_type)
-      return false unless es_type.is_a?(String)
-      ES_TYPES.includes?(es_type)
+    private def valid_es_type?(es_type : String)
+      es_type.in? ES_TYPES
     end
 
     private ES_MAPPINGS = {

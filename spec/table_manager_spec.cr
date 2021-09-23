@@ -57,44 +57,44 @@ module RubberSoul
       describe "elasticsearch properties" do
         it "creates a mapping of table attributes to es types" do
           tm = TableManager.new([Broke])
-          mappings = tm.properties(Broke)
+          mappings = tm.properties(Broke).sort_by &.name
           mappings.should eq ([
-            {:id, {type: "keyword"}},
-            {:breaks, {type: "text", fields: {"keyword" => {type: "keyword"}}}},
-            {:status, {type: "boolean"}},
-            {:hasho, {type: "object"}},
-            TableManager::TYPE_PROPERTY,
+            TableManager::TYPE_FIELD,
+            TableManager::Field.new("breaks", "text", ["keyword"]),
+            TableManager::Field.new("hasho", "object"),
+            TableManager::Field.new("id", "keyword"),
+            TableManager::Field.new("status", "boolean"),
           ])
         end
 
         it "allows specification of field type" do
           # RayGun ip attribute has an 'es_type' tag
           tm = TableManager.new([RayGun])
-          mappings = tm.properties["RayGun"].sort_by &.first
+          mappings = tm.properties["RayGun"].sort_by &.name
           mappings.should eq ([
-            TableManager::TYPE_PROPERTY,
-            {:barrel_length, {type: "float"}},
-            {:id, {type: "keyword"}},
-            {:ip, {type: "ip"}},
-            {:laser_colour, {type: "text"}},
-            {:last_shot, {type: "date"}},
-            {:rounds, {type: "integer"}},
+            TableManager::TYPE_FIELD,
+            TableManager::Field.new("barrel_length", "float"),
+            TableManager::Field.new("id", "keyword"),
+            TableManager::Field.new("ip", "ip"),
+            TableManager::Field.new("laser_colour", "text"),
+            TableManager::Field.new("last_shot", "date"),
+            TableManager::Field.new("rounds", "integer"),
           ])
         end
 
         it "collects properties for a model with associations" do
           tm = TableManager.new
           children = tm.children(Programmer)
-          mappings = tm.collect_index_properties(Programmer, children)
-          mappings.should eq ({
-            :_document_type => {type: "keyword"},
-            :created_at     => {type: "date"},
-            :duration       => {type: "date"},
-            :id             => {type: "keyword"},
-            :name           => {type: "text"},
-            :programmer_id  => {type: "keyword"},
-            :temperature    => {type: "integer"},
-          })
+          mappings = tm.collect_index_properties(Programmer, children).sort_by &.name
+          mappings.should eq [
+            TableManager::TYPE_FIELD,
+            TableManager::Field.new("created_at", "date"),
+            TableManager::Field.new("duration", "date"),
+            TableManager::Field.new("id", "keyword"),
+            TableManager::Field.new("name", "text"),
+            TableManager::Field.new("programmer_id", "keyword"),
+            TableManager::Field.new("temperature", "integer"),
+          ]
         end
       end
 
@@ -147,7 +147,7 @@ module RubberSoul
             es_document_count(index)
           end.should eq 1
 
-          tm.stop
+          tm.close
         end
       end
 
