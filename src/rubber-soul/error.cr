@@ -7,7 +7,7 @@ class RubberSoul::Error < Exception
 
   class MappingFailed < Error
     def initialize(index : String, schema : String, response : HTTP::Client::Response)
-      super("on #{index}:\nschema: #{schema}\nES: #{response.inspect}")
+      super("index=#{index}, schema=#{schema}, elastic_error=#{response.body}")
     end
   end
 
