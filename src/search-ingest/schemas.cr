@@ -36,30 +36,11 @@ module SearchIngest
 
     # Generate a map of models to schemas
     def generate_schemas(models)
-      schemas = {} of String => String
-      models.each do |model|
-        name = self.class.document_name(model)
+      models.each_with_object(Hash(String, String).new(initial_capacity: models.size)) do |model, schemas|
+        name = Schemas.document_name(model)
         schemas[name] = construct_document_schema(name)
       end
-      schemas
     end
-
-    private INDEX_SETTINGS = {
-      analysis: {
-        analyzer: {
-          default: {
-            tokenizer: "standard",
-            filter:    ["lowercase", "preserved_ascii_folding"],
-          },
-        },
-        filter: {
-          preserved_ascii_folding: {
-            type:              "asciifolding",
-            preserve_original: true,
-          },
-        },
-      },
-    }
 
     # Generate the index type mapping structure
     def construct_document_schema(model) : String
@@ -74,7 +55,22 @@ module SearchIngest
       property_mapping = property_mapping.merge(join_field(name, children)) unless children.empty?
 
       {
-        settings: INDEX_SETTINGS,
+        settings: {
+          analysis: {
+            analyzer: {
+              default: {
+                tokenizer: "standard",
+                filter:    ["lowercase", "preserved_ascii_folding"],
+              },
+            },
+            filter: {
+              preserved_ascii_folding: {
+                type:              "asciifolding",
+                preserve_original: true,
+              },
+            },
+          },
+        },
         mappings: {
           properties: property_mapping,
         },
@@ -143,7 +139,7 @@ module SearchIngest
     def join_field(model, children)
       relations = children.size == 1 ? children.first : children.sort
       {
-        :join => {
+        "join" => {
           type:      "join",
           relations: {
             # Use types for defining the parent-child relation
