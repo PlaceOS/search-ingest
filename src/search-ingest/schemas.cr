@@ -228,8 +228,8 @@ module SearchIngest
         # Ignore self
         next if name == document_name
         # Do any of the attributes define a parent relationship with current model?
-        is_child = metadata.attributes.any? do |_, meta|
-          !!meta.tags[:parent]?.try(&.==(document_name))
+        is_child = metadata.attributes.any? do |_, field|
+          !!field.tags[:parent]?.try(&.==(document_name))
         end
         name if is_child
       end
