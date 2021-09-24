@@ -34,14 +34,17 @@ module SearchIngest
         Elastic.client &.put("/#{index}", Elastic.headers, body: wrong_schema)
         get_schema.call["mappings"].should eq wrong_schema["mappings"]
 
-        schemas = Schemas.new([Broke])
+        tm = TableManager.new([Broke], backfill: false, watch: false)
+        schemas = tm.schema_data
         schema = JSON.parse(schemas.index_schema(Broke))
+
         updated_schema = JSON.parse(get_schema.call)
 
         # Check if updated schema applied
         updated_schema.should_not eq JSON.parse(wrong_schema)
 
         updated_schema["mappings"].should eq schema["mappings"]
+
         updated_schema.dig("settings", "index", "analysis").as_h.rehash.should eq schema.dig("settings", "analysis").as_h.rehash
       end
     end
