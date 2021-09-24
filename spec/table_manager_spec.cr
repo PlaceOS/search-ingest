@@ -35,10 +35,7 @@ module SearchIngest
         get_schema.call["mappings"].should eq wrong_schema["mappings"]
 
         schemas = Schemas.new([Broke])
-
-        document_name = Schemas.document_name(Broke)
-
-        schema = JSON.parse(schemas.index_schema(document_name))
+        schema = JSON.parse(schemas.index_schema(Broke))
         updated_schema = JSON.parse(get_schema.call)
 
         # Check if updated schema applied

@@ -34,7 +34,6 @@ module SearchIngest
           Elastic.bulk = false
 
           index = SelfReferential.table_name
-          child_name = Schemas.document_name(SelfReferential)
 
           parent = SelfReferential.new(name: "GNU")
           parent.id = RethinkORM::IdGenerator.next(parent)
@@ -48,8 +47,8 @@ module SearchIngest
             action: Elastic::Action::Create,
             document: child,
             index: index,
-            parents: schemas.parents(child_name),
-            no_children: schemas.children(child_name).empty?,
+            parents: schemas.parents(child.class),
+            no_children: schemas.children(child.class).empty?,
           )
 
           until_expected(true) do
@@ -61,7 +60,7 @@ module SearchIngest
 
           # Ensure child is routed via parent in parent table
           parent_index_doc["_routing"].to_s.should eq child.parent_id
-          parent_index_doc["_source"]["_document_type"].should eq child_name
+          parent_index_doc["_source"]["_document_type"].should eq Schemas.document_name(child.class)
 
           # Pick off "_document_type" and "join" fields, convert to any for easy comparison
           es_document = JSON.parse(parent_index_doc["_source"].as_h.reject("_document_type", "join").to_json)
@@ -76,7 +75,6 @@ module SearchIngest
           Elastic.bulk = false
 
           child_index = Beverage::Coffee.table_name
-          child_name = Schemas.document_name(Beverage::Coffee)
           parent_index = Programmer.table_name
 
           parent = Programmer.new(name: "Knuth")
@@ -91,8 +89,8 @@ module SearchIngest
             action: Elastic::Action::Create,
             document: child,
             index: child_index,
-            parents: schemas.parents(child_name),
-            no_children: schemas.children(child_name).empty?,
+            parents: schemas.parents(child.class),
+            no_children: schemas.children(child.class).empty?,
           )
 
           until_expected(true) do
@@ -104,7 +102,7 @@ module SearchIngest
 
           # Ensure child is routed via parent in parent table
           parent_index_doc["_routing"].to_s.should eq child.programmer_id
-          parent_index_doc["_source"]["_document_type"].should eq child_name
+          parent_index_doc["_source"]["_document_type"].should eq Schemas.document_name(child.class)
 
           # Pick off "_document_type" and "join" fields, convert to any for easy comparison
           es_document = JSON.parse(parent_index_doc["_source"].as_h.reject("_document_type", "join").to_json)
@@ -124,7 +122,6 @@ module SearchIngest
           Elastic.bulk = true
 
           index = SelfReferential.table_name
-          child_name = Schemas.document_name(SelfReferential)
 
           parent = SelfReferential.new(name: "GNU")
           parent.id = RethinkORM::IdGenerator.next(parent)
@@ -138,8 +135,8 @@ module SearchIngest
             action: Elastic::Action::Create,
             document: child,
             index: index,
-            parents: schemas.parents(child_name),
-            no_children: schemas.children(child_name).empty?,
+            parents: schemas.parents(parent.class),
+            no_children: schemas.children(parent.class).empty?,
           )
 
           Elastic.bulk_operation(bulk_request)
@@ -165,7 +162,7 @@ module SearchIngest
 
           # Ensure child is routed via parent in parent table
           index_doc["_routing"].to_s.should eq child.parent_id
-          index_doc["_source"]["_document_type"].should eq child_name
+          index_doc["_source"]["_document_type"].should eq Schemas.document_name(parent.class)
 
           # Pick off "_document_type" and "join" fields, convert to any for easy comparison
           es_document = JSON.parse(index_doc["_source"].as_h.reject("_document_type", "join").to_json)
@@ -179,7 +176,6 @@ module SearchIngest
           Elastic.bulk = true
 
           child_index = Beverage::Coffee.table_name
-          child_name = Schemas.document_name(Beverage::Coffee)
           parent_index = Programmer.table_name
 
           parent = Programmer.new(name: "Knuth")
@@ -194,8 +190,8 @@ module SearchIngest
             action: Elastic::Action::Create,
             document: child,
             index: child_index,
-            parents: schemas.parents(child_name),
-            no_children: schemas.children(child_name).empty?,
+            parents: schemas.parents(child.class),
+            no_children: schemas.children(child.class).empty?,
           )
 
           Elastic.bulk_operation(bulk_request)
@@ -224,7 +220,7 @@ module SearchIngest
 
           # Ensure child is routed via parent in parent table
           parent_index_doc["_routing"].to_s.should eq child.programmer_id
-          parent_index_doc["_source"]["_document_type"].should eq child_name
+          parent_index_doc["_source"]["_document_type"].should eq Schemas.document_name(child.class)
 
           # Pick off "_document_type" and "join" fields, convert to any for easy comparison
           es_document = JSON.parse(parent_index_doc["_source"].as_h.reject("_document_type", "join").to_json)
@@ -268,9 +264,8 @@ module SearchIngest
       it "deletes documents from associated indices" do
         Elastic.bulk = bulk
         index = Beverage::Coffee.table_name
-        model_name = Schemas.document_name(Beverage::Coffee)
 
-        parents = schemas.parents(model_name)
+        parents = schemas.parents(Beverage::Coffee)
         parent_index = parents[0][:index]
 
         parent_model = Programmer.new(name: "Isaacs")
@@ -285,7 +280,7 @@ module SearchIngest
           document: model,
           index: index,
           parents: parents,
-          no_children: schemas.children(model_name).empty?,
+          no_children: schemas.children(model.class).empty?,
         )
 
         until_expected(true) do
@@ -308,13 +303,12 @@ module SearchIngest
         it "saves a document" do
           Elastic.bulk = bulk
           index = Programmer.table_name
-          model_name = Schemas.document_name(Programmer)
 
           model = Programmer.new(name: "tenderlove")
           model.id = RethinkORM::IdGenerator.next(model)
 
-          parents = schemas.parents(model_name)
-          no_children = schemas.children(model_name).empty?
+          parents = schemas.parents(model.class)
+          no_children = schemas.children(model.class).empty?
 
           Elastic.create_document(
             document: model,
@@ -332,8 +326,7 @@ module SearchIngest
 
           # Ensure child is routed via parent in parent table
           doc["_routing"].to_s.should eq model.id
-          doc["_source"]["_document_type"].should eq model_name
-
+          doc["_source"]["_document_type"].should eq Schemas.document_name(model.class)
           # Pick off "_document_type" and "join" fields, convert to any for easy comparison
           es_document = JSON.parse(doc["_source"].as_h.reject("_document_type", "join").to_json)
           local_document = JSON.parse(model.attributes.to_json)
