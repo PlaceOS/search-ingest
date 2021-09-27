@@ -51,7 +51,7 @@ shards:
 
   lucky_router:
     git: https://github.com/luckyframework/lucky_router.git
-    version: 0.5.0
+    version: 0.5.1
 
   neuroplastic:
     git: https://github.com/spider-gazelle/neuroplastic.git
@@ -63,11 +63,11 @@ shards:
 
   placeos-log-backend:
     git: https://github.com/place-labs/log-backend.git
-    version: 0.5.1
+    version: 0.6.0
 
   placeos-models:
     git: https://github.com/placeos/models.git
-    version: 5.10.1
+    version: 5.11.0
 
   promise:
     git: https://github.com/spider-gazelle/promise.git
@@ -75,7 +75,7 @@ shards:
 
   rethinkdb: # Overridden
     git: https://github.com/place-labs/crystal-rethinkdb.git
-    version: 0.3.1+git.commit.bd193b6fed95619da3d963267bf61ed35b1fd7f5
+    version: 0.3.1+git.commit.af92ace5eb60e861a41b93456ac5d73b80feb7bb
 
   rethinkdb-orm:
     git: https://github.com/spider-gazelle/rethinkdb-orm.git
