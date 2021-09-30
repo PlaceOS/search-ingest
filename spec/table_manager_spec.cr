@@ -140,7 +140,6 @@ module RubberSoul
             Programmer.exists?(prog.id.as(String))
           end
 
-          sleep 10.milliseconds
           refresh
 
           until_expected(1) do
