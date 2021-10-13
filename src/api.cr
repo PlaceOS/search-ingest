@@ -12,16 +12,35 @@ module RubberSoul
 
     class_getter table_manager : TableManager { TableManager.new(MANAGED_TABLES, backfill: true, watch: true) }
 
+    getter? backfill : Bool do
+      params["backfill"]?.presence.try(&.downcase).in?("1", "true")
+    end
+
+    protected def backfill_all
+      if self.class.table_manager.backfill_all
+        head :ok
+      else
+        head :internal_server_error
+      end
+    end
+
     # Reindex all tables, backfills by default
     # /reindex?[backfill=true]
     post "/reindex", :reindex do
-      self.class.table_manager.reindex_all
-      self.class.table_manager.backfill_all if params["backfill"]?.try(&.downcase) == "true"
+      if self.class.table_manager.reindex_all
+        if backfill?
+          backfill_all
+        else
+          head :ok
+        end
+      else
+        head :internal_server_error
+      end
     end
 
     # Backfill all tables
     post "/backfill", :backfill do
-      self.class.table_manager.backfill_all
+      backfill_all
     end
 
     # Health Check
