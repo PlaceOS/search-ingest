@@ -66,8 +66,7 @@ module RubberSoul
           raise DB::PoolResourceLost.new(client)
         rescue error
           # All other errors
-          client.close
-          pool.release(client)
+          pool.delete(client)
           raise error
         end
       end
