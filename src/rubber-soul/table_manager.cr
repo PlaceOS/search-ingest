@@ -1,4 +1,3 @@
-require "future"
 require "habitat"
 require "log"
 require "promise"
