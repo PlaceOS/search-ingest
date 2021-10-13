@@ -55,7 +55,6 @@ module RubberSoul
         checkout_timeout: settings.pool_timeout
       ) { Elastic.new }).as(DB::Pool(Elastic))
 
-      result = nil
 
       pool.retry do
         begin
