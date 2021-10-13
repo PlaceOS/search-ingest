@@ -62,13 +62,12 @@ module RubberSoul
           client = pool.checkout
           result = yield client
           pool.release(client)
+          result
         rescue error : IO::Error
           Log.warn(exception: error) { "retrying connection" }
           raise DB::PoolResourceLost.new(client)
         end
       end
-
-      result.not_nil!
     end
 
     # Single Document Requests
