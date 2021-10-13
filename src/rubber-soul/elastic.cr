@@ -55,11 +55,20 @@ module RubberSoul
         checkout_timeout: settings.pool_timeout
       ) { Elastic.new }).as(DB::Pool(Elastic))
 
-      client = pool.checkout
-      result = yield client
-      pool.release(client)
+      result = nil
 
-      result
+      pool.retry do
+        begin
+          client = pool.checkout
+          result = yield client
+          pool.release(client)
+        rescue error : IO::Error
+          Log.warn(exception: error) { "retrying connection" }
+          raise DB::PoolResourceLost.new(client)
+        end
+      end
+
+      result.not_nil!
     end
 
     # Single Document Requests
