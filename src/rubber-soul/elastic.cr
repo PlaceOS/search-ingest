@@ -56,14 +56,19 @@ module RubberSoul
       ) { Elastic.new }).as(DB::Pool(Elastic))
 
       pool.retry do
+        client = pool.checkout
         begin
-          client = pool.checkout
           result = yield client
           pool.release(client)
           result
         rescue error : IO::Error
           Log.warn(exception: error) { "retrying connection" }
           raise DB::PoolResourceLost.new(client)
+        rescue error
+          # All other errors
+          client.close
+          pool.release(client)
+          raise error
         end
       end
     end
