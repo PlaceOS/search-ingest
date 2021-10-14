@@ -46,8 +46,23 @@ module RubberSoul
     # Health Check
     ###############################################################################################
 
+    class_property? failed_healthcheck : Bool = false
+
     def index
-      head self.class.healthcheck? ? HTTP::Status::OK : HTTP::Status::INTERNAL_SERVER_ERROR
+      if self.class.healthcheck?
+        if self.class.failed_healthcheck?
+          self.class.failed_healthcheck = false
+          # Asynchronously backfill after service health restored
+          spawn do
+            self.class.table_manager.backfill_all
+          end
+        end
+
+        head :ok
+      else
+        self.class.failed_healthcheck = true
+        head :internal_server_error
+      end
     end
 
     def self.healthcheck? : Bool
