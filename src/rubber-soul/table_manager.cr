@@ -1,4 +1,3 @@
-require "future"
 require "habitat"
 require "log"
 require "promise"
@@ -177,20 +176,17 @@ module RubberSoul
     #############################################################################################
 
     # Save all documents in all tables to the correct indices
-    def backfill_all
-      Promise.map(models) { |m| backfill(m) }.get
-      Fiber.yield
+    def backfill_all : Bool
+      Promise.map(models) { |m| backfill(m) }.get.all?
     end
 
-    protected def bulk_backfill(model)
+    protected def bulk_backfill(model) : Int32?
       index = index_name(model)
       parents = parents(model)
       no_children = children(model).empty?
 
-      futures = [] of Future::Compute(Int32)
-      all(model).in_groups_of(100, reuse: true) do |docs|
-        actions = docs.compact_map do |doc|
-          next if doc.nil?
+      backfill_batch(model) do |docs|
+        actions = docs.map do |doc|
           Elastic.bulk_action(
             action: Elastic::Action::Create,
             document: doc,
@@ -200,68 +196,89 @@ module RubberSoul
           )
         end
 
-        futures << future {
-          begin
-            Elastic.bulk_operation(actions.join('\n'))
-            Log.debug { {method: "backfill", model: model.to_s, subcount: actions.size} }
-            actions.size
-          rescue e
-            Log.error(exception: e) { {method: "backfill", model: model.to_s, missed: actions.size} }
-            0
-          end
+        Promise.defer {
+          Elastic.bulk_operation(actions.join('\n'))
+          Log.debug { {method: "backfill", model: model.to_s, subcount: actions.size} }
+          actions.size
         }
       end
-
-      futures.sum(0, &.get)
     end
 
-    protected def single_requests_backfill(model)
+    protected def single_requests_backfill(model) : Int32?
       index = index_name(model)
       parents = parents(model)
       no_children = children(model).empty?
 
-      futures = [] of Future::Compute(Int32)
-      all(model).in_groups_of(100, reuse: true) do |docs|
-        docs.each do |doc|
-          next if doc.nil?
-          futures << future {
-            begin
-              Elastic.single_action(
-                action: Elastic::Action::Create,
-                document: doc,
-                index: index,
-                parents: parents,
-                no_children: no_children,
-              )
-              1
-            rescue e
-              Log.error(exception: e) { {method: "backfill", model: model.to_s} }
-              0
-            end
+      backfill_batch(model) do |docs|
+        docs.map do |doc|
+          Promise.defer {
+            Elastic.single_action(
+              action: Elastic::Action::Create,
+              document: doc,
+              index: index,
+              parents: parents,
+              no_children: no_children,
+            )
+            1
           }
         end
       end
-      futures.sum(0, &.get)
+    end
+
+    protected def backfill_batch(model)
+      errored = false
+      promises = [] of Promise(Int32)
+      all(model).in_groups_of(100, reuse: true) do |docs|
+        batch = docs.compact
+        promise = yield batch
+
+        if promise.is_a? Array
+          promise.map &.catch do |error|
+            Log.error(exception: error) { {method: "backfill", model: model.to_s, missed: batch.size} }
+            errored = true
+            0
+          end
+
+          promises.concat promise
+        else
+          promise.catch do |error|
+            Log.error(exception: error) { {message: "backfill", model: model.to_s, missed: batch.size} }
+            errored = true
+            0
+          end
+
+          promises << promise
+        end
+      end
+
+      total = promises.sum(0, &.get)
+      total unless errored
     end
 
     # Backfills from a model to all relevent indices
-    def backfill(model)
+    def backfill(model) : Bool
       Log.info { {message: "backfilling", model: model.to_s} }
       count = Elastic.bulk? ? bulk_backfill(model) : single_requests_backfill(model)
-      Log.info { {method: "backfill", model: model.to_s, count: count} }
+
+      if count
+        Log.info { {method: "backfill", model: model.to_s, count: count} }
+        true
+      else
+        Log.warn { {method: "failed to backfill", model: model.to_s} }
+        false
+      end
     end
 
     # Reindex
     #############################################################################################
 
     # Clear and update all index mappings
-    def reindex_all
-      Promise.map(models) { |m| reindex(m) }.get
-      Fiber.yield
+    def reindex_all : Bool
+      Promise.map(models) { |m| reindex(m) }.get.all?
     end
 
     # Clear, update mapping an ES index and refill with rethinkdb documents
-    def reindex(model : String | Class)
+    def reindex(model : String | Class) : Bool
       Log.info { {method: "reindex", model: model.to_s} }
       name = TableManager.document_name(model)
 
@@ -270,8 +287,12 @@ module RubberSoul
       Elastic.delete_index(index)
       # Apply current mapping
       create_index(name)
+
+      true
     rescue e
-      Log.error(exception: e) { {method: "reindex", model: model.to_s} }
+      Log.error(exception: e) { {method: "reindex", message: "failed to reindex", model: model.to_s} }
+
+      false
     end
 
     # Watch

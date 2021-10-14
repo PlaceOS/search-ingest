@@ -67,11 +67,11 @@ shards:
 
   placeos-models:
     git: https://github.com/placeos/models.git
-    version: 5.11.0
+    version: 5.12.2
 
   promise:
     git: https://github.com/spider-gazelle/promise.git
-    version: 2.2.3
+    version: 3.0.0
 
   rethinkdb: # Overridden
     git: https://github.com/place-labs/crystal-rethinkdb.git
