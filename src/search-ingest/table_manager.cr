@@ -79,12 +79,27 @@ module SearchIngest
       Promise.map(models) { |m| backfill(m) }.get.all?
     end
 
-    protected def bulk_backfill(model) : Int32?
-      index = index_name(model)
-      parents = parents(model)
-      no_children = children(model).empty?
+    # Backfills from a model to all relevent indices
+    def backfill(model) : Bool
+      Log.info { {message: "backfilling", model: model.to_s} }
+      count = Elastic.bulk? ? bulk_backfill(model) : single_requests_backfill(model)
 
+      if count
+        Log.info { {method: "backfill", model: model.to_s, count: count} }
+        true
+      else
+        Log.warn { {method: "failed to backfill", model: model.to_s} }
+        false
+      end
+    end
+
+    # Backfill via the Elasticsearch Bulk API
+    protected def bulk_backfill(model) : Int32?
       backfill_batch(model) do |docs|
+        index = schema_data.index_name(model)
+        parents = schema_data.parents(model)
+        no_children = schema_data.children(model).empty?
+
         actions = docs.map do |doc|
           Elastic.bulk_action(
             action: Elastic::Action::Create,
@@ -103,12 +118,13 @@ module SearchIngest
       end
     end
 
+    # Backfill via the standard Elasticsearch API
     protected def single_requests_backfill(model) : Int32?
-      index = index_name(model)
-      parents = parents(model)
-      no_children = children(model).empty?
-
       backfill_batch(model) do |docs|
+        index = schema_data.index_name(model)
+        parents = schema_data.parents(model)
+        no_children = schema_data.children(model).empty?
+
         docs.map do |doc|
           Promise.defer {
             Elastic.single_action(
@@ -154,20 +170,6 @@ module SearchIngest
       total unless errored
     end
 
-    # Backfills from a model to all relevent indices
-    def backfill(model) : Bool
-      Log.info { {message: "backfilling", model: model.to_s} }
-      count = Elastic.bulk? ? bulk_backfill(model) : single_requests_backfill(model)
-
-      if count
-        Log.info { {method: "backfill", model: model.to_s, count: count} }
-        true
-      else
-        Log.warn { {method: "failed to backfill", model: model.to_s} }
-        false
-      end
-    end
-
     # Reindex
     #############################################################################################
 
@@ -182,8 +184,9 @@ module SearchIngest
       index = schema_data.index_name(model)
       # Delete index
       Elastic.delete_index(index)
+
       # Apply current mapping
-      create_index(name)
+      create_index(index)
 
       true
     rescue e
