@@ -2,6 +2,13 @@ require "./helper"
 
 module SearchIngest
   describe Schemas do
+    describe ".equivalent_schema?" do
+      it "does not fail on malformed schemas" do
+        broken_schema = {error: "malformed"}.to_json
+        Schemas.equivalent_schema?(broken_schema, broken_schema).should be_false
+      end
+    end
+
     describe "#parents" do
       it "finds parent relations of a model" do
         schemas = Schemas.new

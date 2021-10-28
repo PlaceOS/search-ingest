@@ -16,9 +16,9 @@ module SearchIngest
     end
 
     # Strips the namespace from the model
-    def self.document_name(model)
-      name = model.is_a?(Class) ? model.name : model
-      name.split("::").last
+    def self.document_name(model : Class | String)
+      model = model.name unless model.is_a? String
+      model.split("::").last
     end
 
     # Look up model schema by class
@@ -75,6 +75,54 @@ module SearchIngest
           properties: property_mapping,
         },
       }.to_json
+    end
+
+    # Traverse schemas and test equality
+    #
+    # ameba:disable Metrics/CyclomaticComplexity
+    def self.equivalent_schema?(existing_schema : String?, proposed_schema : String?) : Bool
+      return false unless existing_schema && proposed_schema
+
+      begin
+        proposed = Schema.extract(proposed_schema)
+        existing = Schema.extract(existing_schema)
+      rescue e : JSON::SerializableError
+        Log.warn(exception: e) { "malformed schema: #{proposed_schema}" }
+        return false
+      end
+
+      (existing.keys.sort! == proposed.keys.sort!) && existing.all? do |prop, mapping|
+        if prop == "join"
+          existing_relations = mapping["relations"]?.try &.as_h?
+          proposed_relations = proposed[prop]["relations"]?.try &.as_h?
+
+          existing_relations && proposed_relations && (existing_relations.keys.sort! == proposed_relations.keys.sort!) && existing_relations.all? do |k, v|
+            # Relations can be an array of join names, or a single join name
+            l = v.as_a?.try(&.map(&.as_s)) || v
+            r = proposed_relations[k]?.try &.as_a?.try(&.map(&.as_s)) || proposed_relations[k]?
+            if l.is_a? Array && r.is_a? Array
+              l.sort == r.sort
+            else
+              l == r
+            end
+          end
+        else
+          proposed[prop]? == mapping
+        end
+      end
+    end
+
+    # Model for extracting the schema of an index
+    #
+    private struct Schema
+      include JSON::Serializable
+
+      @[JSON::Field(root: "properties")]
+      getter mappings : Hash(String, JSON::Any)
+
+      def self.extract(json) : Hash(String, JSON::Any)
+        from_json(json).mappings
+      end
     end
 
     # Property Generation

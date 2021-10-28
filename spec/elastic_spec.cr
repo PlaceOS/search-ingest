@@ -1,8 +1,7 @@
 require "./helper"
 
 module SearchIngest
-  @@schemas = Schemas.new
-  class_getter schemas
+  class_getter schemas : Schemas = Schemas.new
 
   describe Elastic do
     before_each do
@@ -16,101 +15,6 @@ module SearchIngest
 
       it "skips a documents on the same index with a parent" do
         Elastic.skip_replication?({parent_id: "123", index: "same"}, "same", [{name: "mum", index: "same", routing_attr: :parent_id}]).should be_true
-      end
-    end
-
-    describe ".equivalent_schema?" do
-      it "does not fail on malformed schemas" do
-        broken_schema = {error: "malformed"}.to_json
-        Elastic.equivalent_schema?(broken_schema, broken_schema).should be_false
-      end
-    end
-
-    describe "single" do
-      test_crud(bulk: false)
-
-      describe "assocations" do
-        it "does not requests on self-associated index" do
-          Elastic.bulk = false
-
-          index = SelfReferential.table_name
-
-          parent = SelfReferential.new(name: "GNU")
-          parent.id = RethinkORM::IdGenerator.next(parent)
-
-          child = SelfReferential.new(name: "GNU's Not Unix")
-          child.parent = parent
-          child.id = RethinkORM::IdGenerator.next(child)
-
-          # Save a child document in child and parent indices
-          Elastic.single_action(
-            action: Elastic::Action::Create,
-            document: child,
-            index: index,
-            parents: schemas.parents(child.class),
-            no_children: schemas.children(child.class).empty?,
-          )
-
-          until_expected(true) do
-            es_doc_exists?(index, child.id)
-          end.should be_true
-
-          parent_index_path = Elastic.document_path(index: index, id: child.id)
-          parent_index_doc = JSON.parse(Elastic.client &.get(parent_index_path).body)
-
-          # Ensure child is routed via parent in parent table
-          parent_index_doc["_routing"].to_s.should eq child.parent_id
-          parent_index_doc["_source"]["_document_type"].should eq Schemas.document_name(child.class)
-
-          # Pick off "_document_type" and "join" fields, convert to any for easy comparison
-          es_document = JSON.parse(parent_index_doc["_source"].as_h.reject("_document_type", "join").to_json)
-          local_document = JSON.parse(child.to_json)
-
-          # Ensure document is the same across indices
-          es_document.should eq local_document
-          es_document_count(index).should eq 1
-        end
-
-        it "routes to correct parent documents" do
-          Elastic.bulk = false
-
-          child_index = Beverage::Coffee.table_name
-          parent_index = Programmer.table_name
-
-          parent = Programmer.new(name: "Knuth")
-          parent.id = RethinkORM::IdGenerator.next(parent)
-
-          child = Beverage::Coffee.new
-          child.programmer = parent
-          child.id = RethinkORM::IdGenerator.next(child)
-
-          # Save a child document in child and parent indices
-          Elastic.single_action(
-            action: Elastic::Action::Create,
-            document: child,
-            index: child_index,
-            parents: schemas.parents(child.class),
-            no_children: schemas.children(child.class).empty?,
-          )
-
-          until_expected(true) do
-            es_doc_exists?(parent_index, child.id)
-          end
-
-          parent_index_path = Elastic.document_path(index: parent_index, id: child.id)
-          parent_index_doc = JSON.parse(Elastic.client &.get(parent_index_path).body)
-
-          # Ensure child is routed via parent in parent table
-          parent_index_doc["_routing"].to_s.should eq child.programmer_id
-          parent_index_doc["_source"]["_document_type"].should eq Schemas.document_name(child.class)
-
-          # Pick off "_document_type" and "join" fields, convert to any for easy comparison
-          es_document = JSON.parse(parent_index_doc["_source"].as_h.reject("_document_type", "join").to_json)
-          local_document = JSON.parse(child.to_json)
-
-          # Ensure document is the same across indices
-          es_document.should eq local_document
-        end
       end
     end
 

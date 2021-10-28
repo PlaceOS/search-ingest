@@ -186,7 +186,7 @@ module SearchIngest
       Elastic.delete_index(index)
 
       # Apply current mapping
-      create_index(index)
+      create_index(model)
 
       true
     rescue e
@@ -326,7 +326,7 @@ module SearchIngest
       proposed = schema_data.index_schema(model)
       existing = Elastic.get_mapping?(schema_data.index_name(model))
 
-      equivalent = Elastic.equivalent_schema?(existing, proposed)
+      equivalent = Schemas.equivalent_schema?(existing, proposed)
       Log.warn { {model: model.to_s, proposed: proposed, existing: existing, message: "index mapping conflict"} } unless equivalent
 
       !equivalent
