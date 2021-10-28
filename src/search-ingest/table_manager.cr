@@ -8,7 +8,7 @@ require "./elastic"
 require "./types"
 
 # Class to manage rethinkdb models sync with elasticsearch
-module RubberSoul
+module SearchIngest
   class TableManager
     Log = ::Log.for(self)
 
@@ -658,9 +658,9 @@ module RubberSoul
     end
 
     # Strips the namespace from the model
-    def self.document_name(model)
-      name = model.is_a?(Class) ? model.name : model
-      name.split("::").last
+    def self.document_name(model : Class | String)
+      model = model.name unless model.is_a? String
+      model.split("::").last
     end
   end
 end

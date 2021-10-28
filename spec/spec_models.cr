@@ -50,4 +50,4 @@ class SelfReferential < AbstractBase
   )
 end
 
-RubberSoul::MANAGED_TABLES = [RayGun, Programmer, Broke, Beverage::Coffee, Migraine, SelfReferential]
+SearchIngest::MANAGED_TABLES = [RayGun, Programmer, Broke, Beverage::Coffee, Migraine, SelfReferential]

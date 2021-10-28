@@ -2,13 +2,13 @@ require "action-controller"
 require "placeos-models/version"
 
 require "./constants"
-require "./rubber-soul/*"
+require "./search-ingest/*"
 
-module RubberSoul
+module SearchIngest
   class Api < ActionController::Base
     Log = ::Log.for(self)
 
-    base "/api/rubber-soul/v1"
+    base "/api/search-ingest/v1"
 
     class_getter table_manager : TableManager { TableManager.new(MANAGED_TABLES, backfill: true, watch: true) }
 

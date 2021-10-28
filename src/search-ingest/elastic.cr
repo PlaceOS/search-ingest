@@ -6,7 +6,7 @@ require "../constants"
 require "./error"
 require "./types"
 
-module RubberSoul
+module SearchIngest
   class Elastic
     Log = ::Log.for(self)
 
@@ -19,8 +19,8 @@ module RubberSoul
       setting host : String = ES_HOST
       setting port : Int32 = ES_PORT
       setting tls : Bool = ES_TLS
-      setting pool_size : Int32 = ES_CONN_POOL || RubberSoul::MANAGED_TABLES.size
-      setting idle_pool_size : Int32 = ES_IDLE_POOL || (RubberSoul::MANAGED_TABLES.size // 4)
+      setting pool_size : Int32 = ES_CONN_POOL || SearchIngest::MANAGED_TABLES.size
+      setting idle_pool_size : Int32 = ES_IDLE_POOL || (SearchIngest::MANAGED_TABLES.size // 4)
       setting pool_timeout : Float64 = ES_CONN_POOL_TIMEOUT
     end
 

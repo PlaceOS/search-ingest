@@ -6,7 +6,7 @@ require "retriable"
 # Application config
 require "./spec_config"
 
-require "../src/rubber-soul/*"
+require "../src/search-ingest/*"
 require "../src/api"
 
 # Helper methods for testing controllers (curl, with_server, context)
@@ -15,7 +15,7 @@ require "../lib/action-controller/spec/curl_context"
 require "spec"
 
 macro table_names
-  [{% for klass in RubberSoul::MANAGED_TABLES %} {{ klass }}.table_name, {% end %}]
+  [{% for klass in SearchIngest::MANAGED_TABLES %} {{ klass }}.table_name, {% end %}]
 end
 
 Spec.before_suite do
@@ -26,7 +26,7 @@ Spec.before_suite &->cleanup
 Spec.after_suite &->cleanup
 
 def refresh
-  RubberSoul::Elastic.client &.post("/_refresh")
+  SearchIngest::Elastic.client &.post("/_refresh")
 end
 
 def until_expected(expected)
@@ -77,7 +77,7 @@ end
 # Remove all documents from an index, retaining index mappings
 def clear_test_indices
   Promise.map(table_names) do |name|
-    RubberSoul::Elastic.empty_indices([name])
+    SearchIngest::Elastic.empty_indices([name])
   end.get
   Fiber.yield
 end
@@ -85,25 +85,25 @@ end
 # Delete all test indices on start up
 def delete_test_indices
   Promise.map(table_names) do |name|
-    RubberSoul::Elastic.delete_index(name)
+    SearchIngest::Elastic.delete_index(name)
   end.get
   Fiber.yield
 end
 
 macro clear_test_tables
-  {% for klass in RubberSoul::MANAGED_TABLES %}
+  {% for klass in SearchIngest::MANAGED_TABLES %}
   {{ klass.id }}.clear
   {% end %}
 end
 
 # Helper to get document count for an es index
 def es_document_count(index)
-  response_body = JSON.parse(RubberSoul::Elastic.client &.get("/#{index}/_count").body)
+  response_body = JSON.parse(SearchIngest::Elastic.client &.get("/#{index}/_count").body)
   response_body["count"].as_i
 end
 
 def es_doc_exists?(index, id, routing = nil)
   params = HTTP::Params.new
   params["routing"] = routing unless routing.nil?
-  RubberSoul::Elastic.client &.get("/#{index}/_doc/#{id}?#{params}").success?
+  SearchIngest::Elastic.client &.get("/#{index}/_doc/#{id}?#{params}").success?
 end

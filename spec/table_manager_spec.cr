@@ -1,6 +1,6 @@
 require "./helper"
 
-module RubberSoul
+module SearchIngest
   describe TableManager do
     self.table_manager_test_suite(bulk: false)
     self.table_manager_test_suite(bulk: true)

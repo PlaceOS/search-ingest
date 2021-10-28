@@ -16,8 +16,8 @@ x-rethinkdb-client-env: &rethinkdb-client-env
   RETHINKDB_PORT: ${RETHINKDB_PORT:-28015}
   RETHINKDB_DB: ${RETHINKDB_DB:-place_development}
 
-x-rubber-soul-client-env: &rubber-soul-client-env
-  RUBBER_SOUL_URI: ${RUBBER_SOUL_URI:-http://rubber-soul:3000}
+x-search-ingest-client-env: &search-ingest-client-env
+  PLACE_SEARCH_INGEST_URI: ${PLACE_SEARCH_INGEST_URI:-http://search-ingest:3000}
 
 services:
   elastic:
@@ -40,7 +40,7 @@ services:
     volumes:
       - ./spec:/app/spec
       - ./src:/app/src
-    hostname: rubber-soul
+    hostname: search-ingest
     depends_on:
       - elastic
       - rethink

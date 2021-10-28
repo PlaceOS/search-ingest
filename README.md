@@ -1,14 +1,14 @@
-# rubber-soul
+# RethinkDB Elasticsearch Ingest Service
 
-[![CI](https://github.com/PlaceOS/rubber-soul/actions/workflows/ci.yml/badge.svg)](https://github.com/PlaceOS/rubber-soul/actions/workflows/ci.yml)
-[![Build Dev Image](https://github.com/PlaceOS/rubber-soul/actions/workflows/build-dev-image.yml/badge.svg)](https://github.com/PlaceOS/rubber-soul/actions/workflows/build-dev-image.yml)
+[![CI](https://github.com/PlaceOS/search-ingest/actions/workflows/ci.yml/badge.svg)](https://github.com/PlaceOS/search-ingest/actions/workflows/ci.yml)
+[![Build Dev Image](https://github.com/PlaceOS/search-ingest/actions/workflows/build-dev-image.yml/badge.svg)](https://github.com/PlaceOS/search-ingest/actions/workflows/build-dev-image.yml)
 
 A small (one might even say 'micro') service that hooks into [rethinkdb-orm](https://github.com/spider-gazelle/rethinkdb-orm) models and generates elasticsearch indices.
-`rubber-soul` exposes a REST API to reindex/backfill specific models.
+`search-ingest` exposes a REST API to reindex/backfill specific models.
 
 ## Usage
 
-- Set the tables to be mirrored in ES through setting `RubberSoul::MANAGED_TABLES` with an array of `(T < RethinkORM::Base).class`
+- Set the tables to be mirrored in ES through setting `SearchIngest::MANAGED_TABLES` with an array of `(T < RethinkORM::Base).class`
 - Configure Elastic client through `ES_HOST` and `ES_PORT` env vars, or through switches on the command line
 - Configure RethinkDB connection `RETHINKDB_HOST` and `RETHINKDB_PORT` env vars
 
@@ -33,7 +33,7 @@ Healthcheck.
 
 ### RethinkDB Mirroring
 
-`RubberSoul::TableManager` hooks into the changefeed of a table, resolves associations of the model and creates/updates documents in the appropriate ES indices.
+`SearchIngest::TableManager` hooks into the changefeed of a table, resolves associations of the model and creates/updates documents in the appropriate ES indices.
 
 ## Configuration
 
@@ -51,8 +51,8 @@ Healthcheck.
 - `RETHINKDB_DB`: DB to mirror to Elasticsearch, defaults to `"test"`
 - `RETHINKDB_HOST`: Host of RethinkDB, defaults to `localhost`
 - `RETHINKDB_PORT`: Port of RethinkDB, defaults to `28015`
-- `RUBBER_SOUL_HOST`: Host to bind server to
-- `RUBBER_SOUL_PORT`: Port for server to listen on
+- `PLACE_SEARCH_INGEST_HOST`: Host to bind server to
+- `PLACE_SEARCH_INGEST_PORT`: Port for server to listen on
 
 ## Development
 

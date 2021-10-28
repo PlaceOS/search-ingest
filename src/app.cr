@@ -5,8 +5,8 @@ require "rethinkdb-orm"
 require "./constants"
 
 # Server defaults
-server_host = RubberSoul::HOST
-server_port = RubberSoul::PORT
+server_host = SearchIngest::HOST
+server_port = SearchIngest::PORT
 
 cluster = false
 process_count = 1
@@ -25,13 +25,13 @@ elastic_tls = false
 # Rethink
 rethink_host = nil
 rethink_port = nil
-rethink_db = RubberSoul::RETHINK_DATABASE
+rethink_db = SearchIngest::RETHINK_DATABASE
 
 # Command line options
 OptionParser.parse(ARGV.dup) do |parser|
-  parser.banner = "Usage: #{RubberSoul::APP_NAME} [arguments]"
+  parser.banner = "Usage: #{SearchIngest::APP_NAME} [arguments]"
 
-  # RubberSoul Options
+  # SearchIngest Options
   parser.on("--backfill", "Perform backfill") { backfill = true }
   parser.on("--reindex", "Perform reindex") { reindex = true }
 
@@ -73,7 +73,7 @@ OptionParser.parse(ARGV.dup) do |parser|
   end
 
   parser.on("-v", "--version", "Display the application version") do
-    puts "#{RubberSoul::APP_NAME} v#{RubberSoul::VERSION}"
+    puts "#{SearchIngest::APP_NAME} v#{SearchIngest::VERSION}"
     exit 0
   end
 
@@ -110,9 +110,9 @@ end
 
 # Application models included in config.
 require "./config"
-require "./rubber-soul"
+require "./search-ingest"
 
-RubberSoul::Elastic.configure do |settings|
+SearchIngest::Elastic.configure do |settings|
   elastic_host.try { |host| settings.host = host }
   elastic_port.try { |port| settings.port = port }
   elastic_tls.try { |tls| settings.tls = tls }
@@ -122,20 +122,20 @@ begin
   Retriable.retry(
     max_elapsed_time: 1.minutes,
     on_retry: ->(_e : Exception, n : Int32, _t : Time::Span, _i : Time::Span) {
-      Log.warn { "attempt #{n} connecting to #{RubberSoul::Elastic.settings.host}:#{RubberSoul::Elastic.settings.port}" }
+      Log.warn { "attempt #{n} connecting to #{SearchIngest::Elastic.settings.host}:#{SearchIngest::Elastic.settings.port}" }
     }
   ) do
     # Ensure elastic is available
-    raise "retry" unless RubberSoul::Elastic.healthy?
+    raise "retry" unless SearchIngest::Elastic.healthy?
   end
 rescue
-  abort("Failed to connect to Elasticsearch on #{RubberSoul::Elastic.settings.host}:#{RubberSoul::Elastic.settings.port}")
+  abort("Failed to connect to Elasticsearch on #{SearchIngest::Elastic.settings.host}:#{SearchIngest::Elastic.settings.port}")
 end
 
 # DB and table presence ensured by rethinkdb-orm, within models
 if backfill || reindex
   # Perform backfill/reindex and then exit
-  table_manager = RubberSoul::TableManager.new(
+  table_manager = SearchIngest::TableManager.new(
     watch: false,
     backfill: false
   )
@@ -164,13 +164,13 @@ else
   # Docker containers use the term signal
   Signal::TERM.trap &terminate
 
-  Log.info { "Launching #{RubberSoul::APP_NAME} v#{RubberSoul::VERSION}" }
+  Log.info { "Launching #{SearchIngest::APP_NAME} v#{SearchIngest::VERSION}" }
   Log.info { "With RethinkDB \"#{rethink_db}\" on #{RethinkORM::Connection.settings.host}:#{RethinkORM::Connection.settings.port}" }
-  Log.info { "With Elasticsearch on #{RubberSoul::Elastic.settings.host}:#{RubberSoul::Elastic.settings.port}" }
-  Log.info { "Mirroring #{RubberSoul::MANAGED_TABLES.map(&.name).sort!.join(", ")}" }
+  Log.info { "With Elasticsearch on #{SearchIngest::Elastic.settings.host}:#{SearchIngest::Elastic.settings.port}" }
+  Log.info { "Mirroring #{SearchIngest::MANAGED_TABLES.map(&.name).sort!.join(", ")}" }
 
   # Start API's TableManager instance
-  RubberSoul::Api.table_manager
+  SearchIngest::Api.table_manager
 
   # Start the server
   server.run do
@@ -179,4 +179,4 @@ else
 end
 
 # Shutdown message
-Log.info { "#{RubberSoul::APP_NAME} signing off" }
+Log.info { "#{SearchIngest::APP_NAME} signing off" }
