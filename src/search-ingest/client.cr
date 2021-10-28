@@ -4,12 +4,13 @@ require "mutex"
 require "uri"
 
 require "placeos-models/version"
+require "../constants"
 
 module SearchIngest
   class Client
     BASE_PATH   = "/api/search-ingest"
     API_VERSION = "v1"
-    DEFAULT_URI = URI.parse(ENV["RETHINKDB_ELASTICSEARCH_INGEST_URI"]? || "http://search-ingest:3000")
+
     getter api_version : String
 
     # Set the request_id on the client
@@ -19,7 +20,7 @@ module SearchIngest
 
     # A one-shot Core client
     def self.client(
-      uri : URI = DEFAULT_URI,
+      uri : URI = CLIENT_URI,
       request_id : String? = nil,
       api_version : String = API_VERSION
     )

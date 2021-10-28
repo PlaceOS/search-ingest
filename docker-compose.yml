@@ -17,7 +17,7 @@ x-rethinkdb-client-env: &rethinkdb-client-env
   RETHINKDB_DB: ${RETHINKDB_DB:-place_development}
 
 x-search-ingest-client-env: &search-ingest-client-env
-  RETHINKDB_ELASTICSEARCH_INGEST_URI: ${RETHINKDB_ELASTICSEARCH_INGEST_URI:-http://search-ingest:3000}
+  PLACE_SEARCH_INGEST_URI: ${PLACE_SEARCH_INGEST_URI:-http://search-ingest:3000}
 
 services:
   elastic:

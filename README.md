@@ -51,8 +51,8 @@ Healthcheck.
 - `RETHINKDB_DB`: DB to mirror to Elasticsearch, defaults to `"test"`
 - `RETHINKDB_HOST`: Host of RethinkDB, defaults to `localhost`
 - `RETHINKDB_PORT`: Port of RethinkDB, defaults to `28015`
-- `RETHINKDB_ELASTICSEARCH_INGEST_HOST`: Host to bind server to
-- `RETHINKDB_ELASTICSEARCH_INGEST_PORT`: Port for server to listen on
+- `PLACE_SEARCH_INGEST_HOST`: Host to bind server to
+- `PLACE_SEARCH_INGEST_PORT`: Port for server to listen on
 
 ## Development
 
