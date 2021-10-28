@@ -5,7 +5,7 @@ require "placeos-models"
 
 # Tables watched by TableManager
 # FIXME: This is not ideal. A constant array is required for macro methods
-RubberSoul::MANAGED_TABLES = [
+SearchIngest::MANAGED_TABLES = [
   PlaceOS::Model::ApiKey,
   PlaceOS::Model::Authority,
   PlaceOS::Model::ControlSystem,
@@ -35,7 +35,7 @@ require "action-controller/server"
 
 # Add handlers that should run before your application
 ActionController::Server.before(
-  HTTP::ErrorHandler.new(RubberSoul.production?),
+  HTTP::ErrorHandler.new(SearchIngest.production?),
   ActionController::LogHandler.new(ms: true),
   HTTP::CompressHandler.new
 )

@@ -2,13 +2,13 @@ require "placeos-log-backend"
 
 require "./constants"
 
-module RubberSoul::Logging
+module SearchIngest::Logging
   ::Log.progname = APP_NAME
 
   # Logging configuration
-  log_level = RubberSoul.production? ? ::Log::Severity::Info : ::Log::Severity::Debug
+  log_level = SearchIngest.production? ? ::Log::Severity::Info : ::Log::Severity::Debug
   log_backend = PlaceOS::LogBackend.log_backend
-  namespaces = ["action-controller.*", "place_os.*", "rubber_soul.*"]
+  namespaces = ["action-controller.*", "place_os.*", "rethink_elastic_ingest.*"]
 
   ::Log.setup do |config|
     config.bind "*", :warn, log_backend
@@ -18,7 +18,7 @@ module RubberSoul::Logging
   end
 
   PlaceOS::LogBackend.register_severity_switch_signals(
-    production: RubberSoul.production?,
+    production: SearchIngest.production?,
     namespaces: namespaces,
     backend: log_backend,
   )

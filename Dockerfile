@@ -25,10 +25,10 @@ COPY ./src /app/src
 
 # Compile
 RUN PLACE_COMMIT=$PLACE_COMMIT \
-    crystal build --release --error-trace /app/src/app.cr -o /app/rubber-soul
+    crystal build --release --error-trace /app/src/app.cr -o /app/search-ingest
 
 # Extract dependencies
-RUN ldd /app/rubber-soul | tr -s '[:blank:]' '\n' | grep '^/' | \
+RUN ldd /app/search-ingest | tr -s '[:blank:]' '\n' | grep '^/' | \
     xargs -I % sh -c 'mkdir -p $(dirname deps%); cp % deps%;'
 
 # Build a minimal docker image
@@ -36,7 +36,7 @@ FROM scratch
 WORKDIR /
 
 COPY --from=build /app/deps /
-COPY --from=build /app/rubber-soul /rubber-soul
+COPY --from=build /app/search-ingest /search-ingest
 
 # These are required for communicating with external services
 COPY --from=build /etc/hosts /etc/hosts
@@ -52,6 +52,6 @@ ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
 # Run the app binding on port 3000
 EXPOSE 3000
-ENTRYPOINT ["/rubber-soul"]
-HEALTHCHECK CMD ["/rubber-soul", "-c", "http://127.0.0.1:3000/api/rubber-soul/v1"]
-CMD ["/rubber-soul", "-b", "0.0.0.0", "-p", "3000"]
+ENTRYPOINT ["/search-ingest"]
+HEALTHCHECK CMD ["/search-ingest", "-c", "http://127.0.0.1:3000/api/search-ingest/v1"]
+CMD ["/search-ingest", "-b", "0.0.0.0", "-p", "3000"]

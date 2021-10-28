@@ -5,11 +5,11 @@ require "uri"
 
 require "placeos-models/version"
 
-module RubberSoul
+module SearchIngest
   class Client
-    BASE_PATH   = "/api/rubber-soul"
+    BASE_PATH   = "/api/search-ingest"
     API_VERSION = "v1"
-    DEFAULT_URI = URI.parse(ENV["RUBBER_SOUL_URI"]? || "http://rubber-soul:3000")
+    DEFAULT_URI = URI.parse(ENV["RETHINKDB_ELASTICSEARCH_INGEST_URI"]? || "http://search-ingest:3000")
     getter api_version : String
 
     # Set the request_id on the client
@@ -91,7 +91,7 @@ module RubberSoul
     {% for method in %w(get post) %}
       # Executes a {{method.id.upcase}} request on core connection.
       #
-      # The response status will be automatically checked and a `RubberSoul::Client::Error` raised if
+      # The response status will be automatically checked and a `SearchIngest::Client::Error` raised if
       # unsuccessful.
       # ```
       private def {{method.id}}(path, headers : HTTP::Headers? = nil, body : HTTP::Client::BodyType? = nil)
@@ -129,7 +129,7 @@ module RubberSoul
       # When working with endpoint that provide stream responses these may be accessed as available
       # by calling `#body_io` on the yielded response object.
       #
-      # The response status will be automatically checked and a RubberSoul::Client::Error raised if
+      # The response status will be automatically checked and a SearchIngest::Client::Error raised if
       # unsuccessful.
       private def {{method.id}}(path, headers : HTTP::Headers? = nil, body : HTTP::Client::BodyType = nil)
         connection.{{method.id}}(path, headers, body) do |response|

@@ -1,4 +1,4 @@
-class RubberSoul::Error < Exception
+class SearchIngest::Error < Exception
   getter message
 
   def initialize(@message : String? = "")

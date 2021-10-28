@@ -1,6 +1,6 @@
 require "./helper"
 
-module RubberSoul
+module SearchIngest
   describe Elastic do
     Spec.after_each do
       Elastic.empty_indices

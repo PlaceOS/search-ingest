@@ -1,4 +1,4 @@
-name: rubber-soul
+name: search-ingest
 version: 1.22.0
 crystal: ">= 1.0.0"
 license: MIT
@@ -6,7 +6,7 @@ authors:
   - Caspian Baska <caspian@place.tech>
 
 targets:
-  rubber-soul:
+  search-ingest:
     main: src/app.cr
 
 dependencies:
