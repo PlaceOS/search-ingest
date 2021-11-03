@@ -20,7 +20,7 @@ module SearchIngest
 
     # A one-shot Core client
     def self.client(
-      uri : URI = CLIENT_URI,
+      uri : URI = URI.parse(CLIENT_URI),
       request_id : String? = nil,
       api_version : String = API_VERSION
     )
