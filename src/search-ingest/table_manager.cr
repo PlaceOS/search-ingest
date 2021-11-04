@@ -445,25 +445,54 @@ module SearchIngest
       schemas
     end
 
-    private INDEX_SETTINGS = {
-      analysis: {
-        analyzer: {
-          default: {
-            tokenizer: "whitespace",
-            filter:    ["lowercase", "preserved_ascii_folding"],
-          },
-        },
-        filter: {
-          preserved_ascii_folding: {
-            type:              "asciifolding",
-            preserve_original: true,
-          },
-        },
-      },
-    }
+    abstract struct Base
+      include JSON::Serializable
+    end
+
+    struct AnalysisSettings < Base
+      @[JSON::Field(root: "default")]
+      getter analyzer : Analyzer
+
+      getter filter : Hash(String, FilterConfiguration)
+
+      struct FilterConfiguration < Base
+        getter type : Analyzer::FilterType
+
+        @[JSON::Field(emit_null: false)]
+        getter preserve_original : Bool?
+
+        def initialize(@type, @preserve_original = nil)
+        end
+      end
+
+      struct Analyzer
+        alias Filter = FilterType | String
+
+        enum FilterType
+          Lowercase
+          Asciifolding
+        end
+
+        enum TokenizerType
+          Whitespace
+        end
+
+        getter tokenizer : TokenizerType
+        getter filter : Array(Filter | String)
+      end
+    end
+
+    struct IndexSettings
+      include JSON::Serializable
+      @[JSON::Field(root: "analysis")]
+      getter settings : AnalysisSettings
+
+      @[JSON::Field(root: "properties")]
+      getter mappings : IndexMappings
+    end
 
     # Generate the index type mapping structure
-    def construct_document_schema(model) : String
+    def construct_document_schema(model) : IndexSettings
       name = TableManager.document_name(model)
       children = children(name)
       properties = collect_index_properties(name, children)
@@ -474,12 +503,24 @@ module SearchIngest
       # Only include join if model has children
       property_mapping = property_mapping.merge(join_field(name, children)) unless children.empty?
 
-      {
-        settings: INDEX_SETTINGS,
-        mappings: {
-          properties: property_mapping,
-        },
-      }.to_json
+      IndexSettings.new(
+        settings: AnalysisSettings.new(
+          analyzer: Analyzer.new(
+            tokenizer: :whitespace,
+            filter: [
+              FilterType::Lowercase,
+              "preserved_ascii_folding",
+            ],
+          ),
+          filter: {
+            "preserved_ascii_folding" => FilterConfiguration.new(
+              type: :asciifolding,
+              preserve_original: true,
+            ),
+          }
+        ),
+        mappings: property_mapping,
+      )
     end
 
     # Property Generation

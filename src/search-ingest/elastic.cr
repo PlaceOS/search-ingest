@@ -431,11 +431,21 @@ module SearchIngest
       document.class.name.split("::")[-1]
     end
 
+    private struct UpdateBody
+      @[JSON::Field(key: "doc", converter: String::RawConverter)]
+      getter document : String
+
+      getter doc_as_upsert : Bool = true
+
+      def initialize(@document : String)
+      end
+    end
+
     # Embeds document inside doc field.
     # _the bulk api sucks_
     #
     def self.update_body(document)
-      %({"doc": #{document}, "doc_as_upsert": true})
+      UpdateBody.new(document).to_json
     end
 
     # Create a join field for a document body
@@ -555,10 +565,10 @@ module SearchIngest
     # Generate JSON header for ES requests
     #
     def self.headers
-      headers = HTTP::Headers.new
-      headers["Content-Type"] = "application/json"
-      headers["Accept"] = "application/json"
-      headers
+      HTTP::Headers{
+        "Content-Type" => "application/json",
+        "Accept"       => "application/json",
+      }
     end
 
     # Constructs the ES path of a document
