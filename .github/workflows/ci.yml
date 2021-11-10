@@ -6,3 +6,6 @@ jobs:
 
   crystal-style:
     uses: PlaceOS/.github/.github/workflows/crystal-style.yml@main
+
+  dockerfile-style:
+    uses: PlaceOS/.github/.github/workflows/dockerfile-style.yml@main
