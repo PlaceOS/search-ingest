@@ -94,7 +94,7 @@ module SearchIngest
       (existing.keys.sort! == proposed.keys.sort!) && existing.all? do |prop, mapping|
         if prop == "join"
           existing_relations = mapping["relations"]?.try &.as_h?
-          proposed_relations = proposed[prop]["relations"]?.try &.as_h?
+          proposed_relations = proposed[prop]?.try(&.["relations"]?.try(&.as_h?))
 
           existing_relations && proposed_relations && (existing_relations.keys.sort! == proposed_relations.keys.sort!) && existing_relations.all? do |k, v|
             # Relations can be an array of join names, or a single join name
