@@ -71,7 +71,7 @@ shards:
 
   placeos-models:
     git: https://github.com/placeos/models.git
-    version: 5.14.0
+    version: 5.14.1
 
   promise:
     git: https://github.com/spider-gazelle/promise.git
