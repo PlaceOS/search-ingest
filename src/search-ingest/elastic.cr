@@ -133,21 +133,27 @@ module SearchIngest
 
     # Traverse schemas and test equality
     #
-    def self.equivalent_schema?(left_schema : String?, right_schema : String?)
-      return false unless left_schema && right_schema
+    # ameba:disable Metrics/CyclomaticComplexity
+    def self.equivalent_schema?(existing_schema : String?, proposed_schema : String?) : Bool
+      return false unless existing_schema && proposed_schema
 
-      left = JSON.parse(left_schema)["mappings"]["properties"].as_h
-      right = JSON.parse(right_schema)["mappings"]["properties"].as_h
+      begin
+        proposed = Schema.extract(proposed_schema)
+        existing = Schema.extract(existing_schema)
+      rescue e : JSON::SerializableError
+        Log.warn(exception: e) { "malformed schema: #{proposed_schema}" }
+        return false
+      end
 
-      (left.keys.sort! == right.keys.sort!) && left.all? do |prop, mapping|
+      (existing.keys.sort! == proposed.keys.sort!) && existing.all? do |prop, mapping|
         if prop == "join"
-          left_relations = mapping["relations"].as_h
-          right_relations = right[prop]["relations"].as_h
+          existing_relations = mapping["relations"]?.try &.as_h?
+          proposed_relations = proposed[prop]["relations"]?.try &.as_h?
 
-          (left_relations.keys.sort! == right_relations.keys.sort!) && left_relations.all? do |k, v|
+          existing_relations && proposed_relations && (existing_relations.keys.sort! == proposed_relations.keys.sort!) && existing_relations.all? do |k, v|
             # Relations can be an array of join names, or a single join name
             l = v.as_a?.try(&.map(&.as_s)) || v
-            r = right_relations[k]?.try &.as_a?.try(&.map(&.as_s)) || right_relations[k]?
+            r = proposed_relations[k]?.try &.as_a?.try(&.map(&.as_s)) || proposed_relations[k]?
             if l.is_a? Array && r.is_a? Array
               l.sort == r.sort
             else
@@ -155,8 +161,21 @@ module SearchIngest
             end
           end
         else
-          right[prop]? == mapping
+          proposed[prop]? == mapping
         end
+      end
+    end
+
+    # Model for extracting the schema of an index
+    #
+    private struct Schema
+      include JSON::Serializable
+
+      @[JSON::Field(root: "properties")]
+      getter mappings : Hash(String, JSON::Any)
+
+      def self.extract(json) : Hash(String, JSON::Any)
+        from_json(json).mappings
       end
     end
 
