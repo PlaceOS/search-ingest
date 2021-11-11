@@ -206,7 +206,10 @@ module SearchIngest
       describe ".create_document" do
         it "saves a document" do
           Elastic.bulk = bulk
+
           index = Programmer.table_name
+
+          TableManager.new.create_index(Programmer) rescue nil
 
           model = Programmer.new(name: "tenderlove")
           model.id = RethinkORM::IdGenerator.next(model)
