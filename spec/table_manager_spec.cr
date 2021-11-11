@@ -5,6 +5,10 @@ module SearchIngest
     self.table_manager_test_suite(bulk: false)
     self.table_manager_test_suite(bulk: true)
 
+    before_each do
+      Elastic.empty_indices
+    end
+
     describe "mappings" do
       it "applies new mapping to an index" do
         delete_test_indices

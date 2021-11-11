@@ -2,7 +2,7 @@ require "./helper"
 
 module SearchIngest
   describe Elastic do
-    Spec.after_each do
+    before_each do
       Elastic.empty_indices
     end
 
@@ -13,6 +13,13 @@ module SearchIngest
 
       it "skips a documents on the same index with a parent" do
         Elastic.skip_replication?({parent_id: "123", index: "same"}, "same", [{name: "mum", index: "same", routing_attr: :parent_id}]).should be_true
+      end
+    end
+
+    describe ".equivalent_schema?" do
+      it "does not fail on malformed schemas" do
+        broken_schema = {error: "malformed"}.to_json
+        Elastic.equivalent_schema?(broken_schema, broken_schema).should be_false
       end
     end
 

@@ -20,9 +20,9 @@ end
 
 Spec.before_suite do
   ::Log.setup "*", :debug, PlaceOS::LogBackend.log_backend
+  cleanup
 end
 
-Spec.before_suite &->cleanup
 Spec.after_suite &->cleanup
 
 def refresh
