@@ -118,19 +118,7 @@ SearchIngest::Elastic.configure do |settings|
   elastic_tls.try { |tls| settings.tls = tls }
 end
 
-begin
-  Retriable.retry(
-    max_elapsed_time: 1.minutes,
-    on_retry: ->(_e : Exception, n : Int32, _t : Time::Span, _i : Time::Span) {
-      Log.warn { "attempt #{n} connecting to #{SearchIngest::Elastic.settings.host}:#{SearchIngest::Elastic.settings.port}" }
-    }
-  ) do
-    # Ensure elastic is available
-    raise "retry" unless SearchIngest::Elastic.healthy?
-  end
-rescue
-  abort("Failed to connect to Elasticsearch on #{SearchIngest::Elastic.settings.host}:#{SearchIngest::Elastic.settings.port}")
-end
+SearchIngest.wait_for_elasticsearch
 
 # DB and table presence ensured by rethinkdb-orm, within models
 if backfill || reindex

@@ -498,7 +498,12 @@ module SearchIngest
         body = ClusterHealth.from_json(response.body)
 
         # Cluster is functional in yellow -> green states
-        body.status > ClusterHealth::Status::Red
+        case body.status
+        in .yellow?, .green? then true
+        in .red?
+          Log.warn { "cluster is up, but unhealthy" }
+          false
+        end
       else
         Log.warn { "health request failed: #{response.body}" }
         false
@@ -545,7 +550,7 @@ module SearchIngest
 
       getter task_max_waiting_in_queue_millis : Int32
 
-      getter active_shards_percent_as_number : Int32
+      getter active_shards_percent_as_number : Float32
     end
 
     # Remove documents from indices
