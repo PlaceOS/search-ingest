@@ -6,7 +6,7 @@ require "retriable"
 # Application config
 require "./spec_config"
 
-require "../src/search-ingest/*"
+require "../src/search-ingest"
 require "../src/api"
 
 # Helper methods for testing controllers (curl, with_server, context)
@@ -20,6 +20,7 @@ end
 
 Spec.before_suite do
   ::Log.setup "*", :debug, PlaceOS::LogBackend.log_backend
+  SearchIngest.wait_for_elasticsearch
   cleanup
 end
 

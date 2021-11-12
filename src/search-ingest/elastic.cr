@@ -1,6 +1,7 @@
 require "db"
 require "habitat"
 require "http"
+require "json"
 
 require "../constants"
 require "./error"
@@ -130,54 +131,6 @@ module SearchIngest
 
     # Mapping
     #############################################################################################
-
-    # Traverse schemas and test equality
-    #
-    # ameba:disable Metrics/CyclomaticComplexity
-    def self.equivalent_schema?(existing_schema : String?, proposed_schema : String?) : Bool
-      return false unless existing_schema && proposed_schema
-
-      begin
-        proposed = Schema.extract(proposed_schema)
-        existing = Schema.extract(existing_schema)
-      rescue e : JSON::SerializableError
-        Log.warn(exception: e) { "malformed schema: #{proposed_schema}" }
-        return false
-      end
-
-      (existing.keys.sort! == proposed.keys.sort!) && existing.all? do |prop, mapping|
-        if prop == "join"
-          existing_relations = mapping["relations"]?.try &.as_h?
-          proposed_relations = proposed[prop]["relations"]?.try &.as_h?
-
-          existing_relations && proposed_relations && (existing_relations.keys.sort! == proposed_relations.keys.sort!) && existing_relations.all? do |k, v|
-            # Relations can be an array of join names, or a single join name
-            l = v.as_a?.try(&.map(&.as_s)) || v
-            r = proposed_relations[k]?.try &.as_a?.try(&.map(&.as_s)) || proposed_relations[k]?
-            if l.is_a? Array && r.is_a? Array
-              l.sort == r.sort
-            else
-              l == r
-            end
-          end
-        else
-          proposed[prop]? == mapping
-        end
-      end
-    end
-
-    # Model for extracting the schema of an index
-    #
-    private struct Schema
-      include JSON::Serializable
-
-      @[JSON::Field(root: "properties")]
-      getter mappings : Hash(String, JSON::Any)
-
-      def self.extract(json) : Hash(String, JSON::Any)
-        from_json(json).mappings
-      end
-    end
 
     # Get the mapping applied to an index
     def self.get_mapping?(index) : String?
@@ -540,9 +493,64 @@ module SearchIngest
     # Checks availability of Elasticsearch
     #
     def self.healthy?
-      client &.get("/_cat/health").success?
-    rescue
+      response = client &.get("/_cluster/health")
+      if response.success?
+        body = ClusterHealth.from_json(response.body)
+
+        # Cluster is functional in yellow -> green states
+        case body.status
+        in .yellow?, .green? then true
+        in .red?
+          Log.warn { "cluster is up, but unhealthy" }
+          false
+        end
+      else
+        Log.warn { "health request failed: #{response.body}" }
+        false
+      end
+    rescue e
+      Log.warn { "failed to get elasticsearch health status: #{e.message}" }
       false
+    end
+
+    struct ClusterHealth
+      include JSON::Serializable
+
+      enum Status
+        Green
+        Yellow
+        Red
+      end
+
+      getter status : Status
+
+      getter cluster_name : String
+
+      getter timed_out : Bool
+
+      getter number_of_nodes : Int32
+
+      getter number_of_data_nodes : Int32
+
+      getter active_primary_shards : Int32
+
+      getter active_shards : Int32
+
+      getter relocating_shards : Int32
+
+      getter initializing_shards : Int32
+
+      getter unassigned_shards : Int32
+
+      getter delayed_unassigned_shards : Int32
+
+      getter number_of_pending_tasks : Int32
+
+      getter number_of_in_flight_fetch : Int32
+
+      getter task_max_waiting_in_queue_millis : Int32
+
+      getter active_shards_percent_as_number : Float32
     end
 
     # Remove documents from indices

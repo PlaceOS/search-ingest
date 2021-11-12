@@ -21,6 +21,10 @@ shards:
     git: https://github.com/spider-gazelle/bindata.git
     version: 1.9.1
 
+  crystal-kcov:
+    git: https://github.com/vici37/crystal-kcov.git
+    version: 0.1.0+git.commit.6c2191d080e01a49106b483cf0c4a0145e3f9090
+
   db:
     git: https://github.com/crystal-lang/crystal-db.git
     version: 0.10.1
