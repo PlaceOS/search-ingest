@@ -1,6 +1,7 @@
 require "db"
 require "habitat"
 require "http"
+require "json"
 
 require "../constants"
 require "./error"
@@ -492,9 +493,59 @@ module SearchIngest
     # Checks availability of Elasticsearch
     #
     def self.healthy?
-      client &.get("/_cat/health").success?
-    rescue
+      response = client &.get("/_cluster/health")
+      if response.success?
+        body = ClusterHealth.from_json(response.body)
+
+        # Cluster is functional in yellow -> green states
+        body.status > ClusterHealth::Status::Red
+      else
+        Log.warn { "health request failed: #{response.body}" }
+        false
+      end
+    rescue e
+      Log.warn { "failed to get elasticsearch health status: #{e.message}" }
       false
+    end
+
+    struct ClusterHealth
+      include JSON::Serializable
+
+      enum Status
+        Green
+        Yellow
+        Red
+      end
+
+      getter status : Status
+
+      getter cluster_name : String
+
+      getter timed_out : Bool
+
+      getter number_of_nodes : Int32
+
+      getter number_of_data_nodes : Int32
+
+      getter active_primary_shards : Int32
+
+      getter active_shards : Int32
+
+      getter relocating_shards : Int32
+
+      getter initializing_shards : Int32
+
+      getter unassigned_shards : Int32
+
+      getter delayed_unassigned_shards : Int32
+
+      getter number_of_pending_tasks : Int32
+
+      getter number_of_in_flight_fetch : Int32
+
+      getter task_max_waiting_in_queue_millis : Int32
+
+      getter active_shards_percent_as_number : Int32
     end
 
     # Remove documents from indices
