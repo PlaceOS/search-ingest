@@ -146,7 +146,7 @@ module SearchIngest
 
       properties = MODEL_METADATA[document_name].attributes.compact_map do |field, options|
         ::Log.with_context do
-          Log.context.set(model: document_name, field: field)
+          Log.context.set(model: document_name, field: field.to_s)
 
           type_tag = validate_tag(options.tags[:es_type]?)
           subfield = validate_tag(options.tags[:es_subfield]?).try { |v| [v] }
