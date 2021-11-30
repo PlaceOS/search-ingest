@@ -2,6 +2,5 @@ dependencies:
   retriable:
     github: Sija/retriable.cr
   rethinkdb:
-    github: place-labs/crystal-rethinkdb
+    github: kingsleyh/crystal-rethinkdb
     version: ~> 0.3
-    branch: fix/connection-retry

@@ -7,7 +7,7 @@ shards:
 
   action-controller:
     git: https://github.com/spider-gazelle/action-controller.git
-    version: 4.5.1
+    version: 4.6.0
 
   active-model:
     git: https://github.com/spider-gazelle/active-model.git
@@ -71,15 +71,15 @@ shards:
 
   placeos-models:
     git: https://github.com/placeos/models.git
-    version: 5.14.1
+    version: 5.14.2
 
   promise:
     git: https://github.com/spider-gazelle/promise.git
     version: 3.0.0
 
   rethinkdb: # Overridden
-    git: https://github.com/place-labs/crystal-rethinkdb.git
-    version: 0.3.1+git.commit.af92ace5eb60e861a41b93456ac5d73b80feb7bb
+    git: https://github.com/kingsleyh/crystal-rethinkdb.git
+    version: 0.3.1
 
   rethinkdb-orm:
     git: https://github.com/spider-gazelle/rethinkdb-orm.git
