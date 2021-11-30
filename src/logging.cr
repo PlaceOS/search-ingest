@@ -10,11 +10,16 @@ module SearchIngest::Logging
   log_backend = PlaceOS::LogBackend.log_backend
   namespaces = ["action-controller.*", "place_os.*", "rethink_elastic_ingest.*"]
 
-  ::Log.setup do |config|
-    config.bind "*", :warn, log_backend
-    namespaces.each do |namespace|
-      config.bind namespace, log_level, log_backend
-    end
+  builder = ::Log.builder
+
+  ::Log.setup_from_env(
+    default_level: :warn,
+    backend: log_backend,
+    builder: builder,
+  )
+
+  namespaces.each do |namespace|
+    builder.bind namespace, log_level, log_backend
   end
 
   PlaceOS::LogBackend.register_severity_switch_signals(
