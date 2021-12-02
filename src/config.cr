@@ -7,6 +7,8 @@ require "placeos-models"
 # FIXME: This is not ideal. A constant array is required for macro methods
 SearchIngest::MANAGED_TABLES = [
   PlaceOS::Model::ApiKey,
+  PlaceOS::Model::Asset,
+  PlaceOS::Model::AssetInstance,
   PlaceOS::Model::Authority,
   PlaceOS::Model::ControlSystem,
   PlaceOS::Model::DoorkeeperApplication,
