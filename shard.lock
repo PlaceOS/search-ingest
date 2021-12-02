@@ -7,7 +7,7 @@ shards:
 
   action-controller:
     git: https://github.com/spider-gazelle/action-controller.git
-    version: 4.6.0
+    version: 4.7.0
 
   active-model:
     git: https://github.com/spider-gazelle/active-model.git
@@ -23,7 +23,7 @@ shards:
 
   crystal-kcov:
     git: https://github.com/vici37/crystal-kcov.git
-    version: 0.1.0+git.commit.6c2191d080e01a49106b483cf0c4a0145e3f9090
+    version: 0.2.0+git.commit.88516de9fe96df40ef62cdb6dbe0e2b6cbbd1697
 
   db:
     git: https://github.com/crystal-lang/crystal-db.git
@@ -59,7 +59,7 @@ shards:
 
   neuroplastic:
     git: https://github.com/spider-gazelle/neuroplastic.git
-    version: 1.8.0
+    version: 1.10.0
 
   openssl_ext:
     git: https://github.com/spider-gazelle/openssl_ext.git
@@ -71,7 +71,7 @@ shards:
 
   placeos-models:
     git: https://github.com/placeos/models.git
-    version: 5.14.2
+    version: 5.15.0
 
   promise:
     git: https://github.com/spider-gazelle/promise.git
