@@ -21,7 +21,7 @@ module SearchIngest
       {% for method in methods %}
         # Dispatcher for {{ method.id }}
         def {{ method.id }}(model)
-          Log.trace { "{{ method }} for #{model}" }
+          Log.trace { "{{ method.id }} for #{model}" }
           # Generate {{ method.id }} method calls
           case SearchIngest::Schemas.document_name(model)
           {% for klass in SearchIngest::Schemas::MODELS.keys %}
@@ -29,7 +29,7 @@ module SearchIngest
             {{ klass.id }}.{{ method.id }}(runopts: {"read_mode" => "majority"})
           {% end %}
           else
-            raise "No #{ {{ method.stringify }} } for '#{model}'"
+            raise "No {{ method.id }} for '#{model}'"
           end
         end
       {% end %}
