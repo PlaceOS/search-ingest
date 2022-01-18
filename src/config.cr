@@ -10,6 +10,7 @@ SearchIngest::MANAGED_TABLES = [
   PlaceOS::Model::Asset,
   PlaceOS::Model::AssetInstance,
   PlaceOS::Model::Authority,
+  PlaceOS::Model::Broker,
   PlaceOS::Model::ControlSystem,
   PlaceOS::Model::DoorkeeperApplication,
   PlaceOS::Model::Driver,
