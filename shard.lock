@@ -27,7 +27,7 @@ shards:
 
   db:
     git: https://github.com/crystal-lang/crystal-db.git
-    version: 0.10.1
+    version: 0.11.0
 
   future:
     git: https://github.com/crystal-community/future.cr.git
@@ -71,7 +71,7 @@ shards:
 
   placeos-models:
     git: https://github.com/placeos/models.git
-    version: 5.15.2
+    version: 6.0.0
 
   promise:
     git: https://github.com/spider-gazelle/promise.git
