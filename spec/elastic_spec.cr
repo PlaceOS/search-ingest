@@ -208,8 +208,7 @@ module SearchIngest
           Elastic.bulk = bulk
 
           index = Programmer.table_name
-
-          TableManager.new.create_index(Programmer) rescue nil
+          Table(Programmer).new(schemas).create_index rescue nil
 
           model = Programmer.new(name: "tenderlove")
           model.id = RethinkORM::IdGenerator.next(model)
