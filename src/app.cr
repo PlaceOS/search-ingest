@@ -122,8 +122,11 @@ SearchIngest.wait_for_elasticsearch
 
 # DB and table presence ensured by rethinkdb-orm, within models
 if backfill || reindex
+  _schemas, tables = SearchIngest.tables(MANAGED_TABLES)
+
   # Perform backfill/reindex and then exit
   table_manager = SearchIngest::TableManager.new(
+    tables,
     watch: false,
     backfill: false
   )

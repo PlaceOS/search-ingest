@@ -10,7 +10,10 @@ module SearchIngest
 
     base "/api/search-ingest/v1"
 
-    class_getter table_manager : TableManager { TableManager.new(MANAGED_TABLES, backfill: true, watch: true) }
+    class_getter table_manager : TableManager do
+      _schemas, tables = SearchIngest.tables(MANAGED_TABLES)
+      TableManager.new(tables, backfill: true, watch: true)
+    end
 
     getter? backfill : Bool do
       params["backfill"]?.presence.try(&.downcase).in?("1", "true")

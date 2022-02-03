@@ -26,6 +26,10 @@ dependencies:
     github: spider-gazelle/log_helper
     version: ~> 1.0
 
+  placeos-resource:
+    github: place-labs/resource
+    version: ~> 2.3
+
   placeos-log-backend:
     github: place-labs/log-backend
 
