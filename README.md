@@ -1,7 +1,7 @@
 # RethinkDB Elasticsearch Ingest Service
 
+[![Build](https://github.com/PlaceOS/search-ingest/actions/workflows/build.yml/badge.svg)](https://github.com/PlaceOS/search-ingest/actions/workflows/build.yml)
 [![CI](https://github.com/PlaceOS/search-ingest/actions/workflows/ci.yml/badge.svg)](https://github.com/PlaceOS/search-ingest/actions/workflows/ci.yml)
-[![Build Dev Image](https://github.com/PlaceOS/search-ingest/actions/workflows/build-dev-image.yml/badge.svg)](https://github.com/PlaceOS/search-ingest/actions/workflows/build-dev-image.yml)
 
 A small (one might even say 'micro') service that hooks into [rethinkdb-orm](https://github.com/spider-gazelle/rethinkdb-orm) models and generates elasticsearch indices.
 `search-ingest` exposes a REST API to reindex/backfill specific models.
