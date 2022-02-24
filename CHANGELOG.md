@@ -1,8 +1,10 @@
+## Unreleased
+
 ## v2.1.3 (2022-02-24)
 
 ### Refactor
 
-- central build ci (#57)
+- central build ci ([#57](https://github.com/PlaceOS/search-ingest/pull/57))
 
 ## v2.1.2 (2022-01-28)
 
@@ -10,8 +12,8 @@
 
 ### Feat
 
-- **config**: add Broker model to tables (#55)
-- **config**: add Asset models (#54)
+- **config**: add Broker model to tables ([#55](https://github.com/PlaceOS/search-ingest/pull/55))
+- **config**: add Asset models ([#54](https://github.com/PlaceOS/search-ingest/pull/54))
 - **logging**: set log level from environment
 
 ## v2.0.3 (2021-11-30)
@@ -24,11 +26,11 @@
 
 ### Refactor
 
-- extract model schemas from table manager (#44)
+- extract model schemas from table manager ([#44](https://github.com/PlaceOS/search-ingest/pull/44))
 
 ### Fix
 
-- **elastic**: improve schema diff (#52)
+- **elastic**: improve schema diff ([#52](https://github.com/PlaceOS/search-ingest/pull/52))
 
 ## v2.0.1 (2021-11-03)
 
@@ -40,18 +42,18 @@
 
 ### Refactor
 
-- rename to `search-ingest` (#50)
+- rename to `search-ingest` ([#50](https://github.com/PlaceOS/search-ingest/pull/50))
 
 ## v1.22.0 (2021-10-14)
 
 ### Feat
 
-- **api**: backfill once healthcheck heals (#48)
-- **elastic**: use pool retry (#46)
+- **api**: backfill once healthcheck heals ([#48](https://github.com/PlaceOS/search-ingest/pull/48))
+- **elastic**: use pool retry ([#46](https://github.com/PlaceOS/search-ingest/pull/46))
 
 ### Fix
 
-- **table_manager**: return error code on failure to reindex/backfill (#47)
+- **table_manager**: return error code on failure to reindex/backfill ([#47](https://github.com/PlaceOS/search-ingest/pull/47))
 
 ## v1.21.0 (2021-09-30)
 
@@ -118,7 +120,7 @@
 
 ### Feat
 
-- add logstash support (#18)
+- add logstash support ([#18](https://github.com/PlaceOS/search-ingest/pull/18))
 
 ## v1.15.4 (2021-02-08)
 
