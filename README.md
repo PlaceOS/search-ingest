@@ -2,6 +2,7 @@
 
 [![Build](https://github.com/PlaceOS/search-ingest/actions/workflows/build.yml/badge.svg)](https://github.com/PlaceOS/search-ingest/actions/workflows/build.yml)
 [![CI](https://github.com/PlaceOS/search-ingest/actions/workflows/ci.yml/badge.svg)](https://github.com/PlaceOS/search-ingest/actions/workflows/ci.yml)
+[![Changelog](https://img.shields.io/badge/Changelog-available-github.svg)](/CHANGELOG.md)
 
 A small (one might even say 'micro') service that hooks into [rethinkdb-orm](https://github.com/spider-gazelle/rethinkdb-orm) models and generates elasticsearch indices.
 `search-ingest` exposes a REST API to reindex/backfill specific models.
@@ -54,17 +55,9 @@ Healthcheck.
 - `PLACE_SEARCH_INGEST_HOST`: Host to bind server to
 - `PLACE_SEARCH_INGEST_PORT`: Port for server to listen on
 
-## Development
+## Contributing
 
-Tested against...
-
-- RethinkDB 2.4.0
-- Elasticsearch 7.6.2
-
-### Environment
-
-- `$ ./test` (run tests and tear down the test environment on exit)
-- `$ ./test --watch` (run test suite on change)
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
 ## Contributors
 
