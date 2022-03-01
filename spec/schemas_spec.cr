@@ -48,7 +48,7 @@ module SearchIngest
       it "creates a mapping of table attributes to es types" do
         schemas = Schemas.new([Broke])
         mappings = schemas.properties(Broke).sort_by &.name
-        mappings.should eq ([
+        mappings.should eq([
           Schemas::TYPE_FIELD,
           Schemas::Field.new("breaks", "text", ["keyword"]),
           Schemas::Field.new("hasho", "object"),
@@ -61,7 +61,7 @@ module SearchIngest
         # RayGun ip attribute has an 'es_type' tag
         schemas = Schemas.new([RayGun])
         mappings = schemas.properties["RayGun"].sort_by &.name
-        mappings.should eq ([
+        mappings.should eq([
           Schemas::TYPE_FIELD,
           Schemas::Field.new("barrel_length", "float"),
           Schemas::Field.new("id", "keyword"),
