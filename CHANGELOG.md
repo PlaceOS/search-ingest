@@ -1,4 +1,8 @@
-## Unreleased
+## v2.1.4 (2022-03-09)
+
+### Fix
+
+- bump `placeos-models` ([#59](https://github.com/PlaceOS/search-ingest/pull/59))
 
 ## v2.1.3 (2022-02-24)
 
