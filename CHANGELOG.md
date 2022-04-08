@@ -1,4 +1,8 @@
-## Unreleased
+## v2.1.5 (2022-04-08)
+
+### Fix
+
+- bump placeos-models to 8.1.0 ([#60](https://github.com/PlaceOS/search-ingest/pull/60))
 
 ## v2.1.4 (2022-03-09)
 
