@@ -23,7 +23,7 @@ shards:
 
   crystal-kcov:
     git: https://github.com/vici37/crystal-kcov.git
-    version: 0.2.0+git.commit.88516de9fe96df40ef62cdb6dbe0e2b6cbbd1697
+    version: 0.2.1+git.commit.7b00bbd32d3a67ca5111c25312f4c56433b65aab
 
   db:
     git: https://github.com/crystal-lang/crystal-db.git
@@ -69,13 +69,17 @@ shards:
     git: https://github.com/spider-gazelle/openssl_ext.git
     version: 2.1.5
 
+  pars:
+    git: https://github.com/spider-gazelle/pars.git
+    version: 1.1.0
+
   placeos-log-backend:
     git: https://github.com/place-labs/log-backend.git
     version: 0.6.0
 
   placeos-models:
     git: https://github.com/placeos/models.git
-    version: 7.0.0
+    version: 8.1.0
 
   promise:
     git: https://github.com/spider-gazelle/promise.git
@@ -87,7 +91,7 @@ shards:
 
   rethinkdb-orm:
     git: https://github.com/spider-gazelle/rethinkdb-orm.git
-    version: 6.0.0
+    version: 6.0.2
 
   retriable: # Overridden
     git: https://github.com/sija/retriable.cr.git
