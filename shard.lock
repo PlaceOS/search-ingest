@@ -79,7 +79,7 @@ shards:
 
   placeos-models:
     git: https://github.com/placeos/models.git
-    version: 8.1.0
+    version: 8.2.2
 
   promise:
     git: https://github.com/spider-gazelle/promise.git
