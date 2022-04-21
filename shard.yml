@@ -47,7 +47,6 @@ dependencies:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    version: ~> 6.0
 
   retriable:
     github: Sija/retriable.cr
