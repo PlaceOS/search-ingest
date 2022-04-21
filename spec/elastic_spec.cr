@@ -207,13 +207,14 @@ module SearchIngest
         it "saves a document" do
           Elastic.bulk = bulk
 
-          index = Programmer.table_name
+          parent_model = Programmer.new(name: "Isaacs")
+          parent_model.id = RethinkORM::IdGenerator.next(parent_model)
 
-          TableManager.new.create_index(Programmer) rescue nil
-
-          model = Programmer.new(name: "tenderlove")
+          model = Beverage::Coffee.new(temperature: 50)
           model.id = RethinkORM::IdGenerator.next(model)
+          model.programmer = parent_model
 
+          index = Beverage::Coffee.table_name
           parents = schemas.parents(model.class)
           no_children = schemas.children(model.class).empty?
 

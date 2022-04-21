@@ -26,6 +26,10 @@ dependencies:
     github: spider-gazelle/log_helper
     version: ~> 1.0
 
+  placeos-resource:
+    github: place-labs/resource
+    version: ~> 2.3
+
   placeos-log-backend:
     github: place-labs/log-backend
 
@@ -43,7 +47,6 @@ dependencies:
 
   rethinkdb-orm:
     github: spider-gazelle/rethinkdb-orm
-    version: ~> 6.0
 
   retriable:
     github: Sija/retriable.cr

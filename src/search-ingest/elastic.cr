@@ -100,12 +100,7 @@ module SearchIngest
 
     private def self.run_action(action, index, document, parents, **args)
       if self.bulk?
-        body = self.bulk_action(action, document, index, parents, **args)
-        begin
-          self.bulk_operation(body)
-        rescue e
-          Log.error(exception: e) { {message: "failed to mutate document", action: action.to_s.downcase, id: document.id, index: index} }
-        end
+        self.bulk_operation(self.bulk_action(action, document, index, parents, **args))
       else
         self.single_action(action, document, index, parents, **args)
       end

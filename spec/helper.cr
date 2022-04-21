@@ -108,3 +108,11 @@ def es_doc_exists?(index, id, routing = nil)
   params["routing"] = routing unless routing.nil?
   SearchIngest::Elastic.client &.get("/#{index}/_doc/#{id}?#{params}").success?
 end
+
+def tables
+  SearchIngest.tables(SearchIngest::MANAGED_TABLES).last
+end
+
+def schemas
+  SearchIngest.tables(SearchIngest::MANAGED_TABLES).first
+end
