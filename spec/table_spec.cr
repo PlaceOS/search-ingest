@@ -20,11 +20,13 @@ module SearchIngest
           table = Table(Programmer).new(schemas)
           table.start
 
-          sleep 100.milliseconds
+          sleep 500.milliseconds
 
           index = Programmer.table_name
 
           refresh
+
+          sleep 500.milliseconds
 
           prog = Programmer.create!(name: "Rob Pike")
 
