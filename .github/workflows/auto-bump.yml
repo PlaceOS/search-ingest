@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Checkout master
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: master
       # Install crystal and shards update
@@ -14,7 +14,7 @@ jobs:
       - run: shards update
       # Commit changes
       - name: push
-        uses: github-actions-x/commit@v2.8
+        uses: github-actions-x/commit@v2.9
         with:
           push-branch: 'build/shards-bump'
           commit-message: 'build: bump shards'
