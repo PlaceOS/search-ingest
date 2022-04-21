@@ -1,4 +1,8 @@
-## Unreleased
+## v2.1.6 (2022-04-21)
+
+### Refactor
+
+- utilise `PlaceOS::Resource(T)` ([#56](https://github.com/PlaceOS/search-ingest/pull/56))
 
 ## v2.1.5 (2022-04-08)
 
