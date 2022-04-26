@@ -13,7 +13,7 @@ module SearchIngest::Logging
   builder = ::Log.builder
 
   ::Log.setup_from_env(
-    default_level: :warn,
+    default_level: log_level,
     backend: log_backend,
     builder: builder,
   )
