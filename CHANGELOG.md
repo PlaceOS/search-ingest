@@ -1,4 +1,8 @@
-## Unreleased
+## v2.3.1 (2022-04-28)
+
+### Fix
+
+- **telemetry**: seperate telemetry file
 
 ## v2.3.0 (2022-04-27)
 
