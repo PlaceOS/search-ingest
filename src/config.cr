@@ -31,9 +31,12 @@ SearchIngest::MANAGED_TABLES = [
 # Application code
 require "./api"
 require "./constants"
+require "action-controller"
+
+# Require telemetry after application code
+require "./telemetry"
 
 # Server
-require "action-controller"
 require "action-controller/server"
 
 # Add handlers that should run before your application
