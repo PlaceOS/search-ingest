@@ -1,5 +1,7 @@
 require "./logging"
+require "opentelemetry-instrumentation/src/opentelemetry/instrumentation/instrument"
 require "placeos-log-backend/telemetry"
+require "placeos-resource/instrumentation"
 
 module SearchIngest
   PlaceOS::LogBackend.configure_opentelemetry(
