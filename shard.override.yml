@@ -4,3 +4,6 @@ dependencies:
   rethinkdb:
     github: kingsleyh/crystal-rethinkdb
     version: ~> 0.3
+  opentelemetry-api:
+    github: place-labs/opentelemetry-api.cr
+    branch: fix/trace/in_span
