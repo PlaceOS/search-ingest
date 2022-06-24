@@ -33,6 +33,8 @@ services:
     depends_on:
       - elastic
       - rethink
+    security_opt:
+      - seccomp:unconfined
     environment:
       # Service Hosts
       <<: *rethinkdb-client-env
