@@ -22,7 +22,7 @@ module SearchIngest
       super(**args)
     end
 
-    def process_resource(action : PlaceOS::Resource::Action, model : T) : PlaceOS::Resource::Result
+    def process_resource(action : PlaceOS::Resource::Action, resource model : T) : PlaceOS::Resource::Result
       index = schema_data.index_name(T)
       parents = schema_data.parents(T)
       no_children = schema_data.children(T).empty?
