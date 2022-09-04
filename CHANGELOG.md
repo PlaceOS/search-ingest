@@ -1,3 +1,9 @@
+## v2.4.0 (2022-09-04)
+
+### Feat
+
+- add support for ARM64 and update libs ([#66](https://github.com/PlaceOS/search-ingest/pull/66))
+
 ## v2.3.4 (2022-07-01)
 
 ### Fix
@@ -76,13 +82,13 @@
 
 ## v2.0.2 (2021-11-30)
 
-### Refactor
-
-- extract model schemas from table manager ([#44](https://github.com/PlaceOS/search-ingest/pull/44))
-
 ### Fix
 
 - **elastic**: improve schema diff ([#52](https://github.com/PlaceOS/search-ingest/pull/52))
+
+### Refactor
+
+- extract model schemas from table manager ([#44](https://github.com/PlaceOS/search-ingest/pull/44))
 
 ## v2.0.1 (2021-11-03)
 
@@ -109,19 +115,23 @@
 
 ## v1.21.0 (2021-09-30)
 
-### Refactor
-
-- use `standard` tokenizer
-- **table_manager**: prevent clobbering outer scope
-- **constants**: remove redundant logging code
-
 ### Fix
 
 - **table_manager**: fields were not merged
 - **table_manager**: resolve issues with multi-type fields
 - **constants**: ES_DISABLE_BULK preserves previous behaviour
 
+### Refactor
+
+- use `standard` tokenizer
+- **table_manager**: prevent clobbering outer scope
+- **constants**: remove redundant logging code
+
 ## v1.19.9 (2021-09-10)
+
+### Feat
+
+- retry connection to elastic on startup
 
 ### Fix
 
@@ -134,20 +144,23 @@
 - **table_manager**: remove subfield
 - undefined constant
 
-### Perf
-
-- **table_manager**: sum futures
-
-### Feat
-
-- retry connection to elastic on startup
-
 ### Refactor
 
 - messy NoReturn creeping in
 - **table_manager**: begin move from NamedTuples
 
+### Perf
+
+- **table_manager**: sum futures
+
 ## v1.19.1 (2021-06-08)
+
+### Feat
+
+- conform to `PlaceOS::Model::Version`
+- add JsonSchema to watched models
+- robust healthcheck
+- **logging**: use placeos-log-backend
 
 ### Fix
 
@@ -156,13 +169,6 @@
 - **table_manager**: correct missing mappings
 - set Log progname, fix compilation error
 - **logging**: register log backend earlier
-
-### Feat
-
-- conform to `PlaceOS::Model::Version`
-- add JsonSchema to watched models
-- robust healthcheck
-- **logging**: use placeos-log-backend
 
 ### Refactor
 
@@ -250,13 +256,13 @@
 
 ## v1.10.3 (2020-06-22)
 
-### Fix
-
-- **api**: correct backfill param check
-
 ### Feat
 
 - **elastic**: support tls client
+
+### Fix
+
+- **api**: correct backfill param check
 
 ## v1.10.1 (2020-06-19)
 
@@ -266,14 +272,14 @@
 - support Set as a model attribute
 - add query analyzer settings to index
 
-### Refactor
-
-- begin migration to promises
-
 ### Fix
 
 - **config**: log levels
 - **Log**: use `Log#setup`
+
+### Refactor
+
+- begin migration to promises
 
 ## v1.8.2 (2020-06-16)
 
@@ -337,14 +343,6 @@
 
 ## v1.5.0 (2020-02-28)
 
-### Fix
-
-- remove dead require
-- **constants**: improved version extraction
-- **api**: correct optional param
-- **config**: remove redundant imports
-- **table_manager**: fiber.yield after spawn
-
 ### Feat
 
 - **Dockerfile**: build images using alpine
@@ -352,6 +350,14 @@
 - add Settings model
 - **version**: grab version from shards.yml
 - **logging**: update logging to use action-controller/logger v2.0
+
+### Fix
+
+- remove dead require
+- **constants**: improved version extraction
+- **api**: correct optional param
+- **config**: remove redundant imports
+- **table_manager**: fiber.yield after spawn
 
 ### Refactor
 
