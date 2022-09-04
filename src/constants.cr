@@ -6,7 +6,9 @@ module SearchIngest
   APP_NAME = "search-ingest"
 
   # Calculate version at compile time
-  VERSION = {{ `shards version "#{__DIR__}"`.chomp.stringify.downcase }}
+  {% begin %}
+    VERSION = {{ `shards version "#{__DIR__}"`.chomp.stringify.downcase }}
+  {% end %}
 
   BUILD_TIME   = {{ system("date -u").stringify }}
   BUILD_COMMIT = {{ env("PLACE_COMMIT") || "DEV" }}

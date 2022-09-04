@@ -1,0 +1,200 @@
+---
+openapi: 3.0.3
+info:
+  description: monitors for changes occuring in the database and sends them to elasticsearch
+  title: search-ingest
+  version: 2.3.4
+paths:
+  /api/search-ingest/v1/reindex:
+    post:
+      summary: Reindex all tables, backfills by default
+      tags:
+      - Api
+      operationId: SearchIngest::Api#reindex
+      parameters:
+      - name: backfill
+        in: query
+        required: false
+        schema:
+          type: boolean
+      responses:
+        200:
+          description: OK
+        406:
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIngest__Api__ContentError'
+        415:
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIngest__Api__ContentError'
+        422:
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIngest__Api__ParameterError'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIngest__Api__ParameterError'
+  /api/search-ingest/v1/backfill:
+    post:
+      summary: Backfill all tables
+      tags:
+      - Api
+      operationId: SearchIngest::Api#backfill
+      parameters: []
+      responses:
+        200:
+          description: OK
+        406:
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIngest__Api__ContentError'
+        415:
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIngest__Api__ContentError'
+        422:
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIngest__Api__ParameterError'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIngest__Api__ParameterError'
+  /api/search-ingest/v1/version:
+    get:
+      summary: return the version and build details of the service
+      tags:
+      - Api
+      operationId: SearchIngest::Api#version
+      parameters: []
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaceOS__Model__Version'
+        406:
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIngest__Api__ContentError'
+        415:
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIngest__Api__ContentError'
+        422:
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIngest__Api__ParameterError'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIngest__Api__ParameterError'
+  /api/search-ingest/v1:
+    get:
+      summary: health check
+      tags:
+      - Api
+      operationId: SearchIngest::Api#index
+      parameters: []
+      responses:
+        200:
+          description: OK
+        406:
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIngest__Api__ContentError'
+        415:
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIngest__Api__ContentError'
+        422:
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIngest__Api__ParameterError'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIngest__Api__ParameterError'
+components:
+  schemas:
+    PlaceOS__Model__Version:
+      type: object
+      properties:
+        service:
+          type: string
+        commit:
+          type: string
+        version:
+          type: string
+        build_time:
+          type: string
+        platform_version:
+          type: string
+      required:
+      - service
+      - commit
+      - version
+      - build_time
+      - platform_version
+    SearchIngest__Api__ContentError:
+      type: object
+      properties:
+        error:
+          type: string
+        accepts:
+          type: array
+          items:
+            type: string
+          nullable: true
+      required:
+      - error
+      description: Provides details on available data formats
+    SearchIngest__Api__ParameterError:
+      type: object
+      properties:
+        error:
+          type: string
+        parameter:
+          type: string
+          nullable: true
+        restriction:
+          type: string
+          nullable: true
+      required:
+      - error
+      description: Provides details on which parameter is missing or invalid
