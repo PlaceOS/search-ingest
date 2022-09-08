@@ -1,3 +1,9 @@
+## v2.4.1 (2022-09-08)
+
+### Fix
+
+- **Dockerfile**: revert static build ([#67](https://github.com/PlaceOS/search-ingest/pull/67))
+
 ## v2.4.0 (2022-09-04)
 
 ### Feat
