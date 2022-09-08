@@ -23,10 +23,20 @@ RUN adduser \
     "${USER}"
 
 # Add trusted CAs for communicating with external services
-RUN apk add --update --no-cache \
-      ca-certificates \
-    && \
-    update-ca-certificates
+RUN apk add \
+  --update \
+  --no-cache \
+    ca-certificates \
+    yaml-dev \
+    yaml-static \
+    libxml2-dev \
+    openssl-dev \
+    openssl-libs-static \
+    zlib-dev \
+    zlib-static \
+    tzdata
+
+RUN update-ca-certificates
 
 # Add crystal lang
 # can look up packages here: https://pkgs.alpinelinux.org/packages?name=crystal
@@ -36,15 +46,7 @@ RUN apk add \
   --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main \
   --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community \
     crystal \
-    shards \
-    yaml-dev \
-    yaml-static \
-    libxml2-dev \
-    openssl-dev \
-    openssl-libs-static \
-    zlib-dev \
-    zlib-static \
-    tzdata
+    shards
 
 # Install shards for caching
 COPY shard.yml .
@@ -60,14 +62,17 @@ COPY ./src /app/src
 RUN UNAME_AT_COMPILE_TIME=true \
     PLACE_COMMIT=$PLACE_COMMIT \
     PLACE_VERSION=$PLACE_VERSION \
-    crystal build \
-        --release \
-        --error-trace \
-        --static \
-        -o /app/search-ingest \
-        /app/src/app.cr
+    shards build --production --release --error-trace
 
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
+
+# Extract binary dependencies
+RUN for binary in /app/bin/*; do \
+        ldd "$binary" | \
+        tr -s '[:blank:]' '\n' | \
+        grep '^/' | \
+        xargs -I % sh -c 'mkdir -p $(dirname deps%); cp % deps%;'; \
+    done
 
 # Build a minimal docker image
 FROM scratch
@@ -88,8 +93,9 @@ ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 # This is required for Timezone support
 COPY --from=build /usr/share/zoneinfo/ /usr/share/zoneinfo/
 
-# Copy the built application
-COPY --from=build /app/search-ingest /search-ingest
+# Copy the app into place
+COPY --from=build /app/deps /
+COPY --from=build /app/bin /
 
 # Use an unprivileged user.
 USER appuser:appuser
