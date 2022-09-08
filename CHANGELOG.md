@@ -1,3 +1,9 @@
+## v2.5.0 (2022-09-08)
+
+### Feat
+
+- **shard.lock**: bump libs ([#68](https://github.com/PlaceOS/search-ingest/pull/68))
+
 ## v2.4.1 (2022-09-08)
 
 ### Fix
