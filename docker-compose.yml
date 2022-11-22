@@ -6,7 +6,7 @@ x-deployment-env: &deployment-env
   ENV: ${ENV:-development}
   SG_ENV: ${SG_ENV:-development}
   TZ: $TZ
-  PG_DATABASE_URL: ${PG_DATABASE_URL:-postgresql://postgres:password@postgres:5432/ingest_spec}
+  PG_DATABASE_URL: ${PG_DATABASE_URL:-postgresql://postgres:password@localhost:5432/ingest_spec}
 
 x-elastic-client-env: &elastic-client-env
   ELASTIC_HOST: ${ELASTIC_HOST:-elastic}
@@ -43,7 +43,6 @@ services:
       discovery.type: single-node
 
   postgres:
-    hostname: postgres
     image: postgres:13-alpine
     container_name: postgres
     healthcheck:
