@@ -15,7 +15,7 @@ module SearchIngest
 
   Log = ::Log.for(self)
 
-  RETHINK_DATABASE = ENV["RETHINKDB_DB"]? || "test"
+  PG_DATABASE = ENV["PG_DATABASE"]? || "test"
 
   class_getter? production : Bool = (ENV["ENV"]? || ENV["SG_ENV"]?).try(&.downcase) == "production"
 

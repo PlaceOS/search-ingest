@@ -56,7 +56,7 @@ module SearchIngest
       backfill
     end
 
-    # Clear, update mapping an ES index and refill with rethinkdb documents
+    # Clear, update mapping an ES index and refill with PostgreSQL records
     #
     def reindex : Bool
       Log.info { {method: "reindex", table: T.table_name} }

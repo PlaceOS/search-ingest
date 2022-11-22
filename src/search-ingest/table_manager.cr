@@ -1,12 +1,12 @@
 require "log"
 require "promise"
-require "rethinkdb-orm"
+require "pg-orm"
 
 require "./elastic"
 require "./schemas"
 require "./table"
 
-# Class to manage rethinkdb models sync with elasticsearch
+# Class to manage pg-orm models sync with elasticsearch
 module SearchIngest
   macro tables(models)
     {(%schemas = SearchIngest::Schemas.new({{ models.resolve }})),
@@ -35,7 +35,7 @@ module SearchIngest
       # Initialise indices to a consistent state
       initialise_indices(backfill)
 
-      # Begin rethinkdb sync
+      # Begin PostgresQL sync
       watch_tables if watch
     end
 

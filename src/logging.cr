@@ -8,7 +8,7 @@ module SearchIngest::Logging
   # Logging configuration
   log_level = SearchIngest.production? ? ::Log::Severity::Info : ::Log::Severity::Debug
   log_backend = PlaceOS::LogBackend.log_backend
-  namespaces = ["action-controller.*", "place_os.*", "rethink_elastic_ingest.*"]
+  namespaces = ["action-controller.*", "place_os.*", "search-ingest.*"]
 
   builder = ::Log.builder
 

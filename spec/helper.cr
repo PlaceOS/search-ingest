@@ -18,13 +18,70 @@ macro table_names
   [{% for klass in SearchIngest::MANAGED_TABLES %} {{ klass }}.table_name, {% end %}]
 end
 
+alias SpecConnection = PgORM::Database
+
 Spec.before_suite do
-  ::Log.setup "*", :debug, PlaceOS::LogBackend.log_backend
+  PgORM::Database.parse(ENV["PG_DATABASE_URL"])
+  ::Log.setup "*", :info, PlaceOS::LogBackend.log_backend
   SearchIngest.wait_for_elasticsearch
   cleanup
+  setup
 end
 
 Spec.after_suite &->cleanup
+
+def setup
+  SpecConnection.connection do |db|
+    db.exec <<-SQL
+    CREATE TABLE ray_gun (
+      id TEXT NOT NULL PRIMARY KEY,
+      laser_colour TEXT NOT NULL,
+      barrel_length FLOAT NOT NULL,
+      rounds INT NOT NULL,
+      ip TEXT NOT NULL,
+      last_shot TIMESTAMP NOT NULL
+    );
+    SQL
+
+    db.exec <<-SQL
+    CREATE TABLE programmer (
+      id TEXT NOT NULL PRIMARY KEY,
+      name TEXT NOT NULL
+    );
+    SQL
+
+    db.exec <<-SQL
+    CREATE TABLE broke (
+      id TEXT NOT NULL PRIMARY KEY,
+      breaks TEXT NOT NULL,
+      status BOOL NOT NULL,
+      hasho JSONB NOT NULL
+    );
+    SQL
+
+    db.exec <<-SQL
+    CREATE TABLE beverage_coffee (
+      id TEXT NOT NULL PRIMARY KEY,
+      temperature INT NOT NULL,
+      created_at TIMESTAMP NOT NULL
+    );
+    SQL
+
+    db.exec <<-SQL
+    CREATE TABLE ouch (
+      id TEXT NOT NULL PRIMARY KEY,
+      created_at TIMESTAMP NOT NULL
+    );
+    SQL
+
+    db.exec <<-SQL
+    CREATE TABLE selfref (
+      id TEXT NOT NULL PRIMARY KEY,
+      name TEXT NOT NULL
+    );
+    SQL
+  end
+end
 
 def refresh
   SearchIngest::Elastic.client &.post("/_refresh")
@@ -59,7 +116,7 @@ def until_expected(expected)
 end
 
 def cleanup
-  # Empty rethinkdb test tables
+  # Empty postgresql test tables
   drop_tables
   # Remove any of the test indices
   clear_test_indices
@@ -68,9 +125,9 @@ def cleanup
 end
 
 def drop_tables
-  RethinkORM::Connection.raw do |q|
-    q.db("test").table_list.for_each do |t|
-      q.db("test").table(t).delete
+  SpecConnection.connection do |db|
+    table_names.each do |table|
+      db.exec "DROP TABLE IF EXISTS #{table}"
     end
   end
 end

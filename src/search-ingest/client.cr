@@ -46,13 +46,13 @@ module SearchIngest
     end
 
     # Reindexes Elasticsearch
-    # If `backfill` is `true`, backfill data from RethinkDB into Elasticsearch
+    # If `backfill` is `true`, backfill data from PostgreSQL into Elasticsearch
     def reindex(backfill : Bool = false)
       params = HTTP::Params{"backfill" => backfill.to_s}
       post("/reindex?#{params}").success?
     end
 
-    # Backfill data from RethinkDB into Elasticsearch
+    # Backfill data from PostgreSQL into Elasticsearch
     def backfill
       post("/backfill").success?
     end

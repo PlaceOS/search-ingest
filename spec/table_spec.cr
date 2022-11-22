@@ -53,7 +53,7 @@ module SearchIngest
         index = Programmer.table_name
         count_before_create = Programmer.count
 
-        # Place some data in rethinkdb
+        # Place some data in postgres
         num_created = 3
         programmers = Array.new(size: num_created) do |n|
           Programmer.create!(name: "Jim the #{n}th")
@@ -79,14 +79,14 @@ module SearchIngest
       end
 
       describe "#backfill" do
-        it "refills a single es index with existing data in rethinkdb" do
+        it "refills a single es index with existing data in postgres" do
           Elastic.bulk = bulk
           Programmer.clear
           index = Programmer.table_name
 
           table = Table(Programmer).new(schemas)
 
-          # Generate some data in rethinkdb
+          # Generate some data in postgres
           num_created = 5
           programmers = Array.new(size: num_created) do |n|
             Programmer.create!(name: "Jim the #{n}th")

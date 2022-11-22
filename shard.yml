@@ -14,10 +14,6 @@ dependencies:
     github: spider-gazelle/action-controller
     version: ~> 5.3
 
-  db:
-    github: crystal-lang/crystal-db
-    version: ~> 0.9
-
   habitat:
     github: luckyframework/habitat
     version: ~> 0.4
@@ -42,12 +38,8 @@ dependencies:
     github: spider-gazelle/promise
     version: ~> 3.0
 
-  rethinkdb:
-    github: kingsleyh/crystal-rethinkdb
-    version: ~> 0.2
-
-  rethinkdb-orm:
-    github: spider-gazelle/rethinkdb-orm
+  pg-orm:
+    github: spider-gazelle/pg-orm
 
   retriable:
     github: Sija/retriable.cr

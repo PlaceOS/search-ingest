@@ -343,14 +343,14 @@ module SearchIngest
     ###############################################################################################
 
     macro finished
-      # All RethinkORM models with abstract and empty classes removed
+      # All PgORM models with abstract and empty classes removed
       # :nodoc:
       MODELS = {} of Nil => Nil
       __create_model_metadata
     end
 
     macro __create_model_metadata
-      {% for model, fields in RethinkORM::Base::FIELD_MAPPINGS %}
+      {% for model, fields in PgORM::Base::FIELD_MAPPINGS %}
         {% unless model.abstract? || fields.empty? %}
           {% if MANAGED_TABLES.map(&.resolve).includes?(model) %}
             {% MODELS[model] = fields %}
