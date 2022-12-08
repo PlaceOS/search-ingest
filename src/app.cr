@@ -23,11 +23,11 @@ elastic_port = nil
 elastic_tls = false
 
 # Postgres
-pg_host = nil
-pg_port = nil
-pg_user = nil
-pg_pwd = nil
-pg_db = SearchIngest::PG_DATABASE
+pg_host = ENV["PG_HOST"]?
+pg_port = ENV["PG_PORT"]?.try &.to_i
+pg_user = ENV["PG_USER"]?
+pg_pwd = ENV["PG_PASSWORD"]?
+pg_db = ENV["PG_DB"]? || SearchIngest::PG_DATABASE
 
 # Command line options
 OptionParser.parse(ARGV.dup) do |parser|
@@ -119,12 +119,18 @@ OptionParser.parse(ARGV.dup) do |parser|
 end
 
 # We must configure the PostgreSQL connection before including the models...
-PgORM::Database.configure do |settings|
-  pg_host.try { |host| settings.host = host }
-  pg_port.try { |port| settings.port = port }
-  settings.db = pg_db
-  pg_user.try { |user| settings.user = user }
-  pg_pwd.try { |pwd| settings.password = pwd }
+# If PG_DATABASE_URL is set, the take that as a sole source of information to configure DB connection
+# else fall down to individual settings configured via either env vars or CLI
+if (db_url = ENV["PG_DATABASE_URL"]?)
+  PgORM::Database.parse(db_url)
+else
+  PgORM::Database.configure do |settings|
+    pg_host.try { |host| settings.host = host }
+    pg_port.try { |port| settings.port = port }
+    settings.db = pg_db
+    pg_user.try { |user| settings.user = user }
+    pg_pwd.try { |pwd| settings.password = pwd }
+  end
 end
 
 # Application models included in config.
