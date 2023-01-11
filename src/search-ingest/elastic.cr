@@ -272,7 +272,7 @@ module SearchIngest
     # - Creates document in table index
     # - Adds document to all parent table indices, routing by the parent id
     def self.bulk_action(action, document, index, parents = [] of Parent, no_children = true)
-      id = document.id.as(String)
+      id = document.id.to_s
       doc_type = self.document_type(document)
       attributes = document.attributes
 
