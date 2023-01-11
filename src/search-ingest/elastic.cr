@@ -206,7 +206,7 @@ module SearchIngest
     # - Creates document in table index
     # - Adds document to all parent table indices, routing by the parent id
     def self.single_action(action : Action, document, index : String, parents : Array(Parent) = [] of Parent, no_children : Bool = true)
-      id = document.id.as(String)
+      id = document.id.to_s
       doc_type = self.document_type(document)
       attributes = document.attributes
 
