@@ -87,7 +87,7 @@ def refresh
   SearchIngest::Elastic.client &.post("/_refresh")
 end
 
-def until_expected(expected)
+def until_expected(expected, &)
   refresh
   before = Time.utc
   result = nil

@@ -48,7 +48,7 @@ module SearchIngest
 
     # Yield an acquired client from the pool
     #
-    def self.client
+    def self.client(&)
       pool = (@@pool ||= DB::Pool(Elastic).new(
         initial_pool_size: settings.pool_size // 4,
         max_pool_size: settings.pool_size,

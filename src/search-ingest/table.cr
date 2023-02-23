@@ -94,7 +94,7 @@ module SearchIngest
 
     # Backfill via the bulk Elasticsearch API
     #
-    protected def backfill_batch
+    protected def backfill_batch(&)
       errored = false
       promises = [] of Promise(Int32)
       T.all.in_groups_of(100, reuse: true) do |docs|

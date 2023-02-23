@@ -22,7 +22,8 @@ module SearchIngest
     def self.client(
       uri : URI = URI.parse(CLIENT_URI),
       request_id : String? = nil,
-      api_version : String = API_VERSION
+      api_version : String = API_VERSION,
+      &
     )
       client = new(uri, request_id, api_version)
       begin

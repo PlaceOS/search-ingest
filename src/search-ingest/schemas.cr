@@ -302,7 +302,7 @@ module SearchIngest
 
       # Represents the mapping of this field in an Elasticsearch schema
       def field_mapping
-        if (field_mappings = fields)
+        if field_mappings = fields
           {
             "type"   => type,
             "fields" => field_mappings.map { |subtype| {subtype, {type: subtype}} }.to_h,
