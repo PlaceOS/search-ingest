@@ -1,3 +1,9 @@
+## v2.5.2 (2023-03-15)
+
+### Refactor
+
+- migrate to postgresql ([#72](https://github.com/PlaceOS/search-ingest/pull/72))
+
 ## v2.5.1 (2022-12-22)
 
 ### Fix
