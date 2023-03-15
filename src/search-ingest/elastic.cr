@@ -48,7 +48,7 @@ module SearchIngest
 
     # Yield an acquired client from the pool
     #
-    def self.client
+    def self.client(&)
       pool = (@@pool ||= DB::Pool(Elastic).new(
         initial_pool_size: settings.pool_size // 4,
         max_pool_size: settings.pool_size,
@@ -80,19 +80,19 @@ module SearchIngest
     # Single Document Requests
     #############################################################################################
 
-    # Create a new document in ES from a RethinkORM model
+    # Create a new document in ES from a PgORM model
     #
     def self.create_document(index, document, parents = [] of Parent, no_children = true)
       run_action(action: Action::Create, index: index, document: document, parents: parents, no_children: no_children)
     end
 
-    # Update a document in ES from a RethinkORM model
+    # Update a document in ES from a PgORM model
     #
     def self.update_document(index, document, parents = [] of Parent, no_children = true)
       run_action(action: Action::Update, index: index, document: document, parents: parents, no_children: no_children)
     end
 
-    # Delete a document in ES from a RethinkORM model
+    # Delete a document in ES from a PgORM model
     #
     def self.delete_document(index, document, parents = [] of Parent)
       run_action(action: Action::Delete, index: index, document: document, parents: parents)
@@ -202,11 +202,11 @@ module SearchIngest
       end
     end
 
-    # Generates the body of a Bulk request for a RethinkDB document in ES
+    # Generates the body of a Bulk request for a PostgreSQL record in ES
     # - Creates document in table index
     # - Adds document to all parent table indices, routing by the parent id
     def self.single_action(action : Action, document, index : String, parents : Array(Parent) = [] of Parent, no_children : Bool = true)
-      id = document.id.as(String)
+      id = document.id.to_s
       doc_type = self.document_type(document)
       attributes = document.attributes
 
@@ -268,11 +268,11 @@ module SearchIngest
       end
     end
 
-    # Generates the body of a Bulk request for a RethinkDB document in ES
+    # Generates the body of a Bulk request for a PostgreSQL record in ES
     # - Creates document in table index
     # - Adds document to all parent table indices, routing by the parent id
     def self.bulk_action(action, document, index, parents = [] of Parent, no_children = true)
-      id = document.id.as(String)
+      id = document.id.to_s
       doc_type = self.document_type(document)
       attributes = document.attributes
 

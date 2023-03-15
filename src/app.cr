@@ -1,6 +1,6 @@
 require "option_parser"
 require "habitat"
-require "rethinkdb-orm"
+require "pg-orm"
 
 require "./constants"
 
@@ -22,10 +22,12 @@ elastic_host = nil
 elastic_port = nil
 elastic_tls = false
 
-# Rethink
-rethink_host = nil
-rethink_port = nil
-rethink_db = SearchIngest::RETHINK_DATABASE
+# Postgres
+pg_host = ENV["PG_HOST"]?
+pg_port = ENV["PG_PORT"]?.try &.to_i
+pg_user = ENV["PG_USER"]?
+pg_pwd = ENV["PG_PASSWORD"]?
+pg_db = ENV["PG_DB"]? || SearchIngest::PG_DATABASE
 
 # Command line options
 OptionParser.parse(ARGV.dup) do |parser|
@@ -35,16 +37,22 @@ OptionParser.parse(ARGV.dup) do |parser|
   parser.on("--backfill", "Perform backfill") { backfill = true }
   parser.on("--reindex", "Perform reindex") { reindex = true }
 
-  # Rethinkdb Options,
+  # PostgreSQL Options,
   # Access through models themselves.
-  parser.on("--rethink-host HOST", "RethinkDB host") do |host|
-    rethink_host = host
+  parser.on("--pg-host HOST", "PostgreSQL host") do |host|
+    pg_host = host
   end
-  parser.on("--rethink-port PORT", "RethinkDB port") do |port|
-    rethink_port = port.to_i
+  parser.on("--pg-port PORT", "PostgreSQL port") do |port|
+    pg_port = port.to_i
   end
-  parser.on("--rethink-db DB", "RethinkDB database") do |db|
-    rethink_db = db
+  parser.on("--pg-user USER", "PostgreSQL database user") do |user|
+    pg_user = user
+  end
+  parser.on("--pg-pwd PASSWORD", "PostgreSQL database password") do |pwd|
+    pg_pwd = pwd
+  end
+  parser.on("--pg-db DB", "PostgreSQL database") do |db|
+    pg_db = db
   end
 
   # Elasticsearch Options
@@ -110,11 +118,19 @@ OptionParser.parse(ARGV.dup) do |parser|
   end
 end
 
-# We must configure the RethinkDB connection before including the models...
-RethinkORM.configure do |settings|
-  rethink_host.try { |host| settings.host = host }
-  rethink_port.try { |port| settings.port = port }
-  settings.db = rethink_db
+# We must configure the PostgreSQL connection before including the models...
+# If PG_DATABASE_URL is set, the take that as a sole source of information to configure DB connection
+# else fall down to individual settings configured via either env vars or CLI
+if db_url = ENV["PG_DATABASE_URL"]?
+  PgORM::Database.parse(db_url)
+else
+  PgORM::Database.configure do |settings|
+    pg_host.try { |host| settings.host = host }
+    pg_port.try { |port| settings.port = port }
+    settings.db = pg_db
+    pg_user.try { |user| settings.user = user }
+    pg_pwd.try { |pwd| settings.password = pwd }
+  end
 end
 
 # Application models included in config.
@@ -129,7 +145,7 @@ end
 
 SearchIngest.wait_for_elasticsearch
 
-# DB and table presence ensured by rethinkdb-orm, within models
+# DB and table presence ensured by pg-orm, within models
 if backfill || reindex
   _schemas, tables = SearchIngest.tables(MANAGED_TABLES)
 
@@ -140,10 +156,10 @@ if backfill || reindex
     backfill: false
   )
 
-  # Recreate ES indexes from existing RethinkDB documents
+  # Recreate ES indexes from existing PostgreSQL records
   table_manager.reindex_all if reindex
 
-  # Push all documents in RethinkDB to ES
+  # Push all records in PostgreSQL to ES
   table_manager.backfill_all if backfill
 else
   # Otherwise, run server
@@ -165,7 +181,7 @@ else
   Signal::TERM.trap &terminate
 
   Log.info { "Launching #{SearchIngest::APP_NAME} v#{SearchIngest::VERSION}" }
-  Log.info { "With RethinkDB \"#{rethink_db}\" on #{RethinkORM::Connection.settings.host}:#{RethinkORM::Connection.settings.port}" }
+  Log.info { "With PostgreSQL Database \"#{pg_db}\" on #{PgORM::Database.settings.host}:#{PgORM::Database.settings.port}" }
   Log.info { "With Elasticsearch on #{SearchIngest::Elastic.settings.host}:#{SearchIngest::Elastic.settings.port}" }
   Log.info { "Mirroring #{SearchIngest::MANAGED_TABLES.map(&.name).sort!.join(", ")}" }
 

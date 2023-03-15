@@ -3,6 +3,8 @@ require "placeos-models/version"
 
 require "./constants"
 require "./search-ingest/*"
+require "uri"
+require "uri/params"
 
 module SearchIngest
   class Api < ActionController::Base
@@ -76,12 +78,12 @@ module SearchIngest
           check_resource?("elastic") { Elastic.healthy? }
         },
         Promise.defer {
-          check_resource?("rethinkdb") { rethinkdb_healthcheck }
+          check_resource?("postgres") { pg_healthcheck }
         },
       ).then(&.all?).get
     end
 
-    private def self.check_resource?(resource)
+    private def self.check_resource?(resource, &)
       Log.trace { "healthchecking #{resource}" }
       !!yield
     rescue e
@@ -89,23 +91,29 @@ module SearchIngest
       false
     end
 
-    private class_getter rethinkdb_admin_connection : RethinkDB::Connection do
-      RethinkDB.connect(
-        host: RethinkORM.settings.host,
-        port: RethinkORM.settings.port,
-        db: "rethinkdb",
-        user: RethinkORM.settings.user,
-        password: RethinkORM.settings.password,
-        max_retry_attempts: 1,
-      )
+    private def self.pg_healthcheck
+      ::DB.connect(pg_healthcheck_url) do |db|
+        db.query_all("select datname, usename from pg_stat_activity where datname is not null", as: {String, String}).first?
+      end
     end
 
-    private def self.rethinkdb_healthcheck
-      RethinkDB
-        .table("server_status")
-        .pluck("id", "name")
-        .run(rethinkdb_admin_connection)
-        .first?
+    @@pg_healthcheck_url : String? = nil
+
+    private def self.pg_healthcheck_url(timeout = 5)
+      @@pg_healthcheck_url ||= begin
+        url = PgORM::Settings.to_uri
+        uri = URI.parse(url)
+        if q = uri.query
+          params = URI::Params.parse(q)
+          unless params["timeout"]?
+            params.add("timeout", timeout.to_s)
+          end
+          uri.query = params.to_s
+          uri.to_s
+        else
+          "#{url}?timeout=#{timeout}"
+        end
+      end
     end
 
     ###############################################################################################

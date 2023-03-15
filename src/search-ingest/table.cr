@@ -56,7 +56,7 @@ module SearchIngest
       backfill
     end
 
-    # Clear, update mapping an ES index and refill with rethinkdb documents
+    # Clear, update mapping an ES index and refill with PostgreSQL records
     #
     def reindex : Bool
       Log.info { {method: "reindex", table: T.table_name} }
@@ -94,7 +94,7 @@ module SearchIngest
 
     # Backfill via the bulk Elasticsearch API
     #
-    protected def backfill_batch
+    protected def backfill_batch(&)
       errored = false
       promises = [] of Promise(Int32)
       T.all.in_groups_of(100, reuse: true) do |docs|

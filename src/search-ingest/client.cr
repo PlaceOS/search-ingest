@@ -22,7 +22,8 @@ module SearchIngest
     def self.client(
       uri : URI = URI.parse(CLIENT_URI),
       request_id : String? = nil,
-      api_version : String = API_VERSION
+      api_version : String = API_VERSION,
+      &
     )
       client = new(uri, request_id, api_version)
       begin
@@ -46,13 +47,13 @@ module SearchIngest
     end
 
     # Reindexes Elasticsearch
-    # If `backfill` is `true`, backfill data from RethinkDB into Elasticsearch
+    # If `backfill` is `true`, backfill data from PostgreSQL into Elasticsearch
     def reindex(backfill : Bool = false)
       params = HTTP::Params{"backfill" => backfill.to_s}
       post("/reindex?#{params}").success?
     end
 
-    # Backfill data from RethinkDB into Elasticsearch
+    # Backfill data from PostgreSQL into Elasticsearch
     def backfill
       post("/backfill").success?
     end

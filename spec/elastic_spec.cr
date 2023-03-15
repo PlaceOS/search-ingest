@@ -28,11 +28,11 @@ module SearchIngest
           index = SelfReferential.table_name
 
           parent = SelfReferential.new(name: "GNU")
-          parent.id = RethinkORM::IdGenerator.next(parent)
+          parent.id = PlaceOS::Model::Utilities::IdGenerator.next(parent)
 
           child = SelfReferential.new(name: "GNU's Not Unix")
           child.parent = parent
-          child.id = RethinkORM::IdGenerator.next(child)
+          child.id = PlaceOS::Model::Utilities::IdGenerator.next(child)
 
           # Save a child document in child and parent indices
           bulk_request = Elastic.bulk_action(
@@ -83,11 +83,11 @@ module SearchIngest
           parent_index = Programmer.table_name
 
           parent = Programmer.new(name: "Knuth")
-          parent.id = RethinkORM::IdGenerator.next(parent)
+          parent.id = PlaceOS::Model::Utilities::IdGenerator.next(parent)
 
           child = Beverage::Coffee.new
           child.programmer = parent
-          child.id = RethinkORM::IdGenerator.next(child)
+          child.id = PlaceOS::Model::Utilities::IdGenerator.next(child)
 
           # Save a child document in child and parent indices
           bulk_request = Elastic.bulk_action(
@@ -144,7 +144,7 @@ module SearchIngest
         index = Broke.table_name
 
         model = Broke.new(breaks: "Think")
-        model.id = RethinkORM::IdGenerator.next(model)
+        model.id = PlaceOS::Model::Utilities::IdGenerator.next(model)
 
         # Add a document to es
         Elastic.create_document(
@@ -173,10 +173,10 @@ module SearchIngest
         parent_index = parents[0][:index]
 
         parent_model = Programmer.new(name: "Isaacs")
-        parent_model.id = RethinkORM::IdGenerator.next(parent_model)
+        parent_model.id = PlaceOS::Model::Utilities::IdGenerator.next(parent_model)
 
         model = Beverage::Coffee.new(temperature: 50)
-        model.id = RethinkORM::IdGenerator.next(model)
+        model.id = PlaceOS::Model::Utilities::IdGenerator.next(model)
         model.programmer = parent_model
 
         # Add document to es
@@ -208,10 +208,10 @@ module SearchIngest
           Elastic.bulk = bulk
 
           parent_model = Programmer.new(name: "Isaacs")
-          parent_model.id = RethinkORM::IdGenerator.next(parent_model)
+          parent_model.id = PlaceOS::Model::Utilities::IdGenerator.next(parent_model)
 
           model = Beverage::Coffee.new(temperature: 50)
-          model.id = RethinkORM::IdGenerator.next(model)
+          model.id = PlaceOS::Model::Utilities::IdGenerator.next(model)
           model.programmer = parent_model
 
           index = Beverage::Coffee.table_name
