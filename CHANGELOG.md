@@ -1,3 +1,9 @@
+## v2.5.1 (2022-12-22)
+
+### Fix
+
+- **shards.lock**: bump placeos-models ([#74](https://github.com/PlaceOS/search-ingest/pull/74))
+
 ## v2.5.0 (2022-09-08)
 
 ### Feat
