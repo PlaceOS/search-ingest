@@ -1,3 +1,9 @@
+## v2.6.0 (2023-05-19)
+
+### Feat
+
+- **asset_manager**: add new asset manager tables ([#77](https://github.com/PlaceOS/search-ingest/pull/77))
+
 ## v2.5.2 (2023-03-15)
 
 ### Refactor
@@ -150,6 +156,9 @@
 - use `standard` tokenizer
 - **table_manager**: prevent clobbering outer scope
 - **constants**: remove redundant logging code
+
+
+- use modified `whitespace` tokenizer
 
 ## v1.19.9 (2021-09-10)
 
