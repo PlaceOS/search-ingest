@@ -93,7 +93,7 @@ module SearchIngest
 
     private def self.pg_healthcheck
       ::DB.connect(pg_healthcheck_url) do |db|
-        db.query_all("select datname, usename from pg_stat_activity where datname is not null", as: {String, String}).first?
+        db.query_all("select datname, usename from pg_stat_activity where datname is not null", as: {String?, String?}).first?
       end
     end
 
