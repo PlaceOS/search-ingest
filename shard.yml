@@ -32,7 +32,7 @@ dependencies:
 
   placeos-models:
     github: placeos/models
-    version: ~> 9.5
+    version: ~> 9.7
 
   promise:
     github: spider-gazelle/promise
