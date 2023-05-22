@@ -31,10 +31,12 @@ services:
       - postgres
     environment:
       # Service Hosts
-      <<: *elastic-client-env
+      <<: [
+        *elastic-client-env,
+        *deployment-env,
+      ]
       # Environment
       GITHUB_ACTION: ${GITHUB_ACTION:-}
-      <<: *deployment-env
 
   elastic:
     image: elasticsearch:${ELASTIC_VERSION:-7.17.6}
