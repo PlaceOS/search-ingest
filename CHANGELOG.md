@@ -1,4 +1,8 @@
-## Unreleased
+## v2.8.0 (2023-06-25)
+
+### Feat
+
+- **shard.lock**: bump models
 
 ## v2.7.0 (2023-05-22)
 
