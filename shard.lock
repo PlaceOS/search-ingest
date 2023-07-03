@@ -58,7 +58,7 @@ shards:
 
   exception_page:
     git: https://github.com/crystal-loot/exception_page.git
-    version: 0.3.0
+    version: 0.3.1
 
   future:
     git: https://github.com/crystal-community/future.cr.git
@@ -110,7 +110,7 @@ shards:
 
   office365:
     git: https://github.com/placeos/office365.git
-    version: 1.20.1
+    version: 1.21.2
 
   open_api:
     git: https://github.com/elbywan/open_api.cr.git
@@ -158,7 +158,7 @@ shards:
 
   place_calendar:
     git: https://github.com/placeos/calendar.git
-    version: 4.18.0
+    version: 4.18.3
 
   placeos-log-backend:
     git: https://github.com/place-labs/log-backend.git
@@ -166,7 +166,7 @@ shards:
 
   placeos-models:
     git: https://github.com/placeos/models.git
-    version: 9.12.0
+    version: 9.13.0
 
   placeos-resource:
     git: https://github.com/place-labs/resource.git
