@@ -1,5 +1,5 @@
 name: search-ingest
-version: 2.9.2
+version: 2.9.3
 crystal: ">= 1.0.0"
 license: MIT
 authors:
