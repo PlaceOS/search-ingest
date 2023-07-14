@@ -1,3 +1,9 @@
+## v2.9.4 (2023-07-14)
+
+### Fix
+
+- **resource**: replaced change feed iterator with async closure
+
 ## v2.9.3 (2023-07-14)
 
 ### Fix
