@@ -1,3 +1,9 @@
+## v2.10.1 (2023-07-18)
+
+### Fix
+
+- **api**: return healthy while we are starting up
+
 ## v2.10.0 (2023-07-18)
 
 ### Feat
