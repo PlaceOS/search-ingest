@@ -55,6 +55,21 @@ module SearchIngest
 
     class_property? failed_healthcheck : Bool = false
 
+    # has the service finished loading
+    @[AC::Route::GET("/ready")]
+    def ready : Nil
+      raise Error::NotReady.new("startup has not completed") unless self.class.table_manager.load_complete?
+    end
+
+    class Error < Exception
+      class NotReady < Error
+      end
+    end
+
+    @[AC::Route::Exception(Error::NotReady, status_code: HTTP::Status::SERVICE_UNAVAILABLE)]
+    def not_ready_error(_error) : Nil
+    end
+
     # health check
     @[AC::Route::GET("/")]
     def index : Nil
