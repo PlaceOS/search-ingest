@@ -49,12 +49,12 @@ module SearchIngest
     # Yield an acquired client from the pool
     #
     def self.client(&)
-      pool = (@@pool ||= DB::Pool(Elastic).new(
+      pool = (@@pool ||= DB::Pool(Elastic).new(DB::Pool::Options.new(
         initial_pool_size: settings.pool_size // 4,
         max_pool_size: settings.pool_size,
         max_idle_pool_size: settings.idle_pool_size,
         checkout_timeout: settings.pool_timeout
-      ) { Elastic.new }).as(DB::Pool(Elastic))
+      )) { Elastic.new }).as(DB::Pool(Elastic))
 
       pool.retry do
         client = pool.checkout

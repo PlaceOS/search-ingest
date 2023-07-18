@@ -31,7 +31,8 @@ module SearchIngest
         Elastic.client &.put("/#{index}", Elastic.headers, body: wrong_schema)
         get_schema.call["mappings"].should eq wrong_schema["mappings"]
 
-        TableManager.new(tables, backfill: false, watch: false)
+        manager = TableManager.new(tables, backfill: false, watch: false)
+        manager.load_success?.should be_true
 
         schema = JSON.parse(schemas.index_schema(Broke))
 

@@ -186,7 +186,13 @@ else
   Log.info { "Mirroring #{SearchIngest::MANAGED_TABLES.map(&.name).sort!.join(", ")}" }
 
   # Start API's TableManager instance
-  SearchIngest::Api.table_manager
+  manager = SearchIngest::Api.table_manager
+  spawn do
+    if !manager.load_success?
+      Log.fatal(exception: manager.load_error) { "failed to index resources" }
+      server.close
+    end
+  end
 
   # Start the server
   server.run do
