@@ -3,7 +3,7 @@ openapi: 3.0.3
 info:
   description: monitors for changes occuring in the database and sends them to elasticsearch
   title: search-ingest
-  version: 2.3.4
+  version: 2.9.4
 paths:
   /api/search-ingest/v1/reindex:
     post:
@@ -20,6 +20,8 @@ paths:
       responses:
         200:
           description: OK
+        503:
+          description: Service Unavailable
         406:
           description: Not Acceptable
           content:
@@ -54,6 +56,8 @@ paths:
       responses:
         200:
           description: OK
+        503:
+          description: Service Unavailable
         406:
           description: Not Acceptable
           content:
@@ -92,6 +96,44 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PlaceOS__Model__Version'
+        503:
+          description: Service Unavailable
+        406:
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIngest__Api__ContentError'
+        415:
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIngest__Api__ContentError'
+        422:
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIngest__Api__ParameterError'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIngest__Api__ParameterError'
+  /api/search-ingest/v1/ready:
+    get:
+      summary: has the service finished loading
+      tags:
+      - Api
+      operationId: SearchIngest::Api#ready
+      parameters: []
+      responses:
+        200:
+          description: OK
+        503:
+          description: Service Unavailable
         406:
           description: Not Acceptable
           content:
@@ -126,6 +168,8 @@ paths:
       responses:
         200:
           description: OK
+        503:
+          description: Service Unavailable
         406:
           description: Not Acceptable
           content:
