@@ -1,3 +1,9 @@
+## v2.10.0 (2023-07-18)
+
+### Feat
+
+- add service loading route for k8s ([#81](https://github.com/PlaceOS/search-ingest/pull/81))
+
 ## v2.9.4 (2023-07-14)
 
 ### Fix
