@@ -73,6 +73,8 @@ module SearchIngest
     # health check
     @[AC::Route::GET("/")]
     def index : Nil
+      return unless self.class.table_manager.load_complete?
+
       if self.class.healthcheck?
         if self.class.failed_healthcheck?
           self.class.failed_healthcheck = false
