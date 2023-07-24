@@ -1,3 +1,9 @@
+## v2.10.2 (2023-07-24)
+
+### Fix
+
+- **table**: update to a lazy model loading method
+
 ## v2.10.1 (2023-07-18)
 
 ### Fix
