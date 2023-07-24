@@ -97,7 +97,7 @@ module SearchIngest
     protected def backfill_batch(&)
       errored = false
       promises = [] of Promise(Int32)
-      T.all.in_groups_of(100, reuse: true) do |docs|
+      T.order(id: :asc).all.in_groups_of(100, reuse: true) do |docs|
         batch = docs.compact
         Log.with_context(method: "backfill", table: T.table_name) do
           promise = yield batch
