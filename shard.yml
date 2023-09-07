@@ -12,7 +12,6 @@ targets:
 dependencies:
   action-controller:
     github: spider-gazelle/action-controller
-    version: ~> 7.2
 
   habitat:
     github: luckyframework/habitat
@@ -20,11 +19,9 @@ dependencies:
 
   log_helper:
     github: spider-gazelle/log_helper
-    version: ~> 1.0
 
   placeos-resource:
     github: place-labs/resource
-    version: ~> 3.0
 
   placeos-log-backend:
     github: place-labs/log-backend
@@ -32,11 +29,9 @@ dependencies:
 
   placeos-models:
     github: placeos/models
-    version: ~> 9.7
 
   promise:
     github: spider-gazelle/promise
-    version: ~> 3.0
 
   pg-orm:
     github: spider-gazelle/pg-orm
