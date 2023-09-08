@@ -1,3 +1,9 @@
+## v2.10.3 (2023-09-08)
+
+### Fix
+
+- api-key indexing resolved via dependency bump [PPT-783]
+
 ## v2.10.2 (2023-07-24)
 
 ### Fix
