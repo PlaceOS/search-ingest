@@ -28,6 +28,9 @@ SearchIngest::MANAGED_TABLES = [
   PlaceOS::Model::AssetType,
   PlaceOS::Model::Asset,
   PlaceOS::Model::AssetPurchaseOrder,
+  PlaceOS::Model::Shortener,
+  Model::Playlist,
+  Model::Playlist::Item,
 ]
 
 # Application code
