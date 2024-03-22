@@ -1,3 +1,9 @@
+## v2.11.1 (2024-03-22)
+
+### Fix
+
+- **config**: scope models correctly
+
 ## v2.11.0 (2023-10-17)
 
 ### Feat
