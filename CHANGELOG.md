@@ -1,3 +1,9 @@
+## Unreleased
+
+### Fix
+
+- **schemas**: ignore parent if no index
+
 ## v2.11.1 (2024-03-22)
 
 ### Fix
