@@ -16,9 +16,13 @@ module SearchIngest
     end
 
     # Strips the namespace from the model
-    def self.document_name(model : Class | String)
-      model = model.name unless model.is_a? String
+    def self.document_name(model : String)
       model.split("::").last
+    end
+
+    # Strips the namespace from the model
+    def self.document_name(model : Class)
+      document_name model.name
     end
 
     # Look up model schema by class
@@ -259,10 +263,12 @@ module SearchIngest
       document_name = self.class.document_name(model)
       MODEL_METADATA[document_name].attributes.compact_map do |field, options|
         parent_name = options.tags[:parent]?
-        unless parent_name.nil?
+        next nil unless parent_name
+
+        if idx_name = (index_name(parent_name) rescue nil)
           {
             name:         parent_name,
-            index:        index_name(parent_name),
+            index:        idx_name,
             routing_attr: field,
           }
         end
