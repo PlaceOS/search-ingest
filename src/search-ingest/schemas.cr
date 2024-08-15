@@ -76,6 +76,7 @@ module SearchIngest
           },
         },
         mappings: {
+          dynamic:    false,
           properties: property_mapping,
         },
       }.to_json
@@ -151,6 +152,8 @@ module SearchIngest
       properties = MODEL_METADATA[document_name].attributes.compact_map do |field, options|
         ::Log.with_context do
           Log.context.set(model: document_name, field: field.to_s)
+
+          next if options.tags[:es_ignore]?.try &.downcase.== "true"
 
           type_tag = validate_tag(options.tags[:es_type]?)
           subfield = validate_tag(options.tags[:es_subfield]?).try { |v| [v] }
@@ -335,6 +338,7 @@ module SearchIngest
           else
             tags = tags.each_with_object({} of Symbol => String) do |(k, v), object|
               case v
+              when Bool   then object[k] = v.to_s
               when String then object[k] = v
               when Symbol then object[k] = v.to_s
               end
