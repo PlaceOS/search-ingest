@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Feat
+
+- PPT-1476 add es_ignore attribute to avoid dynamic mapping ([#83](https://github.com/PlaceOS/search-ingest/pull/83))
+
 ### Fix
 
 - **schemas**: ignore parent if no index
