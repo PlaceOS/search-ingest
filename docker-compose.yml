@@ -26,6 +26,7 @@ services:
       - ${PWD}/shard.override.yml:/app/shard.override.yml
       - ${PWD}/shard.yml:/app/shard.yml.input
       - ${PWD}/coverage:/app/coverage
+      - ${PWD}/.ameba.yml:/app/.ameba.yml
     depends_on:
       - elastic
       - postgres

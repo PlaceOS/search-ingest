@@ -26,7 +26,7 @@ shards:
 
   connect-proxy:
     git: https://github.com/spider-gazelle/connect-proxy.git
-    version: 2.0.1
+    version: 2.0.2
 
   cron_parser:
     git: https://github.com/kostya/cron_parser.git
@@ -162,7 +162,7 @@ shards:
 
   placeos-models:
     git: https://github.com/placeos/models.git
-    version: 9.56.4
+    version: 9.57.0
 
   placeos-resource:
     git: https://github.com/place-labs/resource.git

@@ -41,7 +41,7 @@ module SearchIngest
         # Check if updated schema applied
         updated_schema.should_not eq JSON.parse(wrong_schema)
 
-        updated_schema["mappings"].should eq schema["mappings"]
+        updated_schema["mappings"].as_h.rehash.should eq schema["mappings"].as_h.rehash
 
         updated_schema.dig("settings", "index", "analysis").as_h.rehash.should eq schema.dig("settings", "analysis").as_h.rehash
       end
