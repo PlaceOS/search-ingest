@@ -38,9 +38,6 @@ require "./api"
 require "./constants"
 require "action-controller"
 
-# Require telemetry after application code
-require "./telemetry"
-
 # Server
 require "action-controller/server"
 

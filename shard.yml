@@ -43,6 +43,9 @@ dependencies:
     github: place-labs/secrets-env
     version: ~> 1.3
 
+  simple_retry:
+    github: spider-gazelle/simple_retry
+
 development_dependencies:
   ameba:
     github: crystal-ameba/ameba

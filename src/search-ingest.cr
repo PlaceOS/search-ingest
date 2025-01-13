@@ -1,16 +1,18 @@
 require "log_helper"
-
+require "simple_retry"
 require "./constants"
 require "./search-ingest/*"
 
 module SearchIngest
   def self.wait_for_elasticsearch
-    Retriable.retry(
-      max_elapsed_time: 1.minutes,
-      on_retry: ->(_e : Exception, n : Int32, _t : Time::Span, _i : Time::Span) {
-        Log.warn { "attempt #{n} connecting to #{SearchIngest::Elastic.settings.host}:#{SearchIngest::Elastic.settings.port}" }
-      }
+    attempt = 0
+    SimpleRetry.try_to(
+      base_interval: 1.second,
+      max_elapsed_time: 1.minute
     ) do
+      attempt += 1
+      Log.warn { "attempt #{attempt} connecting to #{SearchIngest::Elastic.settings.host}:#{SearchIngest::Elastic.settings.port}" } if attempt > 1
+
       # Ensure elastic is available
       raise "retry" unless SearchIngest::Elastic.healthy?
     end
