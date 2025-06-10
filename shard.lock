@@ -16,6 +16,18 @@ shards:
     git: https://github.com/crystal-ameba/ameba.git
     version: 1.6.4
 
+  awscr-s3:
+    git: https://github.com/taylorfinnell/awscr-s3.git
+    version: 0.10.0
+
+  awscr-signer:
+    git: https://github.com/taylorfinnell/awscr-signer.git
+    version: 0.9.0
+
+  azblob:
+    git: https://github.com/spider-gazelle/azblob.cr.git
+    version: 0.1.0+git.commit.16b822289fca1703cafc9dc9206733e86656e01c
+
   backtracer:
     git: https://github.com/sija/backtracer.cr.git
     version: 1.2.4
@@ -98,7 +110,7 @@ shards:
 
   office365:
     git: https://github.com/placeos/office365.git
-    version: 1.25.6
+    version: 1.25.7
 
   openssl_ext:
     git: https://github.com/spider-gazelle/openssl_ext.git
@@ -118,11 +130,11 @@ shards:
 
   pg-orm:
     git: https://github.com/spider-gazelle/pg-orm.git
-    version: 2.0.1
+    version: 2.0.3
 
   place_calendar:
     git: https://github.com/placeos/calendar.git
-    version: 4.24.0
+    version: 4.25.0
 
   placeos-log-backend:
     git: https://github.com/place-labs/log-backend.git
@@ -130,7 +142,7 @@ shards:
 
   placeos-models:
     git: https://github.com/placeos/models.git
-    version: 9.65.1
+    version: 9.67.0
 
   placeos-resource:
     git: https://github.com/place-labs/resource.git
@@ -167,4 +179,8 @@ shards:
   ulid:
     git: https://github.com/place-labs/ulid.git
     version: 0.1.2
+
+  upload-signer:
+    git: https://github.com/spider-gazelle/upload-signer.git
+    version: 0.2.0+git.commit.fdf8a1b2886006777efd01d69450c2028e0cf21e
 
