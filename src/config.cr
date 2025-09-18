@@ -31,6 +31,8 @@ SearchIngest::MANAGED_TABLES = [
   PlaceOS::Model::Shortener,
   PlaceOS::Model::Playlist,
   PlaceOS::Model::Playlist::Item,
+  PlaceOS::Model::AlertDashboard,
+  PlaceOS::Model::Alert,
 ]
 
 # Application code
