@@ -2,6 +2,7 @@
 
 ### Feat
 
+- [PPT-2077] Added alert & dashboard models to config ([#85](https://github.com/PlaceOS/search-ingest/pull/85))
 - PPT-1476 add es_ignore attribute to avoid dynamic mapping ([#83](https://github.com/PlaceOS/search-ingest/pull/83))
 
 ### Fix
