@@ -130,7 +130,7 @@ shards:
 
   pg-orm:
     git: https://github.com/spider-gazelle/pg-orm.git
-    version: 2.0.3
+    version: 2.0.4
 
   place_calendar:
     git: https://github.com/placeos/calendar.git
