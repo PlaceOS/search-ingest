@@ -63,7 +63,7 @@ module SearchIngest
     def initialize(
       @uri : URI = DEFAULT_URI,
       @request_id : String? = nil,
-      @api_version : String = API_VERSION
+      @api_version : String = API_VERSION,
     )
       @connection = HTTP::Client.new(@uri)
     end

@@ -114,7 +114,7 @@ shards:
 
   openssl_ext:
     git: https://github.com/spider-gazelle/openssl_ext.git
-    version: 2.4.4
+    version: 2.5.2
 
   pars:
     git: https://github.com/spider-gazelle/pars.git
@@ -130,7 +130,7 @@ shards:
 
   pg-orm:
     git: https://github.com/spider-gazelle/pg-orm.git
-    version: 2.0.4
+    version: 2.0.5
 
   place_calendar:
     git: https://github.com/placeos/calendar.git

@@ -19,7 +19,7 @@ class RayGun < AbstractBase
   attribute barrel_length : Float32 = 23.42
   attribute rounds : Int32 = 32
   attribute ip : String = "127.0.0.1", es_type: "ip"
-  attribute last_shot : Time = ->{ Time.utc }
+  attribute last_shot : Time = -> { Time.utc }
 end
 
 class Programmer < AbstractBase
@@ -34,14 +34,14 @@ end
 
 class Beverage::Coffee < AbstractBase
   attribute temperature : Int32 = 54
-  attribute created_at : Time = ->{ Time.utc }
+  attribute created_at : Time = -> { Time.utc }
 
   belongs_to Programmer, dependent: :destroy
 end
 
 class Migraine < AbstractBase
   table :ouch
-  attribute duration : Time = ->{ Time.utc + 50.years }
+  attribute duration : Time = -> { Time.utc + 50.years }
 
   belongs_to Programmer
 end

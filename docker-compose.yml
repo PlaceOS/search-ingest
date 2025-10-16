@@ -9,8 +9,13 @@ x-deployment-env: &deployment-env
   PG_DATABASE_URL: ${PG_DATABASE_URL:-postgresql://postgres:password@postgres:5432/ingest_spec}
 
 x-elastic-client-env: &elastic-client-env
-  ELASTIC_HOST: ${ELASTIC_HOST:-elastic}
-  ELASTIC_PORT: ${ELASTIC_PORT:-9200}
+  # ELASTIC_HOST: ${ELASTIC_HOST:-elastic}
+  # ELASTIC_PORT: ${ELASTIC_PORT:-9200}
+  # Basic auth credentials (alternative to ELASTIC_URI)
+  # ELASTIC_USER: ${ELASTIC_USER:-elastic}
+  # ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-testpass123}
+  # Alternative: use ELASTIC_URI with embedded credentials
+  ELASTIC_URI: ${ELASTIC_URI:-http://elastic:testpass123@elastic:9200}
 
 x-search-ingest-client-env: &search-ingest-client-env
   PLACE_SEARCH_INGEST_URI: ${PLACE_SEARCH_INGEST_URI:-http://search-ingest:3000}
@@ -32,10 +37,7 @@ services:
       - postgres
     environment:
       # Service Hosts
-      <<: [
-        *elastic-client-env,
-        *deployment-env,
-      ]
+      <<: [*elastic-client-env, *deployment-env]
       # Environment
       GITHUB_ACTION: ${GITHUB_ACTION:-}
 
@@ -44,6 +46,13 @@ services:
     restart: always
     environment:
       discovery.type: single-node
+      # Enable security features
+      xpack.security.enabled: "true"
+      # Set built-in user passwords
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-testpass123}
+      # Disable SSL for testing (not recommended for production)
+      xpack.security.http.ssl.enabled: "false"
+      xpack.security.transport.ssl.enabled: "false"
 
   postgres:
     hostname: postgres
@@ -59,4 +68,4 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: ingest_spec
     ports:
-       - "5432:5432"
+      - "5432:5432"

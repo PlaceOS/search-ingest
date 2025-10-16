@@ -31,7 +31,7 @@ module SearchIngest
     def initialize(
       @tables : Array(Table::Interface),
       backfill : Bool = false,
-      watch : Bool = false
+      watch : Bool = false,
     )
       Log.debug { {bulk_api: Elastic.bulk?, backfill: backfill, watch: watch, message: "starting TableManager"} }
 

@@ -29,6 +29,8 @@ module SearchIngest
   ES_URI               = self.env_with_deprecation("ELASTIC_URI", "ES_URI").try(&->URI.parse(String))
   ES_HOST              = self.env_with_deprecation("ELASTIC_HOST", "ES_HOST") || "localhost"
   ES_PORT              = self.env_with_deprecation("ELASTIC_PORT", "ES_PORT").try(&.to_i) || 9200
+  ES_USER              = self.env_with_deprecation("ELASTIC_USER", "ES_USER")
+  ES_PASSWORD          = self.env_with_deprecation("ELASTIC_PASSWORD", "ES_PASSWORD")
   ES_CONN_POOL         = self.env_with_deprecation("ELASTIC_CONN_POOL", "ES_CONN_POOL").try(&.to_i)
   ES_IDLE_POOL         = self.env_with_deprecation("ELASTIC_IDLE_POOL", "ES_IDLE_POOL").try(&.to_i)
   ES_CONN_POOL_TIMEOUT = self.env_with_deprecation("ELASTIC_CONN_POOL_TIMEOUT", "ES_CONN_POOL_TIMEOUT").try(&.to_f64) || 5.0
