@@ -2,6 +2,7 @@
 
 ### Feat
 
+- [PPT-2260] Add support for ES client authentication ([#86](https://github.com/PlaceOS/search-ingest/pull/86))
 - [PPT-2077] Added alert & dashboard models to config ([#85](https://github.com/PlaceOS/search-ingest/pull/85))
 - PPT-1476 add es_ignore attribute to avoid dynamic mapping ([#83](https://github.com/PlaceOS/search-ingest/pull/83))
 
