@@ -170,7 +170,7 @@ module SearchIngest
     # Collects all properties relevant to an index and collapse them into a schema
     def collect_index_properties(
       model : String | Class,
-      children : Array(String)? = nil
+      children : Array(String)? = nil,
     ) : Array(Field)
       name = self.class.document_name(model)
       if !children || children.empty?

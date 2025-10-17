@@ -10,7 +10,7 @@ module SearchIngest
       it "applies new mapping to an index" do
         delete_test_indices
         index = Broke.table_name
-        get_schema = ->{
+        get_schema = -> {
           response = JSON.parse(Elastic.client &.get("/#{index}").body)
           # Pluck the fields of interest
           mappings_field = response.dig(index, "mappings")

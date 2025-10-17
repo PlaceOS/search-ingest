@@ -20,6 +20,8 @@ module SearchIngest
       setting host : String = ES_HOST
       setting port : Int32 = ES_PORT
       setting tls : Bool = ES_TLS
+      setting user : String? = ES_USER
+      setting password : String? = ES_PASSWORD
       setting pool_size : Int32 = ES_CONN_POOL || SearchIngest::MANAGED_TABLES.size
       setting idle_pool_size : Int32 = ES_IDLE_POOL || (SearchIngest::MANAGED_TABLES.size // 4)
       setting pool_timeout : Float64 = ES_CONN_POOL_TIMEOUT
@@ -31,16 +33,29 @@ module SearchIngest
       host : String = settings.host,
       port : Int32 = settings.port,
       tls : Bool = settings.tls,
-      uri : URI? = settings.uri
+      uri : URI? = settings.uri,
+      user : String? = settings.user,
+      password : String? = settings.password,
     )
       if uri.nil?
         @client = HTTP::Client.new(host: host, port: port, tls: tls)
+        # Set basic auth if user and password are provided
+        if user && password
+          @client.basic_auth(user, password)
+        end
       else
         if ES_TLS
           context = OpenSSL::SSL::Context::Client.new
           context.verify_mode = OpenSSL::SSL::VerifyMode::NONE
         end
         @client = HTTP::Client.new(uri: uri, tls: context)
+
+        # Extract auth from URI if present, otherwise use separate user/password
+        if (usr = uri.user) && (pwd = uri.password)
+          @client.basic_auth(usr, pwd)
+        elsif user && password
+          @client.basic_auth(user, password)
+        end
       end
     end
 
@@ -168,7 +183,7 @@ module SearchIngest
       document_type : String,
       document_any : Hash(String, JSON::Any)? = nil,
       parent_id : String? = nil,
-      no_children : Bool = true
+      no_children : Bool = true,
     )
       case action
       in .update?, .create?
@@ -328,7 +343,7 @@ module SearchIngest
       document_type : String,
       document_any : Hash(String, JSON::Any)? = nil,
       parent_id : String? = nil,
-      no_children : Bool = true
+      no_children : Bool = true,
     )
       case action
       in .update?

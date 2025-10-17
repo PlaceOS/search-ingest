@@ -8,3 +8,4 @@ app
 bin
 .vscode
 .DS_*
+.env*
