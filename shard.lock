@@ -62,7 +62,7 @@ shards:
 
   eventbus:
     git: https://github.com/spider-gazelle/eventbus.git
-    version: 1.0.0+git.commit.af63536d718348885a553dc4aa6debccc2946289
+    version: 1.0.0+git.commit.fab6102d472ce324db4df74c8df9f4a5fa22dafd
 
   exception_page:
     git: https://github.com/crystal-loot/exception_page.git
@@ -152,17 +152,9 @@ shards:
     git: https://github.com/place-labs/resource.git
     version: 3.1.1
 
-  pool:
-    git: https://github.com/ysbaddaden/pool.git
-    version: 0.2.4
-
   promise:
     git: https://github.com/spider-gazelle/promise.git
     version: 3.2.0
-
-  redis:
-    git: https://github.com/stefanwille/crystal-redis.git
-    version: 2.9.1
 
   retriable:
     git: https://github.com/sija/retriable.cr.git
