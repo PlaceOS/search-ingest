@@ -78,6 +78,13 @@ COPY --from=build /app/bin /
 # Copy tmp directory
 COPY --from=build /tmp /tmp
 
+# chmod for setting permissions on /tmp
+COPY --from=build /bin /bin
+COPY --from=build /lib/ld-musl-* /lib/
+RUN chmod -R a+rwX /tmp
+# hadolint ignore=SC2114,DL3059
+RUN rm -rf /bin /lib
+
 # Use an unprivileged user.
 USER appuser:appuser
 
