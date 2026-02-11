@@ -49,6 +49,9 @@ RUN for binary in /app/bin/*; do \
         xargs -I % sh -c 'mkdir -p $(dirname deps%); cp % deps%;'; \
     done
 
+# Create tmp directory with proper permissions
+RUN rm -rf /tmp && mkdir -p /tmp && chmod 1777 /tmp
+
 # Build a minimal docker image
 FROM scratch
 ENV PATH=$PATH:/
@@ -71,6 +74,16 @@ COPY --from=build /usr/share/zoneinfo/ /usr/share/zoneinfo/
 # Copy the app into place
 COPY --from=build /app/deps /
 COPY --from=build /app/bin /
+
+# Copy tmp directory
+COPY --from=build /tmp /tmp
+
+# chmod for setting permissions on /tmp
+COPY --from=build /bin /bin
+COPY --from=build /lib/ld-musl-* /lib/
+RUN chmod -R a+rwX /tmp
+# hadolint ignore=SC2114,DL3059
+RUN rm -rf /bin /lib
 
 # Use an unprivileged user.
 USER appuser:appuser
