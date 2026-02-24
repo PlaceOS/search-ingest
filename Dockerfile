@@ -1,6 +1,6 @@
 ARG CRYSTAL_VERSION=latest
 
-FROM placeos/crystal:$CRYSTAL_VERSION as build
+FROM placeos/crystal:$CRYSTAL_VERSION AS build
 WORKDIR /app
 
 # Setup commit via a build arg
@@ -37,11 +37,12 @@ COPY ./src /app/src
 RUN UNAME_AT_COMPILE_TIME=true \
     PLACE_COMMIT=$PLACE_COMMIT \
     PLACE_VERSION=$PLACE_VERSION \
-    shards build --production --error-trace
+    shards build --production --error-trace --static
 
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 
 # Extract binary dependencies
+RUN mkdir deps
 RUN for binary in /app/bin/*; do \
         ldd "$binary" | \
         tr -s '[:blank:]' '\n' | \
