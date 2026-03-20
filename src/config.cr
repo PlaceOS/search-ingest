@@ -33,6 +33,7 @@ SearchIngest::MANAGED_TABLES = [
   PlaceOS::Model::Playlist::Item,
   PlaceOS::Model::AlertDashboard,
   PlaceOS::Model::Alert,
+  PlaceOS::Model::SignagePlugin,
 ]
 
 # Application code
