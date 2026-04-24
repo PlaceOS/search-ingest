@@ -2,6 +2,7 @@
 
 ### Feat
 
+- add support for UUID and non string ids
 - **Dockerfile**: switch to static build
 - [PPT-2260] Add support for ES client authentication ([#86](https://github.com/PlaceOS/search-ingest/pull/86))
 - [PPT-2077] Added alert & dashboard models to config ([#85](https://github.com/PlaceOS/search-ingest/pull/85))
