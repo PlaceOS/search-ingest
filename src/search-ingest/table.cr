@@ -27,7 +27,7 @@ module SearchIngest
       parents = schema_data.parents(T)
       no_children = schema_data.children(T).empty?
 
-      Log.debug { {method: "process_resource", action: action.to_json, model: model.to_s, document_id: model.id, parents: parents} }
+      Log.debug { {method: "process_resource", action: action.to_json, model: model.to_s, document_id: model.id.to_s, parents: parents} }
 
       args = {index: index, parents: parents, document: model}
 
