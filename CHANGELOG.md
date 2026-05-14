@@ -10,6 +10,7 @@
 
 ### Fix
 
+- log actual Elasticsearch endpoint when ELASTIC_URI is set ([#88](https://github.com/PlaceOS/search-ingest/pull/88))
 - add SignagePlugin to search indexer
 - **schemas**: ignore parent if no index
 
