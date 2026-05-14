@@ -182,7 +182,7 @@ else
 
   Log.info { "Launching #{SearchIngest::APP_NAME} v#{SearchIngest::VERSION}" }
   Log.info { "With PostgreSQL Database \"#{pg_db}\" on #{PgORM::Database.settings.host}:#{PgORM::Database.settings.port}" }
-  Log.info { "With Elasticsearch on #{SearchIngest::Elastic.settings.host}:#{SearchIngest::Elastic.settings.port}" }
+  Log.info { "With Elasticsearch on #{SearchIngest::Elastic.settings.uri.try(&.host) || SearchIngest::Elastic.settings.host}:#{SearchIngest::Elastic.settings.uri.try(&.port) || SearchIngest::Elastic.settings.port}" }
   Log.info { "Mirroring #{SearchIngest::MANAGED_TABLES.map(&.name).sort!.join(", ")}" }
 
   # Start API's TableManager instance

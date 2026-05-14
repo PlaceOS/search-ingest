@@ -11,12 +11,12 @@ module SearchIngest
       max_elapsed_time: 1.minute
     ) do
       attempt += 1
-      Log.warn { "attempt #{attempt} connecting to #{SearchIngest::Elastic.settings.host}:#{SearchIngest::Elastic.settings.port}" } if attempt > 1
+      Log.warn { "attempt #{attempt} connecting to #{SearchIngest::Elastic.settings.uri.try(&.host) || SearchIngest::Elastic.settings.host}:#{SearchIngest::Elastic.settings.uri.try(&.port) || SearchIngest::Elastic.settings.port}" } if attempt > 1
 
       # Ensure elastic is available
       raise "retry" unless SearchIngest::Elastic.healthy?
     end
   rescue
-    abort("Failed to connect to Elasticsearch on #{SearchIngest::Elastic.settings.host}:#{SearchIngest::Elastic.settings.port}")
+    abort("Failed to connect to Elasticsearch on #{SearchIngest::Elastic.settings.uri.try(&.host) || SearchIngest::Elastic.settings.host}:#{SearchIngest::Elastic.settings.uri.try(&.port) || SearchIngest::Elastic.settings.port}")
   end
 end
