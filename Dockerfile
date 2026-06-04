@@ -23,6 +23,14 @@ RUN adduser \
     --uid "${UID}" \
     "${USER}"
 
+RUN apk add \
+  --update \
+  --no-cache \
+  libunwind-static \
+  libunwind-dev \
+  xz-static \
+  xz-dev
+
 # Install shards for caching
 COPY shard.yml .
 COPY shard.override.yml .
@@ -37,13 +45,21 @@ COPY ./src /app/src
 RUN UNAME_AT_COMPILE_TIME=true \
     PLACE_COMMIT=$PLACE_COMMIT \
     PLACE_VERSION=$PLACE_VERSION \
-    shards build --production --error-trace --static
+     shards build \
+      --debug \
+      --error-trace \
+      --no-color \
+      --static \
+      -O1 \
+      --frame-pointers=always \
+      --link-flags "-no-pie -Wl,-no-pie -Wl,--eh-frame-hdr -Wl,--build-id -rdynamic -Wl,--export-dynamic -lunwind -llzma"
 
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 
 # Extract binary dependencies
 RUN mkdir deps
 RUN for binary in /app/bin/*; do \
+        file "$binary" | grep -q ELF || continue; \
         ldd "$binary" | \
         tr -s '[:blank:]' '\n' | \
         grep '^/' | \
