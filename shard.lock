@@ -50,7 +50,7 @@ shards:
 
   db:
     git: https://github.com/crystal-lang/crystal-db.git
-    version: 0.13.1
+    version: 0.14.0
 
   ed25519:
     git: https://github.com/spider-gazelle/ed25519.git
@@ -62,7 +62,7 @@ shards:
 
   eventbus:
     git: https://github.com/spider-gazelle/eventbus.git
-    version: 1.0.1+git.commit.a707ac06aba16ba6070ff4972acfd839f1f05e15
+    version: 1.0.2+git.commit.1cec22837b2dfa7110376cff55c14ce57050eb9a
 
   exception_page:
     git: https://github.com/crystal-loot/exception_page.git
@@ -130,7 +130,7 @@ shards:
 
   pg:
     git: https://github.com/will/crystal-pg.git
-    version: 0.29.0
+    version: 0.30.0
 
   pg-orm:
     git: https://github.com/spider-gazelle/pg-orm.git
