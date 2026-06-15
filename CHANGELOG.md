@@ -2,6 +2,7 @@
 
 ### Feat
 
+- use nonblocking dns
 - [PPT-2525] Update crystal build for unwind support ([#89](https://github.com/PlaceOS/search-ingest/pull/89))
 - add support for UUID and non string ids
 - **Dockerfile**: switch to static build
