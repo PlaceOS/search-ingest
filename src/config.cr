@@ -1,3 +1,5 @@
+require "dns"
+require "dns/ext/addrinfo"
 require "./logging"
 
 # Engine Models

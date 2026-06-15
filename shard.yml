@@ -46,6 +46,9 @@ dependencies:
   simple_retry:
     github: spider-gazelle/simple_retry
 
+  dns:
+    github: spider-gazelle/dns
+
 development_dependencies:
   ameba:
     github: crystal-ameba/ameba
