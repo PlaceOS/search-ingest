@@ -37,21 +37,13 @@ COPY ./src /app/src
 RUN UNAME_AT_COMPILE_TIME=true \
     PLACE_COMMIT=$PLACE_COMMIT \
     PLACE_VERSION=$PLACE_VERSION \
-     shards build \
-      --debug \
-      --error-trace \
-      --no-color \
-      --static \
-      -O1 \
-      --frame-pointers=always \
-      --link-flags "-no-pie -Wl,-no-pie -Wl,--eh-frame-hdr -Wl,--build-id -rdynamic -Wl,--export-dynamic -lunwind -llzma"
+    shards build --production --error-trace --static
 
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 
 # Extract binary dependencies
 RUN mkdir deps
 RUN for binary in /app/bin/*; do \
-        file "$binary" | grep -q "dynamically linked" || continue; \
         ldd "$binary" | \
         tr -s '[:blank:]' '\n' | \
         grep '^/' | \
