@@ -36,6 +36,7 @@ SearchIngest::MANAGED_TABLES = [
   PlaceOS::Model::AlertDashboard,
   PlaceOS::Model::Alert,
   PlaceOS::Model::SignagePlugin,
+  PlaceOS::Model::SignageTemplate,
   PlaceOS::Model::PendingMail,
 ]
 
